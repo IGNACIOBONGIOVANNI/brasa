@@ -1,0 +1,97 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://fx/placeholder_shape.gd" id="1_shape"]
+[ext_resource type="PackedScene" path="res://world/rock.tscn" id="2_rock"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_horizontal"]
+size = Vector2(272, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vertical"]
+size = Vector2(16, 144)
+
+[node name="TestRoom" type="Node2D"]
+
+[node name="Floor" type="Node2D" parent="."]
+script = ExtResource("1_shape")
+shape = 1
+size = Vector2(240, 144)
+color = Color(0.169, 0.137, 0.2, 1)
+checker_color = Color(0.188, 0.157, 0.227, 1)
+
+[node name="Walls" type="Node2D" parent="."]
+
+[node name="WallTop" type="StaticBody2D" parent="Walls"]
+position = Vector2(0, -80)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/WallTop"]
+shape = SubResource("RectangleShape2D_horizontal")
+
+[node name="Visual" type="Node2D" parent="Walls/WallTop"]
+script = ExtResource("1_shape")
+shape = 1
+size = Vector2(272, 16)
+color = Color(0.29, 0.247, 0.333, 1)
+outline_color = Color(0.106, 0.078, 0.125, 1)
+
+[node name="WallBottom" type="StaticBody2D" parent="Walls"]
+position = Vector2(0, 80)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/WallBottom"]
+shape = SubResource("RectangleShape2D_horizontal")
+
+[node name="Visual" type="Node2D" parent="Walls/WallBottom"]
+script = ExtResource("1_shape")
+shape = 1
+size = Vector2(272, 16)
+color = Color(0.29, 0.247, 0.333, 1)
+outline_color = Color(0.106, 0.078, 0.125, 1)
+
+[node name="WallLeft" type="StaticBody2D" parent="Walls"]
+position = Vector2(-128, 0)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/WallLeft"]
+shape = SubResource("RectangleShape2D_vertical")
+
+[node name="Visual" type="Node2D" parent="Walls/WallLeft"]
+script = ExtResource("1_shape")
+shape = 1
+size = Vector2(16, 144)
+color = Color(0.29, 0.247, 0.333, 1)
+outline_color = Color(0.106, 0.078, 0.125, 1)
+
+[node name="WallRight" type="StaticBody2D" parent="Walls"]
+position = Vector2(128, 0)
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/WallRight"]
+shape = SubResource("RectangleShape2D_vertical")
+
+[node name="Visual" type="Node2D" parent="Walls/WallRight"]
+script = ExtResource("1_shape")
+shape = 1
+size = Vector2(16, 144)
+color = Color(0.29, 0.247, 0.333, 1)
+outline_color = Color(0.106, 0.078, 0.125, 1)
+
+[node name="Rocks" type="Node2D" parent="."]
+
+[node name="Rock1" parent="Rocks" instance=ExtResource("2_rock")]
+position = Vector2(-80, -32)
+
+[node name="Rock2" parent="Rocks" instance=ExtResource("2_rock")]
+position = Vector2(80, -32)
+
+[node name="Rock3" parent="Rocks" instance=ExtResource("2_rock")]
+position = Vector2(-80, 32)
+
+[node name="Rock4" parent="Rocks" instance=ExtResource("2_rock")]
+position = Vector2(80, 32)
+
+[node name="Rock5" parent="Rocks" instance=ExtResource("2_rock")]
+position = Vector2(-16, 0)
+
+[node name="Rock6" parent="Rocks" instance=ExtResource("2_rock")]
+position = Vector2(16, 0)

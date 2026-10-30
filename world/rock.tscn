@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://fx/placeholder_shape.gd" id="1_shape"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rock"]
+size = Vector2(16, 16)
+
+[node name="Rock" type="StaticBody2D"]
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_rock")
+
+[node name="Visual" type="Node2D" parent="."]
+script = ExtResource("1_shape")
+shape = 1
+size = Vector2(16, 16)
+color = Color(0.42, 0.38, 0.46, 1)
+outline_color = Color(0.106, 0.078, 0.125, 1)

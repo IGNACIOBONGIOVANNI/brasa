@@ -1,0 +1,31 @@
+class_name ShotSpec
+extends RefCounted
+## Parámetros finales de un proyectil: stats del tirador × multiplicadores del arma.
+
+const MIN_DAMAGE: float = 0.1
+const MIN_FIRE_RATE: float = 0.5
+const MAX_FIRE_RATE: float = 30.0
+const MIN_RANGE: float = 16.0
+const MIN_SPEED: float = 40.0
+
+var damage: float
+var speed: float
+var max_range: float
+var radius: float
+var color: Color
+
+
+static func build(stats: StatBlock, weapon: WeaponData) -> ShotSpec:
+	var spec := ShotSpec.new()
+	spec.damage = maxf(MIN_DAMAGE, stats.damage * weapon.damage_mult)
+	spec.speed = maxf(MIN_SPEED, stats.shot_speed * weapon.shot_speed_mult)
+	spec.max_range = maxf(MIN_RANGE, stats.shot_range * weapon.range_mult)
+	spec.radius = weapon.bullet_radius
+	spec.color = weapon.bullet_color
+	return spec
+
+
+## Segundos entre disparos.
+static func fire_interval(stats: StatBlock, weapon: WeaponData) -> float:
+	var rate: float = clampf(stats.fire_rate * weapon.fire_rate_mult, MIN_FIRE_RATE, MAX_FIRE_RATE)
+	return 1.0 / rate

@@ -1,0 +1,30 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://entities/player/player.gd" id="1_player"]
+[ext_resource type="Script" path="res://entities/player/player_visual.gd" id="2_visual"]
+[ext_resource type="Script" path="res://components/weapon_component.gd" id="3_weapon"]
+[ext_resource type="Resource" path="res://content/weapons/base_shot.tres" id="4_base_shot"]
+[ext_resource type="PackedScene" path="res://entities/bullets/bullet.tscn" id="5_bullet"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 4.0
+
+[node name="Player" type="CharacterBody2D"]
+collision_layer = 2
+motion_mode = 1
+script = ExtResource("1_player")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 2)
+shape = SubResource("CircleShape2D_body")
+
+[node name="Visual" type="Node2D" parent="."]
+script = ExtResource("2_visual")
+
+[node name="WeaponComponent" type="Node2D" parent="."]
+position = Vector2(0, -1)
+script = ExtResource("3_weapon")
+weapon = ExtResource("4_base_shot")
+bullet_scene = ExtResource("5_bullet")
+bullet_layer = 8
+bullet_mask = 129

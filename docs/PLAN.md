@@ -1,6 +1,6 @@
 # Plan: arquitectura, estructura e hitos
 
-> Estado: **propuesta, espera tu OK.** Nada de esto está implementado todavía salvo el entorno (paso 0).
+> Estado: **aprobado** (2026-10-30). Hito 1 terminado. Los cambios respecto de este plan se anotan en DECISIONS.md.
 
 ## 1. Principios que guían la arquitectura
 
@@ -29,14 +29,14 @@ mi-roguelite/
 ├── core/                        LÓGICA PURA, sin nodos → tests unitarios
 │   ├── rng/                     rng_streams.gd (derivación de seeds por stream)
 │   ├── floor_gen/               floor_generator.gd, floor_layout.gd, room_slot.gd
-│   ├── stats/                   stat_block.gd, stat_calculator.gd
+│   ├── stats/                   stat_calculator.gd (StatBlock es Resource: vive en data/)
 │   ├── items/                   item_pool.gd (pesos por rareza, sin repetir)
-│   ├── combat/                  pattern_math.gd, damage_info.gd, health_math.gd
+│   ├── combat/                  shot_spec.gd, pattern_math.gd, health_math.gd
 │   ├── input/                   input_buffer.gd
 │   ├── rooms/                   room_template_parser.gd (texto ASCII → celdas)
 │   └── save/                    save_schema.gd (versionado y migraciones)
 ├── data/                        CLASES de los Resources (class_name), sin instancias
-│   item_data.gd  stat_modifier.gd  weapon_data.gd  enemy_data.gd  bullet_pattern_data.gd
+│   stat_block.gd  item_data.gd  stat_modifier.gd  weapon_data.gd  enemy_data.gd  bullet_pattern_data.gd
 │   room_template.gd  wave_data.gd  floor_theme.gd  character_data.gd  achievement_data.gd
 ├── content/                     INSTANCIAS .tres (solo datos, editables en el inspector)
 │   ├── items/  weapons/  enemies/  patterns/  characters/  achievements/
