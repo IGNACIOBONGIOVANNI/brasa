@@ -1,0 +1,29 @@
+# Godot 4
+.godot/
+.import/
+*.translation
+export_credentials.cfg
+
+# Builds y exportaciones
+builds/
+export/
+*.exe
+*.pck
+*.zip
+
+# Capturas de Movie Maker y logs locales
+captures/
+logs/
+*.log
+
+# Mono / C# (por si acaso)
+.mono/
+data_*/
+mono_crash.*.json
+
+# Sistema / editores
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+*.tmp

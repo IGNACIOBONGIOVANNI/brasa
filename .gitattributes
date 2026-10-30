@@ -1,0 +1,12 @@
+# Godot escribe LF; normalizamos todo el texto a LF en el repo.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.wav binary
+*.ogg binary
+*.mp3 binary
+*.ttf binary
+*.otf binary
+*.exe binary
+*.pck binary
