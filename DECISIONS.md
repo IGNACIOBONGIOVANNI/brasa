@@ -210,3 +210,38 @@ Formato: fecha, decisión, por qué. Lo marcado **(propuesta)** espera el OK del
   arma con su munición abajo a la derecha, sobre las paredes. El cartel con el nombre del item usa la
   fuente por defecto de Godot sin antialiasing (no hay fuente de píxeles todavía).
 - **Menú dev con submenús:** "Items" lista todo el catálogo y pone un pedestal gratis arriba del jugador.
+
+## Hito 5 — loop completo (2026-10-31)
+
+- **Jefes como EnemyData con fases:** un jefe es un `EnemyData` normal (vida, cuerpo, dibujo) con una
+  lista de `BossPhase` (umbral de vida + un EnemyData con el comportamiento). Al cruzar cada umbral
+  cambia el comportamiento, destella, sacude la cámara y hace una pausa en Recover, así el cambio se
+  lee. No hizo falta una escena ni estados nuevos: los estados leen `enemy.behavior`. Al morir el jefe
+  borra todas las balas enemigas (ganar no debería costar un corazón).
+- **Dos jefes originales:** Campanario (piso 1: farol grande que alterna anillos, espirales y abanicos,
+  3 fases) y Rey Carnero (piso 2: embiste, después dispara, después embiste más rápido; 3 fases).
+- **La run son 2 pisos** (Sótano y Cloacas) en `content/run/run_config.tres`; agregar un piso es
+  agregar un `FloorTheme` a la lista. El piso 2 es más difícil con multiplicadores del tema (vida de
+  enemigos ×1.4, velocidad de balas ×1.15, +1 de dificultad en las plantillas), más salas (9 a 11),
+  un enemigo nuevo (Centinela: ojo que dispara ráfagas y abanicos) y salas propias. Reusa las
+  plantillas del piso 1 además de las suyas.
+- **Premio del jefe:** el item del jefe (pool jefe) se sortea al generar el piso como los demás, pero
+  el pedestal aparece recién al vencerlo, junto con un corazón y la trampilla en el centro. Los Pulsos
+  se recargan al empezar cada piso; el resto (vida, items, monedas) se conserva.
+- **Salida final:** en el último piso la trampilla es un portal; entrar gana la run
+  (`EventBus.run_ended(true)`). La trampilla se activa 0.8 s después de aparecer para no entrar sin
+  querer al recoger el item.
+- **Resumen en vez de reinicio automático:** al morir (1.5 s después) o ganar se muestra un resumen
+  (piso, tiempo, kills, items, seed) con "Otra run" y "Menú". Reemplaza el reinicio automático del hito 2.
+- **Menús por código:** menú principal, pausa (Esc) y resumen arman sus controles por código con un
+  `MenuBuilder` y un tema compartido (`ui/theme/ui_theme.tres`), sin escenas de UI a mano. La pausa no
+  se abre si el juego ya está pausado (transición de sala, menú dev).
+- **HUD del loop:** cartel con el número y nombre del piso al empezar cada uno (reusa el cartel de
+  items) y barra del jefe abajo al centro, con marcas en los umbrales de fase.
+- **Aparecer lejos de los enemigos:** si el jugador aparece sin cruzar una puerta (inicio de piso o
+  salto de debug) lo hace a 3+ celdas de los enemigos de la plantilla.
+- **Capas de dibujo:** las manchas quedan debajo de todo lo demás (pickups, entidades, balas y efectos
+  en z 1); antes la mancha del jefe tapaba la trampilla.
+- **`--skip-menu`** arranca directo en una run. `--demo-input` también salta el menú y aprieta
+  "aceptar" cada 3 s, así una corrida automática pasa por el resumen y arranca otra run.
+- La plantilla provisoria del jefe del hito 3 se borró (la reemplaza la sala del Campanario).

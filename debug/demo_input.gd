@@ -1,8 +1,9 @@
 class_name DemoInput
 extends Node
 ## Simula input determinista: moverse en un ocho, girar la mira, disparar sin parar, rodar cada
-## un rato, usar un Pulso y poner una bomba de vez en cuando. Sirve para capturas con Movie Maker y
-## para corridas headless que ejerciten el gameplay.
+## un rato, usar un Pulso y poner una bomba de vez en cuando, y "aceptar" en los menús (así sigue con
+## otra run desde el resumen). Sirve para capturas con Movie Maker y para corridas headless que
+## ejerciten el gameplay.
 
 const MOVE_ACTIONS: Array[StringName] = [&"move_left", &"move_right", &"move_up", &"move_down"]
 const AIM_ACTIONS: Array[StringName] = [&"aim_left", &"aim_right", &"aim_up", &"aim_down"]
@@ -10,11 +11,13 @@ const TAP_ACTIONS: Array[StringName] = [&"dodge", &"blank", &"bomb"]
 const DODGE_EVERY: float = 2.2
 const BLANK_EVERY: float = 6.5
 const BOMB_EVERY: float = 4.1
+const ACCEPT_EVERY: float = 3.0
 
 var _time: float = 0.0
 var _next_dodge: float = DODGE_EVERY
 var _next_blank: float = BLANK_EVERY
 var _next_bomb: float = BOMB_EVERY
+var _next_accept: float = ACCEPT_EVERY
 
 
 func _physics_process(delta: float) -> void:
@@ -34,6 +37,9 @@ func _physics_process(delta: float) -> void:
 	if _time >= _next_bomb:
 		_next_bomb += BOMB_EVERY
 		Input.action_press(&"bomb")
+	if _time >= _next_accept:
+		_next_accept += ACCEPT_EVERY
+		_send_accept()
 
 
 func _exit_tree() -> void:
@@ -54,3 +60,12 @@ func _press_axis(negative: StringName, positive: StringName, value: float) -> vo
 	else:
 		Input.action_press(positive, value)
 		Input.action_release(negative)
+
+
+## Los botones de los menús responden a eventos, no al estado de Input: se manda uno de verdad.
+func _send_accept() -> void:
+	for pressed: bool in [true, false]:
+		var event := InputEventAction.new()
+		event.action = &"ui_accept"
+		event.pressed = pressed
+		Input.parse_input_event(event)

@@ -1,6 +1,7 @@
 class_name ItemBanner
 extends Control
-## Cartel que aparece arriba al agarrar un item: nombre y descripción, y se desvanece.
+## Cartel que aparece arriba con un título y un subtítulo y se desvanece: el item que se agarró o el
+## piso que empieza.
 
 const SHOW_TIME: float = 2.2
 const FADE_TIME: float = 0.5
@@ -27,8 +28,13 @@ func _ready() -> void:
 
 
 func show_item(item: ItemData) -> void:
-	_title.text = item.display_name
-	_description.text = item.description
+	show_text(item.display_name, item.description)
+
+
+## También sirve para el título de cada piso.
+func show_text(title: String, subtitle: String) -> void:
+	_title.text = title
+	_description.text = subtitle
 	_left = SHOW_TIME + FADE_TIME
 	modulate.a = 1.0
 

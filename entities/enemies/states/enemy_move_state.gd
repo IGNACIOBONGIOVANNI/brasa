@@ -24,20 +24,20 @@ func physics_update(delta: float) -> void:
 		enemy.move_toward_velocity(Vector2.ZERO, delta)
 		return
 	var offset: Vector2 = enemy.to_target()
-	enemy.move_toward_velocity(_desired_direction(offset) * enemy.data.move_speed, delta)
+	enemy.move_toward_velocity(_desired_direction(offset) * enemy.behavior.move_speed, delta)
 	enemy.look_at_target()
 	_cooldown -= delta
-	if _cooldown <= 0.0 and offset.length() <= enemy.data.attack_range:
+	if _cooldown <= 0.0 and offset.length() <= enemy.behavior.attack_range:
 		machine.transition_to(&"Telegraph")
 
 
 func _desired_direction(offset: Vector2) -> Vector2:
 	var toward: Vector2 = offset.normalized()
-	if enemy.data.move_style == EnemyData.MoveStyle.CHASE:
+	if enemy.behavior.move_style == EnemyData.MoveStyle.CHASE:
 		return toward
 	var distance: float = offset.length()
-	if distance > enemy.data.preferred_distance + DISTANCE_MARGIN:
+	if distance > enemy.behavior.preferred_distance + DISTANCE_MARGIN:
 		return toward
-	if distance < enemy.data.preferred_distance - DISTANCE_MARGIN:
+	if distance < enemy.behavior.preferred_distance - DISTANCE_MARGIN:
 		return -toward
 	return toward.orthogonal() * _strafe_sign * STRAFE_FACTOR

@@ -94,15 +94,28 @@ func reachable_from(from: Vector2i) -> Dictionary[Vector2i, bool]:
 
 
 ## Celda caminable más cercana a `pos` (para soltar recompensas o aparecer en el centro), sin
-## contar los lugares de pedestales: así nadie aparece arriba de un item.
-func nearest_walkable(pos: Vector2i) -> Vector2i:
+## contar los lugares de pedestales: así nadie aparece arriba de un item. Con `enemy_clearance` > 0
+## además se aleja esa cantidad de celdas (contando diagonales) de cada enemigo de la plantilla; si
+## no hay ninguna así, se ignora esa condición.
+func nearest_walkable(pos: Vector2i, enemy_clearance: int = 0) -> Vector2i:
 	var best: Vector2i = pos
 	var best_distance: int = 1 << 30
 	for y: int in HEIGHT:
 		for x: int in WIDTH:
 			var cell := Vector2i(x, y)
 			var distance: int = (cell - pos).length_squared()
-			if is_walkable(cell) and not item_spots.has(cell) and distance < best_distance:
+			if is_walkable(cell) and not item_spots.has(cell) and distance < best_distance \
+					and _far_from_enemies(cell, enemy_clearance):
 				best = cell
 				best_distance = distance
+	if best_distance == 1 << 30 and enemy_clearance > 0:
+		return nearest_walkable(pos)
 	return best
+
+
+func _far_from_enemies(cell: Vector2i, clearance: int) -> bool:
+	for marker: EnemyMarker in enemies:
+		var gap: Vector2i = (marker.cell - cell).abs()
+		if maxi(gap.x, gap.y) < clearance:
+			return false
+	return true

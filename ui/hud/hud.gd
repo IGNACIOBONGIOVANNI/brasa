@@ -2,7 +2,8 @@ class_name Hud
 extends CanvasLayer
 ## HUD de la run. Arriba a la izquierda (sobre la pared): corazones, cargas de Pulso, monedas/bombas/
 ## llaves y el activo con su carga. Arriba a la derecha: el minimapa. Abajo (sobre la pared): los
-## items pasivos a la izquierda y el arma con su munición a la derecha. Y el cartel al agarrar un item.
+## items pasivos a la izquierda y el arma con su munición a la derecha. El cartel (item agarrado o
+## piso nuevo) y la barra del jefe.
 
 var _floor: FloorController
 
@@ -13,6 +14,7 @@ var _floor: FloorController
 @onready var _items: ItemsDisplay = $Items
 @onready var _weapon: WeaponDisplay = $Weapon
 @onready var _banner: ItemBanner = $Banner
+@onready var _boss_bar: BossBar = $BossBar
 @onready var _minimap: Minimap = $Minimap
 
 
@@ -27,6 +29,8 @@ func bind_player(player: Player) -> void:
 	RunState.active_changed.connect(_refresh_active)
 	RunState.weapons_changed.connect(_refresh_weapon)
 	EventBus.item_picked.connect(_banner.show_item)
+	EventBus.boss_spawned.connect(_boss_bar.track)
+	EventBus.boss_defeated.connect(_boss_bar.untrack)
 	_refresh_items()
 	_refresh_active()
 	_refresh_weapon()
@@ -35,6 +39,8 @@ func bind_player(player: Player) -> void:
 func bind_floor(floor_controller: FloorController) -> void:
 	_floor = floor_controller
 	_floor.map_changed.connect(_refresh_minimap)
+	EventBus.floor_changed.connect(_on_floor_changed)
+	_on_floor_changed(_floor.floor_index)
 	_refresh_minimap()
 
 
@@ -62,3 +68,7 @@ func _refresh_minimap() -> void:
 	var states: Dictionary[Vector2i, MinimapModel.CellState] = MinimapModel.compute(layout, _floor.visited,
 			_floor.current_cell, _floor.discovered_secrets, _floor.map_revealed)
 	_minimap.set_map(states, kinds)
+
+
+func _on_floor_changed(index: int) -> void:
+	_banner.show_text("Piso %d" % (index + 1), RunState.floor_name)

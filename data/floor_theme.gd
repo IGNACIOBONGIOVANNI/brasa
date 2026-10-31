@@ -12,8 +12,16 @@ extends Resource
 @export var room_count_max: int = 10
 @export var min_boss_distance: int = 3
 @export var templates: Array[RoomTemplate] = []
-## Enemigos que pueden aparecer; la plantilla los nombra por su template_char.
+## Enemigos que pueden aparecer (también el jefe); la plantilla los nombra por su template_char.
 @export var enemies: Array[EnemyData] = []
+
+@export_group("Dificultad")
+## Multiplicador de la vida de los enemigos y jefes del piso.
+@export var enemy_health_mult: float = 1.0
+## Multiplicador de la velocidad de las balas enemigas.
+@export var enemy_bullet_speed_mult: float = 1.0
+## Se suma a la dificultad buscada de cada sala normal (TemplatePicker).
+@export_range(0, 2) var difficulty_bonus: int = 0
 
 @export_group("Recompensas")
 ## Probabilidad de que limpiar una sala dé un pickup.

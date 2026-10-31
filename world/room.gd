@@ -3,7 +3,8 @@ extends Node2D
 ## Una sala del piso armada desde su plantilla. Maneja su combate: la primera vez que se entra, si
 ## hay enemigos, cierra las puertas y larga las oleadas; cuando muere el último enemigo de la
 ## última oleada abre las puertas y sortea un premio (stream LOOT). Los enemigos a veces sueltan
-## una moneda. En el tesoro y la tienda pone los pedestales con los items sorteados del piso.
+## una moneda. En el tesoro y la tienda pone los pedestales con los items sorteados del piso; en la
+## sala del jefe, el pedestal aparece recién al vencerlo (la salida la pone FloorController).
 
 signal door_entered(side: Vector2i)
 signal door_unlock_requested(side: Vector2i)
@@ -15,8 +16,12 @@ const ENEMY_SCENE: PackedScene = preload("res://entities/enemies/enemy.tscn")
 const PICKUP_SCENE: PackedScene = preload("res://entities/pickups/pickup.tscn")
 const PEDESTAL_SCENE: PackedScene = preload("res://entities/pickups/item_pedestal.tscn")
 const DOOR_SCENE: PackedScene = preload("res://world/door.tscn")
+const EXIT_SCENE: PackedScene = preload("res://entities/exit/trapdoor.tscn")
 const NEXT_WAVE_DELAY: float = 0.6
 const CLEAR_DELAY: float = 0.35
+const BOSS_HEART_OFFSET: Vector2 = Vector2(0, 32)
+## Celdas de distancia a los enemigos de la plantilla al aparecer sin cruzar una puerta.
+const SPAWN_CLEARANCE: int = 3
 
 var slot: RoomSlot
 var grid: RoomGrid
@@ -55,6 +60,12 @@ func setup(room_slot: RoomSlot, theme: FloorTheme, neighbors: Dictionary[Vector2
 		doors[side] = door
 	for marker: RoomGrid.PickupMarker in grid.pickups:
 		spawn_pickup(theme.pickup_for_symbol(marker.symbol), RoomGrid.cell_center(marker.cell), false)
+	if slot.kind != RoomSlot.Kind.BOSS:
+		_spawn_offers()
+
+
+## Pedestales con los items de la sala (gratis, salvo en la tienda).
+func _spawn_offers() -> void:
 	var for_sale: bool = slot.kind == RoomSlot.Kind.SHOP
 	for i: int in mini(grid.item_spots.size(), slot.offers.size()):
 		var pedestal := PEDESTAL_SCENE.instantiate() as ItemPedestal
@@ -64,9 +75,18 @@ func setup(room_slot: RoomSlot, theme: FloorTheme, neighbors: Dictionary[Vector2
 		($Pickups as Node2D).add_child(pedestal)
 
 
+## Pone la salida (trampilla o salida final) en el centro de la sala.
+func spawn_exit(final: bool) -> Trapdoor:
+	var exit := EXIT_SCENE.instantiate() as Trapdoor
+	exit.final = final
+	exit.position = RoomGrid.cell_center(RoomGrid.CENTER)
+	($Pickups as Node2D).add_child(exit)
+	return exit
+
+
 ## Dónde aparece el jugador si llega sin cruzar una puerta (inicio o debug), en coordenadas locales.
 func spawn_point() -> Vector2:
-	return RoomGrid.cell_center(grid.nearest_walkable(RoomGrid.CENTER))
+	return RoomGrid.cell_center(grid.nearest_walkable(RoomGrid.CENTER, SPAWN_CLEARANCE))
 
 
 ## Dónde aparece el jugador al entrar por la puerta de ese lado, en coordenadas globales.
@@ -134,6 +154,8 @@ func _spawn_wave(index: int, combat_id: int) -> void:
 			continue
 		var enemy := ENEMY_SCENE.instantiate() as Enemy
 		enemy.data = _theme.enemy_for_symbol(marker.symbol)
+		enemy.health_multiplier = _theme.enemy_health_mult
+		enemy.bullet_speed_multiplier = _theme.enemy_bullet_speed_mult
 		enemy.position = _entities.to_local(to_global(RoomGrid.cell_center(marker.cell)))
 		_entities.add_child(enemy)
 		enemy.health.died.connect(_on_enemy_died.bind(enemy))
@@ -167,9 +189,14 @@ func _clear(combat_id: int) -> void:
 	_set_doors(Door.Mode.OPEN)
 	AudioManager.play_sfx(&"door_open")
 	AudioManager.play_sfx(&"room_clear")
-	var reward: PickupData = RoomReward.roll(GameRNG.stream(RngStreams.LOOT), _theme.pickups, _theme.room_reward_chance)
-	if reward != null:
-		spawn_pickup(reward, spawn_point(), true)
+	if slot.kind == RoomSlot.Kind.BOSS:
+		# Premio del jefe: su item y un corazón seguro (debajo de donde aparece la salida).
+		_spawn_offers()
+		spawn_pickup(_theme.pickup_of_kind(PickupData.Kind.HEART), RoomGrid.cell_center(RoomGrid.CENTER) + BOSS_HEART_OFFSET, true)
+	else:
+		var reward: PickupData = RoomReward.roll(GameRNG.stream(RngStreams.LOOT), _theme.pickups, _theme.room_reward_chance)
+		if reward != null:
+			spawn_pickup(reward, spawn_point(), true)
 	EventBus.room_cleared.emit(slot.cell)
 	cleared.emit()
 

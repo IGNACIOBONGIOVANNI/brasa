@@ -5,7 +5,8 @@ extends Node
 ## F3: menú de desarrollo con los comandos que registra la escena actual (pausa el juego). Un
 ## comando "Grupo/Nombre" va adentro del submenú "Grupo".
 ## Argumentos de usuario (después de "--"): --debug-overlay muestra el overlay al arrancar,
-## --demo-input simula input (ver DemoInput) para capturas y corridas automáticas, y
+## --demo-input simula input (ver DemoInput) para capturas y corridas automáticas (también salta el
+## menú, igual que --skip-menu), y
 ## --quit-frames=N cierra el juego prolijo (Main.quit_game) a los N frames. Usar este y no el
 ## --quit-after de Godot, que sale de golpe y deja avisos de audio sin liberar.
 

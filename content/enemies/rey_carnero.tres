@@ -1,0 +1,78 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="2_pattern_script"]
+[ext_resource type="Script" path="res://data/boss_phase.gd" id="3_phase_script"]
+[ext_resource type="Resource" path="res://content/patterns/rey_ring.tres" id="p0"]
+[ext_resource type="Resource" path="res://content/patterns/rey_fan.tres" id="p1"]
+
+[sub_resource type="Resource" id="Behavior_0"]
+script = ExtResource("1_enemy")
+id = &"rey_carnero_fase_1"
+move_style = 0
+move_speed = 40.0
+acceleration = 500.0
+attack_kind = 0
+attack_range = 120.0
+attack_cooldown = 1.4
+telegraph_time = 0.6
+recover_time = 0.8
+charge_speed = 230.0
+charge_time = 0.55
+
+[sub_resource type="Resource" id="Phase_0"]
+script = ExtResource("3_phase_script")
+health_fraction = 1.0
+behavior = SubResource("Behavior_0")
+
+[sub_resource type="Resource" id="Behavior_1"]
+script = ExtResource("1_enemy")
+id = &"rey_carnero_fase_2"
+move_style = 0
+move_speed = 48.0
+acceleration = 500.0
+attack_kind = 1
+attack_range = 300.0
+attack_cooldown = 1.2
+telegraph_time = 0.5
+recover_time = 0.5
+patterns = Array[ExtResource("2_pattern_script")]([ExtResource("p0"), ExtResource("p1")])
+
+[sub_resource type="Resource" id="Phase_1"]
+script = ExtResource("3_phase_script")
+health_fraction = 0.6
+behavior = SubResource("Behavior_1")
+
+[sub_resource type="Resource" id="Behavior_2"]
+script = ExtResource("1_enemy")
+id = &"rey_carnero_fase_3"
+move_style = 0
+move_speed = 55.0
+acceleration = 600.0
+attack_kind = 0
+attack_range = 160.0
+attack_cooldown = 0.8
+telegraph_time = 0.4
+recover_time = 0.5
+charge_speed = 290.0
+charge_time = 0.6
+
+[sub_resource type="Resource" id="Phase_2"]
+script = ExtResource("3_phase_script")
+health_fraction = 0.3
+behavior = SubResource("Behavior_2")
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"rey_carnero"
+display_name = "Rey Carnero"
+template_char = "K"
+max_health = 160.0
+spawn_delay = 1.5
+knockback_resistance = 0.9
+phases = Array[ExtResource("3_phase_script")]([SubResource("Phase_0"), SubResource("Phase_1"), SubResource("Phase_2")])
+body_radius = 11.0
+hurtbox_radius = 14.0
+visual_style = 0
+visual_radius = 15.0
+body_color = Color(0.659, 0.227, 0.165, 1)

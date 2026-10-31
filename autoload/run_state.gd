@@ -1,7 +1,7 @@
 extends Node
-## Estado de la run en curso: stats (recalculados desde los items), items pasivos, el activo y su
-## carga, armas con su munición, el pool de items, cargas de Pulso y monedas, bombas y llaves.
-## La vida vive en el HealthComponent del jugador.
+## Estado de la run en curso: piso, tiempo y muertes (para el resumen), stats (recalculados desde los
+## items), items pasivos, el activo y su carga, armas con su munición, el pool de items, cargas de
+## Pulso y monedas, bombas y llaves. La vida vive en el HealthComponent del jugador.
 
 signal stats_changed(stats: StatBlock)
 signal blanks_changed(count: int)
@@ -33,15 +33,25 @@ var active_charge: int = 0
 var weapons: Array[WeaponSlot] = []
 var current_weapon: int = 0
 var item_pool: ItemPool
+var floor_index: int = 0
+var floor_name: String = ""
+## Segundos jugados (sin contar pausas ni transiciones).
+var run_time: float = 0.0
+var kills: int = 0
 
 
 func _ready() -> void:
 	EventBus.room_cleared.connect(_on_room_cleared)
+	EventBus.enemy_killed.connect(_on_enemy_killed)
 	start_run()
 
 
 func start_run() -> void:
 	base_stats = StatBlock.new()
+	floor_index = 0
+	floor_name = ""
+	run_time = 0.0
+	kills = 0
 	items.clear()
 	active_item = null
 	active_charge = 0
@@ -187,3 +197,7 @@ func _on_room_cleared(_cell: Vector2i) -> void:
 	charge_active(1)
 	for slot: WeaponSlot in weapons:
 		slot.refill(ROOM_CLEAR_AMMO)
+
+
+func _on_enemy_killed(_enemy: Node2D) -> void:
+	kills += 1

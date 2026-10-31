@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://ui/hud/items_display.gd" id="7_items"]
 [ext_resource type="Script" path="res://ui/hud/weapon_display.gd" id="8_weapon"]
 [ext_resource type="Script" path="res://ui/hud/item_banner.gd" id="9_banner"]
+[ext_resource type="Script" path="res://ui/hud/boss_bar.gd" id="10_boss_bar"]
 
 [node name="Hud" type="CanvasLayer"]
 layer = 10
@@ -93,3 +94,13 @@ offset_right = 280.0
 offset_bottom = 46.0
 mouse_filter = 2
 script = ExtResource("9_banner")
+
+[node name="BossBar" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 100.0
+offset_top = 150.0
+offset_right = 220.0
+offset_bottom = 161.0
+mouse_filter = 2
+script = ExtResource("10_boss_bar")

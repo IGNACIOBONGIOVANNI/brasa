@@ -15,14 +15,17 @@ script = ExtResource("1_game")
 [node name="Decals" type="Node2D" parent="." groups=["decals"]]
 
 [node name="Entities" type="Node2D" parent="." groups=["entities"]]
+z_index = 1
 y_sort_enabled = true
 
 [node name="Player" parent="Entities" instance=ExtResource("3_player")]
 position = Vector2(0, 32)
 
 [node name="Projectiles" type="Node2D" parent="." groups=["projectiles"]]
+z_index = 1
 
 [node name="Effects" type="Node2D" parent="." groups=["effects"]]
+z_index = 1
 
 [node name="HitStop" type="Node" parent="."]
 script = ExtResource("4_hit_stop")

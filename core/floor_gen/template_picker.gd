@@ -6,13 +6,15 @@ extends RefCounted
 const MAX_DIFFICULTY: int = 3
 
 
-static func assign(layout: FloorLayout, templates: Array[RoomTemplate], rng: RandomNumberGenerator) -> void:
+## `difficulty_bonus` sube la dificultad de todas las salas normales (pisos más avanzados).
+static func assign(layout: FloorLayout, templates: Array[RoomTemplate], rng: RandomNumberGenerator,
+		difficulty_bonus: int = 0) -> void:
 	var max_distance: int = 1
 	for slot: RoomSlot in layout.slots.values():
 		max_distance = maxi(max_distance, slot.distance)
 	var used: Dictionary[RoomTemplate, bool] = {}
 	for slot: RoomSlot in layout.slots.values():
-		var target: int = difficulty_for(slot.distance, max_distance)
+		var target: int = mini(MAX_DIFFICULTY, difficulty_for(slot.distance, max_distance) + difficulty_bonus)
 		var candidates: Array[RoomTemplate] = _candidates(templates, slot.kind, target, used)
 		if candidates.is_empty():
 			push_error("TemplatePicker: no hay plantillas del tipo %d" % slot.kind)

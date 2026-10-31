@@ -11,6 +11,7 @@ const WEAPONS_DIR: String = "res://content/weapons/"
 const LIBRARY: SfxLibrary = preload("res://content/sfx/sfx_library.tres")
 const FLOOR_1: FloorTheme = preload("res://content/floors/floor_1.tres")
 const CATALOG: ItemCatalog = preload("res://content/items/catalog.tres")
+const RUN: RunConfig = preload("res://content/run/run_config.tres")
 ## Distancia mínima (en celdas, contando diagonales) entre un enemigo y la entrada de una puerta.
 const ENEMY_DOOR_DISTANCE: int = 3
 ## Sonidos que el código pide por id (además de los sfx_id de armas, patrones y pickups).
@@ -39,7 +40,7 @@ func _sfx_ids() -> Array[StringName]:
 
 func test_enemies_are_valid() -> void:
 	var enemies: Array[Resource] = _load_all(ENEMIES_DIR)
-	assert_eq(enemies.size(), 3, "Carnero, Vigía y Farol")
+	assert_gte(enemies.size(), 3, "al menos Carnero, Vigía y Farol")
 	for resource: Resource in enemies:
 		var enemy := resource as EnemyData
 		assert_not_null(enemy, "%s es EnemyData" % resource.resource_path)
@@ -215,9 +216,55 @@ func test_weapons_are_valid_and_cover_every_mode() -> void:
 func test_treasure_and_shop_have_pedestal_spots() -> void:
 	for template: RoomTemplate in FLOOR_1.templates:
 		var spots: int = RoomTemplateParser.parse(template.layout).item_spots.size()
-		if template.kind == RoomSlot.Kind.TREASURE:
-			assert_eq(spots, 1, "%s: un pedestal" % template.id)
+		if template.kind == RoomSlot.Kind.TREASURE or template.kind == RoomSlot.Kind.BOSS:
+			assert_eq(spots, 1, "%s: un pedestal (en el jefe aparece al vencerlo)" % template.id)
 		elif template.kind == RoomSlot.Kind.SHOP:
 			assert_eq(spots, FloorController.SHOP_OFFERS, "%s: un pedestal por oferta" % template.id)
 		else:
 			assert_eq(spots, 0, "%s: sin pedestales" % template.id)
+
+
+func test_run_floors_are_complete() -> void:
+	assert_eq(RUN.floors.size(), 2, "dos pisos")
+	for theme: FloorTheme in RUN.floors:
+		var kinds: Dictionary[RoomSlot.Kind, bool] = {}
+		for template: RoomTemplate in theme.templates:
+			kinds[template.kind] = true
+			var grid: RoomGrid = RoomTemplateParser.parse(template.layout)
+			assert_true(grid.is_valid(), "%s/%s: %s" % [theme.id, template.id, ", ".join(grid.errors)])
+			for marker: RoomGrid.EnemyMarker in grid.enemies:
+				assert_not_null(theme.enemy_for_symbol(marker.symbol), "%s/%s: enemigo %s" % [theme.id, template.id, marker.symbol])
+			if template.kind == RoomSlot.Kind.BOSS:
+				assert_eq(grid.enemies.size(), 1, "%s/%s: un solo enemigo, el jefe" % [theme.id, template.id])
+				var boss: EnemyData = theme.enemy_for_symbol(grid.enemies[0].symbol)
+				assert_false(boss == null or boss.phases.is_empty(), "%s/%s: es un jefe con fases" % [theme.id, template.id])
+		for kind: int in RoomSlot.Kind.size():
+			assert_true(kinds.has(kind), "%s tiene plantillas de tipo %d" % [theme.id, kind])
+	assert_gt(RUN.floors[1].enemy_health_mult, RUN.floors[0].enemy_health_mult, "el piso 2 es más difícil")
+
+
+func test_bosses_have_valid_phases() -> void:
+	var bosses: int = 0
+	for resource: Resource in _load_all(ENEMIES_DIR):
+		var enemy := resource as EnemyData
+		if enemy.phases.is_empty():
+			continue
+		bosses += 1
+		assert_eq(enemy.phases[0].health_fraction, 1.0, "%s: la primera fase arranca con la vida llena" % enemy.id)
+		for i: int in enemy.phases.size():
+			var boss_phase: BossPhase = enemy.phases[i]
+			assert_not_null(boss_phase.behavior, "%s: fase %d con comportamiento" % [enemy.id, i])
+			assert_gt(boss_phase.behavior.telegraph_time, 0.0, "%s: fase %d avisa antes de atacar" % [enemy.id, i])
+			if boss_phase.behavior.attack_kind == EnemyData.AttackKind.SHOOT:
+				assert_gt(boss_phase.behavior.patterns.size(), 0, "%s: fase %d con patrones" % [enemy.id, i])
+			if i > 0:
+				assert_lt(boss_phase.health_fraction, enemy.phases[i - 1].health_fraction, "%s: umbrales de mayor a menor" % enemy.id)
+	assert_gte(bosses, 2, "un jefe por piso")
+
+
+func test_every_floor_2_room_file_is_in_floor_2() -> void:
+	var in_theme: Dictionary[String, bool] = {}
+	for template: RoomTemplate in RUN.floors[1].templates:
+		in_theme[template.resource_path] = true
+	for resource: Resource in _load_all("res://content/rooms/floor_2/"):
+		assert_true(in_theme.has(resource.resource_path), "%s está en floor_2.tres" % resource.resource_path)

@@ -14,6 +14,8 @@ var _pattern: BulletPatternData
 var _target: Node2D
 var _volley: int = 0
 var _next_volley_in: float = 0.0
+## Multiplica la velocidad de las balas (dificultad del piso).
+var speed_multiplier: float = 1.0
 
 
 func is_firing() -> bool:
@@ -42,6 +44,7 @@ func _physics_process(delta: float) -> void:
 
 func _emit_volley() -> void:
 	var spec := ShotSpec.from_pattern(_pattern)
+	spec.speed *= speed_multiplier
 	for direction: Vector2 in PatternMath.directions(_pattern, _aim(), _volley):
 		Bullet.spawn(get_tree(), bullet_scene, spec, global_position + direction * muzzle_distance,
 				direction, bullet_layer, bullet_mask)

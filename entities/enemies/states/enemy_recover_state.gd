@@ -8,7 +8,7 @@ var _time_left: float = 0.0
 
 
 func enter(_previous: StringName) -> void:
-	_time_left = enemy.data.recover_time
+	_time_left = enemy.behavior.recover_time
 
 
 func physics_update(delta: float) -> void:

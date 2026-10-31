@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BulletPatternData" format=3]
+
+[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="1_pattern"]
+
+[resource]
+script = ExtResource("1_pattern")
+id = &"campanario_burst"
+kind = 3
+count = 1
+volleys = 5
+volley_interval = 0.12
+bullet_speed = 120.0
+bullet_color = Color(1, 0.702, 0.278, 1)

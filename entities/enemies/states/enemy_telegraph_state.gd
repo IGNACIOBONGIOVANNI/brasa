@@ -10,7 +10,7 @@ var _time_left: float = 0.0
 
 
 func enter(_previous: StringName) -> void:
-	_time_left = enemy.data.telegraph_time
+	_time_left = enemy.behavior.telegraph_time
 	enemy.flash.start_pulse(PULSE_COLOR)
 	enemy.visual.set_alert(true)
 	AudioManager.play_sfx(&"telegraph", 0.05)

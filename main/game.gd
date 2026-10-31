@@ -1,8 +1,12 @@
 class_name Game
 extends Node2D
-## Una run: conecta el HUD con el jugador (y con el piso, si hay FloorController) y registra los
-## comandos generales del menú de debug (F3). La escena de tests `tests/fixtures/arena.tscn` usa
-## este mismo script con una sala fija y sin piso.
+## Una run: conecta el HUD con el jugador (y con el piso, si hay FloorController), cuenta el tiempo
+## jugado, maneja la pausa y registra los comandos generales del menú de debug (F3). La escena de
+## tests `tests/fixtures/arena.tscn` usa este mismo script con una sala fija, sin piso ni pausa.
+
+## Desde la pausa: volver al menú o salir del juego (los atiende Main).
+signal menu_requested
+signal quit_requested
 
 const ENEMY_SCENE: PackedScene = preload("res://entities/enemies/enemy.tscn")
 const PEDESTAL_SCENE: PackedScene = preload("res://entities/pickups/item_pedestal.tscn")
@@ -15,12 +19,16 @@ const DEV_PEDESTAL_OFFSET: Vector2 = Vector2(0, -28)
 @onready var floor_controller: FloorController = get_node_or_null(^"FloorController") as FloorController
 @onready var _entities: Node2D = $Entities
 @onready var _hud: Hud = $Hud
+@onready var _pause: PauseMenu = get_node_or_null(^"PauseMenu") as PauseMenu
 
 
 func _ready() -> void:
 	_hud.bind_player(player)
 	if floor_controller != null:
 		_hud.bind_floor(floor_controller)
+	if _pause != null:
+		_pause.menu_requested.connect(menu_requested.emit)
+		_pause.quit_requested.connect(quit_requested.emit)
 	Debug.add_command(self, "Curar al jugador", _heal_player)
 	Debug.add_command(self, "Invulnerable si/no", _toggle_invulnerable)
 	Debug.add_command(self, "Recargar Pulsos", _refill_pulses)
@@ -65,3 +73,8 @@ func _give_resources() -> void:
 	RunState.add_coins(DEV_RESOURCES)
 	RunState.add_bombs(DEV_RESOURCES)
 	RunState.add_keys(DEV_RESOURCES)
+
+
+## El tiempo de la run solo corre mientras se juega (la pausa y las transiciones lo frenan).
+func _physics_process(delta: float) -> void:
+	RunState.run_time += delta

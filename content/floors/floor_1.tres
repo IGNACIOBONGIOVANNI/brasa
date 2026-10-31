@@ -8,7 +8,7 @@
 [ext_resource type="Resource" path="res://content/rooms/floor_1/tesoro.tres" id="r1"]
 [ext_resource type="Resource" path="res://content/rooms/floor_1/tienda.tres" id="r2"]
 [ext_resource type="Resource" path="res://content/rooms/floor_1/secreta.tres" id="r3"]
-[ext_resource type="Resource" path="res://content/rooms/floor_1/jefe_provisorio.tres" id="r4"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/jefe_campanario.tres" id="r4"]
 [ext_resource type="Resource" path="res://content/rooms/floor_1/patio.tres" id="r5"]
 [ext_resource type="Resource" path="res://content/rooms/floor_1/pilares.tres" id="r6"]
 [ext_resource type="Resource" path="res://content/rooms/floor_1/esquinas.tres" id="r7"]
@@ -23,6 +23,7 @@
 [ext_resource type="Resource" path="res://content/enemies/carnero.tres" id="e_carnero"]
 [ext_resource type="Resource" path="res://content/enemies/vigia.tres" id="e_vigia"]
 [ext_resource type="Resource" path="res://content/enemies/farol.tres" id="e_farol"]
+[ext_resource type="Resource" path="res://content/enemies/campanario.tres" id="e_campanario"]
 [ext_resource type="Resource" path="res://content/pickups/coin.tres" id="p_coin"]
 [ext_resource type="Resource" path="res://content/pickups/heart.tres" id="p_heart"]
 [ext_resource type="Resource" path="res://content/pickups/bomb.tres" id="p_bomb"]
@@ -33,5 +34,5 @@ script = ExtResource("1_theme")
 id = &"floor_1"
 display_name = "Sótano"
 templates = Array[ExtResource("2_template_script")]([ExtResource("r0"), ExtResource("r1"), ExtResource("r2"), ExtResource("r3"), ExtResource("r4"), ExtResource("r5"), ExtResource("r6"), ExtResource("r7"), ExtResource("r8"), ExtResource("r9"), ExtResource("r10"), ExtResource("r11"), ExtResource("r12"), ExtResource("r13"), ExtResource("r14"), ExtResource("r15")])
-enemies = Array[ExtResource("3_enemy_script")]([ExtResource("e_carnero"), ExtResource("e_vigia"), ExtResource("e_farol")])
+enemies = Array[ExtResource("3_enemy_script")]([ExtResource("e_carnero"), ExtResource("e_vigia"), ExtResource("e_farol"), ExtResource("e_campanario")])
 pickups = Array[ExtResource("4_pickup_script")]([ExtResource("p_coin"), ExtResource("p_heart"), ExtResource("p_bomb"), ExtResource("p_key")])

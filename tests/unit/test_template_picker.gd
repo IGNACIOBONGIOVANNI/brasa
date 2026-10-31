@@ -57,6 +57,16 @@ func test_normal_rooms_never_exceed_target_difficulty() -> void:
 				assert_lte(slot.template.difficulty, TemplatePicker.difficulty_for(slot.distance, max_distance))
 
 
+func test_difficulty_bonus_makes_rooms_harder() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 11
+	var layout: FloorLayout = FloorGenerator.generate(rng, FloorParams.new())
+	TemplatePicker.assign(layout, _templates(), rng, 1)
+	for slot: RoomSlot in layout.slots.values():
+		if slot.kind == RoomSlot.Kind.NORMAL and slot.distance <= 1:
+			assert_gte(slot.template.difficulty, 2, "cerca del inicio ya es dificultad 2")
+
+
 func test_same_seed_picks_same_templates() -> void:
 	var first: FloorLayout = _layout(321)
 	var second: FloorLayout = _layout(321)

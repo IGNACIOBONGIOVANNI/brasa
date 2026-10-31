@@ -14,10 +14,10 @@ var _time_left: float = 0.0
 
 
 func enter(_previous: StringName) -> void:
-	if enemy.data.attack_kind == EnemyData.AttackKind.CHARGE:
+	if enemy.behavior.attack_kind == EnemyData.AttackKind.CHARGE:
 		var offset: Vector2 = enemy.to_target()
 		_charge_direction = offset.normalized() if offset != Vector2.ZERO else enemy.visual.look_direction
-		_time_left = enemy.data.charge_time
+		_time_left = enemy.behavior.charge_time
 		enemy.visual.set_charging(true)
 		AudioManager.play_sfx(&"charge", 0.05)
 		return
@@ -29,12 +29,12 @@ func enter(_previous: StringName) -> void:
 func exit() -> void:
 	enemy.visual.set_charging(false)
 	enemy.emitter.stop()
-	if enemy.data.attack_kind == EnemyData.AttackKind.CHARGE:
+	if enemy.behavior.attack_kind == EnemyData.AttackKind.CHARGE:
 		enemy.move_velocity *= CHARGE_END_FACTOR
 
 
 func physics_update(delta: float) -> void:
-	if enemy.data.attack_kind == EnemyData.AttackKind.CHARGE:
+	if enemy.behavior.attack_kind == EnemyData.AttackKind.CHARGE:
 		_update_charge(delta)
 		return
 	enemy.move_toward_velocity(Vector2.ZERO, delta)
@@ -44,7 +44,7 @@ func physics_update(delta: float) -> void:
 
 func _update_charge(delta: float) -> void:
 	_time_left -= delta
-	enemy.move_velocity = _charge_direction * enemy.data.charge_speed
+	enemy.move_velocity = _charge_direction * enemy.behavior.charge_speed
 	enemy.apply_velocity()
 	if enemy.get_slide_collision_count() > 0:
 		EventBus.shake_requested.emit(WALL_BUMP_TRAUMA)

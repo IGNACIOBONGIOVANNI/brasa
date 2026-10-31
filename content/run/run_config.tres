@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RunConfig" format=3]
+
+[ext_resource type="Script" path="res://data/run_config.gd" id="1_run"]
+[ext_resource type="Script" path="res://data/floor_theme.gd" id="2_theme_script"]
+[ext_resource type="Resource" path="res://content/floors/floor_1.tres" id="3_floor_1"]
+[ext_resource type="Resource" path="res://content/floors/floor_2.tres" id="4_floor_2"]
+
+[resource]
+script = ExtResource("1_run")
+floors = Array[ExtResource("2_theme_script")]([ExtResource("3_floor_1"), ExtResource("4_floor_2")])

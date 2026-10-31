@@ -191,3 +191,59 @@ func test_shop_opens_with_a_key_and_sells_items() -> void:
 	assert_eq(pedestals.size(), FloorController.SHOP_OFFERS)
 	for pedestal: ItemPedestal in pedestals:
 		assert_gt(pedestal.price, 0, "en la tienda todo tiene precio")
+
+
+func _exit_in(room: Room) -> Trapdoor:
+	for child: Node in room.get_node("Pickups").get_children():
+		if child is Trapdoor:
+			return child as Trapdoor
+	return null
+
+
+## Va a la sala del jefe del piso actual, lo mata y espera a que la sala quede limpia.
+func _beat_the_boss() -> Room:
+	await _floor.move_to(_layout.first_of_kind(RoomSlot.Kind.BOSS))
+	await wait_physics_frames(2)
+	for node: Node in get_tree().get_nodes_in_group(Enemy.GROUP):
+		(node as Enemy).health.kill()
+	await wait_physics_frames(60)
+	return _floor.current_room()
+
+
+func test_beating_the_boss_gives_an_item_and_a_trapdoor() -> void:
+	var room: Room = await _beat_the_boss()
+	assert_eq(room.phase, Room.Phase.CLEARED)
+	assert_eq(_pedestals_in(room).size(), 1, "el pedestal del jefe")
+	assert_not_null(_pedestals_in(room)[0].item)
+	var exit: Trapdoor = _exit_in(room)
+	assert_not_null(exit, "apareció la trampilla")
+	assert_false(exit.final, "en el piso 1 no es la salida final")
+
+
+func test_trapdoor_takes_the_player_to_floor_two() -> void:
+	var room: Room = await _beat_the_boss()
+	RunState.use_blank()
+	_game.player.global_position = _exit_in(room).global_position
+	for _i: int in 180:
+		await wait_physics_frames(1)
+		if _floor.floor_index == 1 and not _floor.is_transitioning():
+			break
+	assert_eq(_floor.floor_index, 1, "piso 2")
+	assert_eq(RunState.floor_index, 1)
+	assert_eq(RunState.floor_name, "Cloacas")
+	assert_eq(_floor.current_cell, _floor.layout.start, "arranca en la sala inicial")
+	assert_eq(_game.get_node("Rooms").get_child_count(), 1, "las salas del piso 1 se borraron")
+	assert_eq(RunState.blanks, RunState.START_BLANKS, "Pulsos recargados")
+	assert_false(get_tree().paused)
+
+
+func test_last_floor_exit_wins_the_run() -> void:
+	_floor.load_floor(1)
+	_layout = _floor.layout
+	var room: Room = await _beat_the_boss()
+	var exit: Trapdoor = _exit_in(room)
+	assert_true(exit.final, "en el último piso es la salida final")
+	watch_signals(EventBus)
+	_game.player.global_position = exit.global_position
+	await wait_physics_frames(roundi(Trapdoor.ARM_TIME * 60.0) + 5)
+	assert_signal_emitted_with_parameters(EventBus, "run_ended", [true])

@@ -47,6 +47,11 @@ enum VisualStyle { HORNED, EYE, LANTERN }
 ## Zona donde recibe las balas del jugador.
 @export var hurtbox_radius: float = 7.0
 
+@export_group("Jefe")
+## Si tiene fases es un jefe: barra de vida propia y comportamiento que cambia según la vida. Los
+## campos de Movimiento y Ataque de este recurso se ignoran; se usan los de cada fase.
+@export var phases: Array[BossPhase] = []
+
 @export_group("Visual placeholder")
 @export var visual_style: VisualStyle = VisualStyle.HORNED
 @export var visual_radius: float = 7.0

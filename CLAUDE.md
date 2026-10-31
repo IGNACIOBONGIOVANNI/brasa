@@ -4,7 +4,8 @@ Roguelite de acción top-down 2D (Godot 4.7.2, GDScript tipado) para Windows. In
 estructura de los roguelites de salas + bullet hell, con contenido 100 % original.
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 4 (items) terminado. Próximo: hito 5 (loop completo), arrancar solo con OK del usuario.
+**Estado:** Hito 5 (loop completo) terminado. Próximo: hito 6 (meta-progresión), arrancar solo con OK
+del usuario.
 
 ## Ejecutables (rutas exactas)
 
@@ -39,9 +40,11 @@ Todos los flags están confirmados con `--help` en 4.7.2. `sed 's/\x1b\[[0-9;]*m
 | Exportar .exe (hito 7) | `"$G" --headless --path . --export-release "Windows Desktop" builds/mi-roguelite.exe` |
 
 Argumentos de usuario del juego (van después de `--`): `--seed=N` fija la seed de todas las runs,
-`--demo-input` simula input (moverse en ocho, girar la mira, disparar, rodar cada 2.2 s y un Pulso
-cada 6.5 s), `--debug-overlay` muestra el overlay y `--quit-frames=N` cierra el juego prolijo a los
-N frames. **Para cortar corridas usar `--quit-frames`, no el `--quit-after` de Godot** (ver gotchas).
+`--skip-menu` arranca directo en una run, `--demo-input` simula input (moverse en ocho, girar la mira,
+disparar, rodar, Pulso, bomba y "aceptar" en los menús cada 3 s; también salta el menú),
+`--debug-overlay` muestra el overlay y `--quit-frames=N` cierra el juego prolijo a los N frames.
+**Para cortar corridas usar `--quit-frames`, no el `--quit-after` de Godot** (ver gotchas). Sin
+`--skip-menu` ni `--demo-input` el juego arranca en el menú principal.
 
 **Movie Maker funciona** (abre una ventana unos segundos): graba PNG a 320x180 en `captures/`
 (`frame00000000.png`, ...) y además `frame.wav` (estéreo, 48 kHz, 32 bits) con el audio del juego.
@@ -106,6 +109,11 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   el primer tick todavía está apagado: chequear `monitoring` antes (ver `OrbitRing`).
 - Desde PowerShell no está cargado `System.Drawing.ColorTranslator`: para escribir colores en `.tres`
   convertir el hex a mano (`[Convert]::ToInt32(..., 16) / 255`).
+- Un `call_deferred` sobre un lambda que capturó un nodo falla ("Lambda capture was freed") si el
+  nodo se libera antes: capturar `get_instance_id()` y buscarlo con `instance_from_id` (ver
+  `MenuBuilder.focus_later`).
+- En headless, `_process` corre mucho más rápido que la física (no hay vsync): para medir tiempo en
+  corridas automáticas contar ticks de `_physics_process`, no frames de `_process`.
 - Hay una clase global `State` (máquina de estados): ningún enum interno puede llamarse `State`
   (por eso `Door.Mode` y `Room.Phase`).
 - Desde un callback de física (`body_entered`, `area_entered`) no se pueden agregar ni sacar cuerpos o
@@ -160,7 +168,8 @@ addons/gut/                 GUT 9.7.1 (terceros, no modificar)
 autoload/                   game_rng, event_bus, audio_manager, run_state, debug
 core/physics_layers.gd      PhysicsLayers: bits de las capas de colisión
 core/rng/                   RngStreams: streams con seed derivada
-core/combat/                ShotSpec, HealthMath, PatternMath, HitInfo, WeaponSlot (munición y recarga)
+core/combat/                ShotSpec, HealthMath, PatternMath, HitInfo, WeaponSlot (munición y recarga),
+                            PhaseMath (fase del jefe según su vida)
 core/input/                 InputBuffer
 core/audio/                 SfxSynth (sintetizador de sonidos placeholder)
 core/floor_gen/             FloorGenerator, FloorLayout, RoomSlot, FloorParams, TemplatePicker, MinimapModel
@@ -168,11 +177,14 @@ core/rooms/                 RoomTemplateParser (texto → RoomGrid)
 core/loot/                  RoomReward (premio por limpiar sala)
 core/stats/                 StatCalculator (base + ADD, × MULT, límites)
 core/items/                 ItemPool (sorteo por pool y rareza, sin repetir)
-data/                       StatBlock, StatModifier, WeaponData, ItemData, ItemCatalog, EnemyData,
-                            BulletPatternData, SfxData, SfxLibrary, RoomTemplate, FloorTheme, PickupData
+data/                       StatBlock, StatModifier, WeaponData, ItemData, ItemCatalog, EnemyData, BossPhase,
+                            BulletPatternData, SfxData, SfxLibrary, RoomTemplate, FloorTheme, PickupData,
+                            RunConfig
 content/                    weapons/ (pistola, trabuco, metralla, haz, órbita), items/ (15 + catalog),
-                            enemies/ (carnero, vigia, farol), patterns/ (4), sfx/sfx_library,
-                            rooms/floor_1/ (16 plantillas), floors/floor_1, pickups/ (coin, heart, bomb, key)
+                            enemies/ (carnero, vigia, farol, centinela; jefes campanario y rey_carnero),
+                            patterns/ (14), sfx/sfx_library, rooms/floor_1/ (16) y floor_2/ (5),
+                            floors/ (floor_1 Sótano, floor_2 Cloacas), run/run_config,
+                            pickups/ (coin, heart, bomb, key)
 items/                      ItemHook (base), HookContext, hooks/ (diente de leche, rencor, estallido, caparazón)
 components/                 Weapon, LaserBeam, OrbitRing, Health, Hurtbox, Hitbox, Knockback, Flash,
                             BulletEmitter, ItemHookRunner, state_machine/
@@ -181,22 +193,26 @@ entities/enemies/           enemy.tscn/.gd, enemy_visual.gd, states/ (idle, move
 entities/bullets/           bullet.tscn/.gd (rebote, perforación, teledirigido)
 entities/pickups/           pickup.tscn/.gd, pickup_visual.gd, item_pedestal.tscn/.gd, item_pedestal_visual.gd
 entities/bomb/              bomb.tscn/.gd
+entities/exit/              trapdoor.tscn/.gd (trampilla al piso siguiente o salida final)
 world/                      floor_controller, room.tscn/.gd, room_builder, door.tscn/.gd, door_visual,
                             rock.tscn/.gd, pit.tscn, test_room.tscn (sala fija de la arena de tests)
 fx/                         game_camera, hit_stop, fx (spawner), flash.gdshader, pixel_bitmap, pixel_icons,
-                            partículas (bullet_impact, burst, dust_puff), floor_stain, pulse_wave, placeholder_shape
+                            partículas (bullet_impact, burst, dust_puff), floor_stain, pulse_wave,
+                            placeholder_shape, screen_fade
+ui/theme/                   ui_theme.tres (tema de todos los Control; gui/theme/custom en project.godot)
+ui/menus/                   main_menu, pause_menu, run_summary, menu_builder (arman la UI por código)
 ui/hud/                     hud.tscn/.gd, hearts_display, pulse_display, counters_display, active_display,
-                            items_display, weapon_display, item_banner
+                            items_display, weapon_display, item_banner, boss_bar
 ui/minimap/                 minimap.gd
 debug/                      demo_input.gd
-main/                       main.tscn/.gd (raíz, reinicio, salida prolija) → game.tscn/.gd (una run, un piso)
+main/                       main.tscn/.gd (flujo de pantallas y salida prolija) → game.tscn/.gd (una run)
 tools/                      check_scripts.gd, setup_input_map.gd
 tests/fixtures/             arena.tscn (sala fija con jugador, para tests de combate)
 tests/unit/                 rng_streams, shot_spec, health_math, pattern_math, input_buffer, sfx_synth, content,
                             floor_generator (500 seeds), room_template_parser, template_picker, minimap_model,
-                            room_reward, stat_calculator, item_pool, weapon_slot
+                            room_reward, stat_calculator, item_pool, weapon_slot, phase_math
 tests/integration/          player_shooting, bullets, combat, main_flow, floor, rooms, items,
-                            bullet_behaviors, weapons
+                            bullet_behaviors, weapons, boss
 docs/PLAN.md                plan, arquitectura e hitos
 ```
 
@@ -207,15 +223,22 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
 - **Aleatoriedad:** `GameRNG.stream(RngStreams.FLOOR | LOOT | COMBAT | COSMETIC)`. Seed de cada stream =
   `hash(seed_run, nombre, piso)`. `GameRNG.set_floor(i)` re-deriva todos. Lo visual usa `COSMETIC`; el
   azar de la IA (cooldowns, hacia qué lado se mueve) usa `COMBAT`.
-- **Flujo:** `Main` arranca una run (`GameRNG.start_run`, `RunState.start_run`, instancia `game.tscn`),
-  la reinicia 1.5 s después de `EventBus.player_died` y cierra con `quit_game()` (también al cerrar la
-  ventana). `Game` conecta el HUD (y el minimapa si hay `FloorController`) y registra comandos del F3.
-- **Piso:** `FloorController` (en `game.tscn`) genera el layout con `FloorGenerator` (grilla 9x8,
+- **Flujo:** `Main` maneja las pantallas (`screen`): menú principal → run (`start_run`:
+  `GameRNG.start_run`, `RunState.start_run`, instancia `game.tscn`) → resumen (`finish_run`, 1.5 s
+  después de `EventBus.player_died` o al recibir `EventBus.run_ended(true)`) → otra run o menú. Cierra
+  con `quit_game()` (también al cerrar la ventana). `Game` conecta el HUD (y el minimapa si hay
+  `FloorController`), cuenta `RunState.run_time`, tiene el `PauseMenu` (Esc) y registra comandos del F3.
+- **Pisos:** `FloorController` (en `game.tscn`) recorre los pisos de `RunConfig`. `load_floor(i)` borra
+  el piso anterior, hace `GameRNG.set_floor(i)` y genera el layout con `FloorGenerator` (grilla 9x8,
   árbol sin ciclos que crece desde el centro; jefe en el callejón más lejano, tesoro y tienda en otros
   callejones, secreta en una celda vacía con 2+ vecinas sin tocar al jefe) y `TemplatePicker` (más
-  difícil cuanto más lejos), los dos con el stream FLOOR. Cada sala se arma la primera vez que se entra
-  y queda en el mundo, separada por `ROOM_STRIDE`. Cruzar una puerta pausa el juego, pone al jugador
-  del otro lado y desliza la cámara 0.3 s. `move_to(celda)` sirve para saltar de sala (debug y tests).
+  difícil cuanto más lejos, más `difficulty_bonus` del tema). Cada sala se arma la primera vez que se
+  entra y queda en el mundo, separada por `ROOM_STRIDE`. Cruzar una puerta pausa el juego, pone al
+  jugador del otro lado y desliza la cámara 0.3 s. `move_to(celda)` sirve para saltar de sala (debug y
+  tests). Al vencer al jefe aparece una `Trapdoor`: `advance_floor()` (fundido con `ScreenFade`) o, en
+  el último piso, `EventBus.run_ended(true)`.
+- **Dificultad por piso (FloorTheme):** `enemy_health_mult` y `enemy_bullet_speed_mult` (la sala los
+  pasa a cada `Enemy`), `difficulty_bonus`, más salas y su propio pool de plantillas y enemigos.
 - **Salas:** `Room` + `RoomBuilder` arman piso, paredes con huecos de 32 px, puertas, rocas (`Rock`,
   rompibles) y fosos (capa pit: frenan cuerpos, no balas) desde el `RoomGrid` de la plantilla.
   Fases: UNVISITED → FIGHTING (puertas cerradas, oleadas por mayúsculas/minúsculas) → CLEARED
@@ -260,7 +283,12 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
 - **Enemigos:** una sola escena `enemy.tscn` configurada por `EnemyData` (moverse: CHASE o
   KEEP_DISTANCE; atacar: CHARGE o SHOOT con patrones en orden). Estados compartidos:
   Idle (aparece, sin daño de contacto) → Move → Telegraph (parpadeo amarillo + "!" + sonido) →
-  Attack → Recover. `BulletEmitter` dispara ráfagas re-apuntando; direcciones con `PatternMath`.
+  Attack → Recover. Los estados leen `enemy.behavior` (movimiento y ataque); `enemy.data` da vida,
+  cuerpo y dibujo. `BulletEmitter` dispara ráfagas re-apuntando; direcciones con `PatternMath`.
+- **Jefes:** un `EnemyData` con `phases` (`BossPhase`: umbral de vida + un EnemyData de comportamiento).
+  Al bajar de cada umbral (`PhaseMath`) cambia `behavior`, destella y hace una pausa. Avisan
+  `EventBus.boss_spawned` / `boss_defeated` (barra de vida en el HUD). Al morir borran sus balas; la
+  sala del jefe da su item (pool jefe) y un corazón.
 - **Game feel:** `EventBus.shake_requested(trauma)` → `GameCamera`; `EventBus.hitstop_requested(s)` →
   `HitStop` (time_scale 0 contando ticks reales). Partículas, manchas y ondas con `Fx.spawn` en los
   contenedores `Effects` y `Decals` de `game.tscn`.
@@ -268,17 +296,21 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   `SfxSynth` lo genera al arrancar. Pool de 16 reproductores; si están todos ocupados se omite el sonido.
 - **HUD:** `ui/hud` (CanvasLayer), dibujado con `PixelBitmap` + `PixelIcons`. Arriba (sobre la pared):
   corazones, Pulsos, contadores y el activo con su carga; minimapa (`MinimapModel` → `Minimap`) arriba
-  a la derecha. Abajo: items pasivos a la izquierda, arma y munición a la derecha. `ItemBanner` muestra
-  nombre y descripción al agarrar un item (texto con la fuente por defecto, sin antialiasing:
-  `gui/theme/default_font_antialiasing=0` en project.godot).
+  a la derecha. Abajo: items pasivos a la izquierda, arma y munición a la derecha, y la barra del jefe
+  (`BossBar`). `ItemBanner` muestra el item agarrado o el piso que empieza (texto con la fuente por
+  defecto, sin antialiasing: `gui/theme/default_font_antialiasing=0` en project.godot).
+- **Capas de dibujo:** pisos, paredes y manchas (`Decals`) en z 0; pickups de las salas, entidades,
+  balas y efectos en z 1, así las manchas nunca tapan un pedestal o la trampilla.
+- **Menús:** `MainMenu`, `PauseMenu` y `RunSummary` arman su UI por código con `MenuBuilder` y el
+  tema `ui/theme/ui_theme.tres`. La pausa no se abre si el juego ya está pausado por otra cosa.
 - **Arte placeholder:** cada entidad tiene un hijo `Visual` (script `@tool` que dibuja). Reemplazable
   por sprites manteniendo su interfaz (`set_aim`, `play_hit`, `set_alert`, etc.).
 - **Debug:** autoload `Debug` (solo builds debug): F1 overlay abajo a la derecha (FPS, seed, sala,
   balas), F2 formas de colisión (hurtbox verde, hitbox rojo), F3 menú dev con los comandos que
   registra la escena (`Debug.add_command(dueño, texto, callable)`; un texto "Grupo/Nombre" va a un
   submenú; pausa el juego): ir al jefe, tesoro, tienda, secreta o inicio, revelar mapa, limpiar sala,
-  curar, invulnerable, Pulsos, +5 recursos, cargar activo, morir e "Items" (un pedestal gratis con
-  cualquier item del catálogo, arriba del jugador).
+  siguiente piso (o ganar), curar, invulnerable, Pulsos, +5 recursos, cargar activo, morir e "Items"
+  (un pedestal gratis con cualquier item del catálogo, arriba del jugador).
 - **Coordenadas de una sala:** origen en el centro del interior; interior 240x144 (15x9 tiles de 16 px),
   paredes de 16 px. La celda (i, j) tiene centro en `(-112 + 16i, -64 + 16j)` (`RoomGrid.cell_center`).
   La sala inicial está en el origen del mundo; las demás en `(celda - inicio) * ROOM_STRIDE`.

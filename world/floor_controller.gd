@@ -1,10 +1,11 @@
 class_name FloorController
 extends Node
-## Arma y maneja el piso: genera el layout (FloorGenerator + TemplatePicker con el stream FLOOR),
-## construye cada sala la primera vez que se entra (después quedan armadas, con sus rocas rotas y
-## sus pickups), sortea los items del tesoro y la tienda (stream LOOT), mueve la cámara de sala en
-## sala al cruzar una puerta, destapa las puertas a la secreta con explosiones, abre la tienda con
-## una llave y guarda lo que muestra el minimapa.
+## Arma y maneja los pisos de la run (RunConfig): genera cada layout (FloorGenerator + TemplatePicker
+## con el stream FLOOR del piso), construye cada sala la primera vez que se entra (después quedan
+## armadas, con sus rocas rotas y sus pickups), sortea los items del tesoro, la tienda y el jefe
+## (stream LOOT), mueve la cámara de sala en sala al cruzar una puerta, destapa las puertas a la
+## secreta con explosiones, abre la tienda con una llave y guarda lo que muestra el minimapa.
+## Al vencer al jefe pone la salida: trampilla al piso siguiente o, en el último, la que gana la run.
 
 signal map_changed
 
@@ -17,12 +18,16 @@ const SECRET_REVEAL_MARGIN: float = 16.0
 ## Pedestales de la tienda.
 const SHOP_OFFERS: int = 3
 
-@export var theme: FloorTheme
+@export var run: RunConfig
 @export var rooms_root: Node2D
 @export var entities: Node2D
 @export var player: Player
 @export var camera: Camera2D
+## Fundido entre pisos (opcional).
+@export var fade: ScreenFade
 
+var floor_index: int = 0
+var theme: FloorTheme
 var layout: FloorLayout
 var current_cell: Vector2i
 var visited: Dictionary[Vector2i, bool] = {}
@@ -36,21 +41,74 @@ var _transitioning: bool = false
 
 func _ready() -> void:
 	EventBus.exploded.connect(_on_exploded)
-	GameRNG.set_floor(0)
-	var rng: RandomNumberGenerator = GameRNG.stream(RngStreams.FLOOR)
-	layout = FloorGenerator.generate(rng, _params())
-	TemplatePicker.assign(layout, theme.templates, rng)
-	_roll_offers()
 	_register_dev_commands()
-	var room: Room = _ensure_room(layout.start)
-	player.global_position = room.to_global(room.spawn_point())
-	camera.global_position = room.global_position
-	_enter(layout.start)
+	load_floor(0)
 
 
 func _exit_tree() -> void:
 	if _transitioning:
 		get_tree().paused = false
+
+
+func is_last_floor() -> bool:
+	return floor_index >= run.floors.size() - 1
+
+
+## Arma el piso `index` desde cero (borra el anterior) y pone al jugador en la sala inicial.
+func load_floor(index: int) -> void:
+	floor_index = index
+	theme = run.floors[index]
+	RunState.floor_index = index
+	RunState.floor_name = theme.display_name
+	_clear_world()
+	GameRNG.set_floor(index)
+	var rng: RandomNumberGenerator = GameRNG.stream(RngStreams.FLOOR)
+	layout = FloorGenerator.generate(rng, _params())
+	TemplatePicker.assign(layout, theme.templates, rng, theme.difficulty_bonus)
+	_roll_offers()
+	var room: Room = _ensure_room(layout.start)
+	player.global_position = room.to_global(room.spawn_point())
+	player.stop_motion()
+	camera.global_position = room.global_position
+	_enter(layout.start)
+	EventBus.floor_changed.emit(index)
+
+
+## Baja al piso siguiente con un fundido (el juego queda en pausa mientras tanto). Las cargas de
+## Pulso vuelven a estar completas en cada piso.
+func advance_floor() -> void:
+	if _transitioning or is_last_floor():
+		return
+	_transitioning = true
+	get_tree().paused = true
+	if fade != null:
+		await fade.fade_out()
+	load_floor(floor_index + 1)
+	RunState.set_blanks(RunState.START_BLANKS)
+	if fade != null:
+		await fade.fade_in()
+	get_tree().paused = false
+	_transitioning = false
+
+
+## Saca todo lo del piso anterior: salas, enemigos, bombas, balas, efectos y manchas.
+func _clear_world() -> void:
+	_rooms.clear()
+	visited.clear()
+	discovered_secrets.clear()
+	_opened_edges.clear()
+	map_revealed = false
+	for container: Node in [rooms_root, entities]:
+		for child: Node in container.get_children():
+			if child != player:
+				container.remove_child(child)
+				child.queue_free()
+	for group: StringName in [Bullet.PROJECTILES_GROUP, Fx.EFFECTS_GROUP, Fx.DECALS_GROUP]:
+		var holder: Node = get_tree().get_first_node_in_group(group)
+		if holder != null:
+			for child: Node in holder.get_children():
+				holder.remove_child(child)
+				child.queue_free()
 
 
 func is_transitioning() -> bool:
@@ -126,12 +184,13 @@ func _ensure_room(cell: Vector2i) -> Room:
 	room.setup(layout.get_slot(cell), theme, neighbors, door_modes, entities)
 	room.door_entered.connect(_on_room_door_entered.bind(cell))
 	room.door_unlock_requested.connect(_on_room_door_unlock_requested.bind(cell))
+	room.cleared.connect(_on_room_cleared.bind(cell))
 	rooms_root.add_child(room)
 	_rooms[cell] = room
 	return room
 
 
-## Un pedestal en el tesoro y tres en la tienda, sorteados al generar el piso.
+## Un pedestal en el tesoro, tres en la tienda y el premio del jefe, sorteados al generar el piso.
 func _roll_offers() -> void:
 	var loot: RandomNumberGenerator = GameRNG.stream(RngStreams.LOOT)
 	for cell: Vector2i in layout.cells_of_kind(RoomSlot.Kind.TREASURE):
@@ -139,6 +198,23 @@ func _roll_offers() -> void:
 	for cell: Vector2i in layout.cells_of_kind(RoomSlot.Kind.SHOP):
 		for _i: int in SHOP_OFFERS:
 			layout.get_slot(cell).offers.append(RunState.item_pool.draw(ItemData.POOL_SHOP, loot))
+	for cell: Vector2i in layout.cells_of_kind(RoomSlot.Kind.BOSS):
+		layout.get_slot(cell).offers.append(RunState.item_pool.draw(ItemData.POOL_BOSS, loot))
+
+
+## Al vencer al jefe aparece la salida: al piso siguiente, o la que gana la run en el último.
+func _on_room_cleared(cell: Vector2i) -> void:
+	if layout.get_slot(cell).kind != RoomSlot.Kind.BOSS:
+		return
+	var exit: Trapdoor = get_room(cell).spawn_exit(is_last_floor())
+	exit.entered.connect(_on_exit_entered)
+
+
+func _on_exit_entered() -> void:
+	if is_last_floor():
+		EventBus.run_ended.emit(true)
+	else:
+		advance_floor()
 
 
 static func _edge_key(a: Vector2i, b: Vector2i) -> Vector4i:
@@ -216,6 +292,7 @@ func _register_dev_commands() -> void:
 	Debug.add_command(self, "Volver al inicio", _go_to_kind.bind(RoomSlot.Kind.START))
 	Debug.add_command(self, "Revelar mapa", _reveal_map)
 	Debug.add_command(self, "Limpiar sala", _clear_current_room)
+	Debug.add_command(self, "Siguiente piso (o ganar)", _on_exit_entered)
 
 
 func _go_to_kind(kind: RoomSlot.Kind) -> void:

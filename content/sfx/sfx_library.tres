@@ -297,6 +297,55 @@ freq_end = 1200.0
 duration = 0.15
 volume = 0.25
 
+[sub_resource type="Resource" id="Sfx_boss_phase"]
+script = ExtResource("2_sfx")
+id = &"boss_phase"
+wave = 3
+freq_start = 200.0
+freq_end = 80.0
+duration = 0.5
+decay_power = 0.8
+volume = 0.45
+
+[sub_resource type="Resource" id="Sfx_boss_die"]
+script = ExtResource("2_sfx")
+id = &"boss_die"
+wave = 4
+freq_start = 400.0
+freq_end = 30.0
+duration = 1.0
+decay_power = 0.8
+volume = 0.6
+
+[sub_resource type="Resource" id="Sfx_exit_open"]
+script = ExtResource("2_sfx")
+id = &"exit_open"
+wave = 1
+freq_start = 200.0
+freq_end = 600.0
+duration = 0.6
+attack = 0.05
+decay_power = 0.6
+volume = 0.35
+
+[sub_resource type="Resource" id="Sfx_ui_select"]
+script = ExtResource("2_sfx")
+id = &"ui_select"
+wave = 0
+freq_start = 600.0
+freq_end = 700.0
+duration = 0.04
+volume = 0.15
+
+[sub_resource type="Resource" id="Sfx_pause"]
+script = ExtResource("2_sfx")
+id = &"pause"
+wave = 1
+freq_start = 500.0
+freq_end = 350.0
+duration = 0.08
+volume = 0.2
+
 [resource]
 script = ExtResource("1_library")
-sounds = Array[ExtResource("2_sfx")]([SubResource("Sfx_shoot"), SubResource("Sfx_bullet_impact"), SubResource("Sfx_enemy_shoot"), SubResource("Sfx_enemy_hit"), SubResource("Sfx_enemy_die"), SubResource("Sfx_player_hurt"), SubResource("Sfx_player_die"), SubResource("Sfx_roll"), SubResource("Sfx_pulse"), SubResource("Sfx_empty"), SubResource("Sfx_telegraph"), SubResource("Sfx_charge"), SubResource("Sfx_door_close"), SubResource("Sfx_door_open"), SubResource("Sfx_room_clear"), SubResource("Sfx_pickup_coin"), SubResource("Sfx_pickup"), SubResource("Sfx_pickup_heart"), SubResource("Sfx_bomb_place"), SubResource("Sfx_explosion"), SubResource("Sfx_rock_break"), SubResource("Sfx_secret_found"), SubResource("Sfx_item_pickup"), SubResource("Sfx_buy"), SubResource("Sfx_unlock"), SubResource("Sfx_reload"), SubResource("Sfx_weapon_swap"), SubResource("Sfx_laser"), SubResource("Sfx_active_use"), SubResource("Sfx_active_ready")])
+sounds = Array[ExtResource("2_sfx")]([SubResource("Sfx_shoot"), SubResource("Sfx_bullet_impact"), SubResource("Sfx_enemy_shoot"), SubResource("Sfx_enemy_hit"), SubResource("Sfx_enemy_die"), SubResource("Sfx_player_hurt"), SubResource("Sfx_player_die"), SubResource("Sfx_roll"), SubResource("Sfx_pulse"), SubResource("Sfx_empty"), SubResource("Sfx_telegraph"), SubResource("Sfx_charge"), SubResource("Sfx_door_close"), SubResource("Sfx_door_open"), SubResource("Sfx_room_clear"), SubResource("Sfx_pickup_coin"), SubResource("Sfx_pickup"), SubResource("Sfx_pickup_heart"), SubResource("Sfx_bomb_place"), SubResource("Sfx_explosion"), SubResource("Sfx_rock_break"), SubResource("Sfx_secret_found"), SubResource("Sfx_item_pickup"), SubResource("Sfx_buy"), SubResource("Sfx_unlock"), SubResource("Sfx_reload"), SubResource("Sfx_weapon_swap"), SubResource("Sfx_laser"), SubResource("Sfx_active_use"), SubResource("Sfx_active_ready"), SubResource("Sfx_boss_phase"), SubResource("Sfx_boss_die"), SubResource("Sfx_exit_open"), SubResource("Sfx_ui_select"), SubResource("Sfx_pause")])

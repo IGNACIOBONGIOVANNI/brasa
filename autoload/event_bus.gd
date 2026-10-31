@@ -24,5 +24,12 @@ signal room_entered(cell: Vector2i)
 signal room_cleared(cell: Vector2i)
 ## Explotó una bomba (FloorController la usa para destapar puertas secretas).
 signal exploded(at: Vector2, radius: float)
+## Apareció un jefe (el HUD muestra su barra de vida).
+signal boss_spawned(boss: Node2D)
+signal boss_defeated(boss: Node2D)
+## Empezó un piso (índice desde 0).
+signal floor_changed(index: int)
+## Terminó la run: victoria (salida del último piso) o no.
+signal run_ended(victory: bool)
 
 @warning_ignore_restore("unused_signal")

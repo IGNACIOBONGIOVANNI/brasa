@@ -3,7 +3,9 @@
 [ext_resource type="Script" path="res://main/game.gd" id="1_game"]
 [ext_resource type="PackedScene" path="res://entities/player/player.tscn" id="2_player"]
 [ext_resource type="Script" path="res://world/floor_controller.gd" id="3_floor"]
-[ext_resource type="Resource" path="res://content/floors/floor_1.tres" id="4_floor_1"]
+[ext_resource type="Resource" path="res://content/run/run_config.tres" id="4_run"]
+[ext_resource type="PackedScene" path="res://fx/screen_fade.tscn" id="8_fade"]
+[ext_resource type="PackedScene" path="res://ui/menus/pause_menu.tscn" id="9_pause"]
 [ext_resource type="Script" path="res://fx/hit_stop.gd" id="5_hit_stop"]
 [ext_resource type="Script" path="res://fx/game_camera.gd" id="6_camera"]
 [ext_resource type="PackedScene" path="res://ui/hud/hud.tscn" id="7_hud"]
@@ -16,21 +18,25 @@ script = ExtResource("1_game")
 [node name="Decals" type="Node2D" parent="." groups=["decals"]]
 
 [node name="Entities" type="Node2D" parent="." groups=["entities"]]
+z_index = 1
 y_sort_enabled = true
 
 [node name="Player" parent="Entities" instance=ExtResource("2_player")]
 
 [node name="Projectiles" type="Node2D" parent="." groups=["projectiles"]]
+z_index = 1
 
 [node name="Effects" type="Node2D" parent="." groups=["effects"]]
+z_index = 1
 
-[node name="FloorController" type="Node" parent="." node_paths=PackedStringArray("rooms_root", "entities", "player", "camera")]
+[node name="FloorController" type="Node" parent="." node_paths=PackedStringArray("rooms_root", "entities", "player", "camera", "fade")]
 script = ExtResource("3_floor")
-theme = ExtResource("4_floor_1")
+run = ExtResource("4_run")
 rooms_root = NodePath("../Rooms")
 entities = NodePath("../Entities")
 player = NodePath("../Entities/Player")
 camera = NodePath("../GameCamera")
+fade = NodePath("../ScreenFade")
 
 [node name="HitStop" type="Node" parent="."]
 script = ExtResource("5_hit_stop")
@@ -39,3 +45,7 @@ script = ExtResource("5_hit_stop")
 script = ExtResource("6_camera")
 
 [node name="Hud" parent="." instance=ExtResource("7_hud")]
+
+[node name="ScreenFade" parent="." instance=ExtResource("8_fade")]
+
+[node name="PauseMenu" parent="." instance=ExtResource("9_pause")]
