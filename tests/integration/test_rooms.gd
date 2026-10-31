@@ -19,7 +19,7 @@ const PIT_ROW_LAYOUT: String = """
 ...............
 ...............
 """
-const USED_ACTIONS: Array[StringName] = [&"bomb", &"move_down"]
+const USED_ACTIONS: Array[StringName] = [&"bomb", &"move_down", &"aim_right", &"dodge"]
 
 var _game: Game
 var _player: Player
@@ -100,6 +100,57 @@ func test_bomb_breaks_rocks_and_hurts_everyone_near() -> void:
 	assert_false(is_instance_valid(rock), "la roca se rompió")
 	assert_false(is_instance_valid(enemy), "el Vigía murió")
 	assert_eq(_player.health.current, _player.health.max_health - Bomb.PLAYER_DAMAGE, "al jugador le sacó medio corazón")
+
+
+func _bombs() -> Array[Bomb]:
+	var result: Array[Bomb] = []
+	for node: Node in get_tree().get_nodes_in_group(Fx.ENTITIES_GROUP)[0].get_children():
+		if node is Bomb:
+			result.append(node as Bomb)
+	return result
+
+
+func test_holding_the_bomb_button_aims_and_throws_it() -> void:
+	_player.global_position = Vector2(-40, 56)
+	Input.action_press(&"aim_right")
+	Input.action_press(&"bomb")
+	await wait_seconds(Player.BOMB_HOLD_TIME + 0.2)
+	assert_true(_player.bomb_aim.is_shown(), "mientras se mantiene, marca dónde cae")
+	assert_eq(_bombs().size(), 0, "todavía no la tiró")
+	Input.action_release(&"bomb")
+	await wait_physics_frames(2)
+	assert_false(_player.bomb_aim.is_shown(), "al soltar se va la marca")
+	assert_eq(RunState.bombs, RunState.START_BOMBS - 1, "gastó una")
+	await wait_seconds(Bomb.FLIGHT_TIME + 0.1)
+	var bomb: Bomb = _bombs()[0]
+	assert_false(bomb.is_flying(), "ya cayó")
+	assert_gt(bomb.global_position.x - _player.global_position.x, Player.BOMB_THROW_MIN - 4.0, "lejos, hacia la mira")
+
+
+func test_thrown_bomb_lands_before_the_wall() -> void:
+	_player.global_position = Vector2(60, 56)
+	Input.action_press(&"aim_right")
+	Input.action_press(&"bomb")
+	await wait_seconds(Player.BOMB_HOLD_TIME + Player.BOMB_CHARGE_TIME + 0.1)
+	Input.action_release(&"bomb")
+	await wait_seconds(Bomb.FLIGHT_TIME + 0.15)
+	var bomb: Bomb = _bombs()[0]
+	assert_lt(bomb.global_position.x, 120.0, "no pasa la pared")
+	assert_gt(bomb.global_position.x, 90.0, "pero llega lo más lejos que puede")
+
+
+func test_rolling_cancels_the_aim_without_spending_the_bomb() -> void:
+	Input.action_press(&"aim_right")
+	Input.action_press(&"bomb")
+	await wait_seconds(Player.BOMB_HOLD_TIME + 0.1)
+	assert_true(_player.bomb_aim.is_shown())
+	await _tap(&"dodge")
+	await wait_physics_frames(1)
+	assert_false(_player.bomb_aim.is_shown(), "rodar la cancela")
+	Input.action_release(&"bomb")
+	await wait_seconds(0.5)
+	assert_eq(RunState.bombs, RunState.START_BOMBS, "no gastó la bomba")
+	assert_eq(_bombs().size(), 0)
 
 
 func test_without_bombs_nothing_is_placed() -> void:

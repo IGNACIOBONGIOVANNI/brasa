@@ -1,7 +1,7 @@
 class_name Bomb
 extends Node2D
-## Bomba que pone el jugador: la mecha dura FUSE_TIME (la chispa parpadea cada vez más rápido) y
-## explota. La explosión lastima a todo lo que esté cerca (enemigos y jugador), rompe rocas y avisa
+## Bomba que pone o tira el jugador: la mecha dura FUSE_TIME (la chispa parpadea cada vez más rápido)
+## y explota. Tirada (launch) vuela en arco FLIGHT_TIME hasta donde cae; la mecha corre igual. La explosión lastima a todo lo que esté cerca (enemigos y jugador), rompe rocas y avisa
 ## por EventBus.exploded, que FloorController usa para destapar puertas secretas.
 
 const FUSE_TIME: float = 1.6
@@ -21,13 +21,36 @@ const BURST_SCENE: PackedScene = preload("res://fx/burst.tscn")
 const WAVE_SCENE: PackedScene = preload("res://fx/pulse_wave.tscn")
 const STAIN_SCENE: PackedScene = preload("res://fx/floor_stain.tscn")
 const LIGHT_FLASH_SCENE: PackedScene = preload("res://fx/light_flash.tscn")
+const DUST_SCENE: PackedScene = preload("res://fx/dust_puff.tscn")
+const FLIGHT_TIME: float = 0.4
+const FLIGHT_HEIGHT: float = 18.0
 
 var _fuse_left: float = FUSE_TIME
 var _blink_time: float = 0.0
+var _flight_from: Vector2 = Vector2.ZERO
+var _flight_to: Vector2 = Vector2.ZERO
+var _flight_left: float = 0.0
+
+
+## La tira de `from` a `to` (globales): vuela en arco y cae ahí. Llamar antes de agregarla al árbol.
+func launch(from: Vector2, to: Vector2) -> void:
+	_flight_from = from
+	_flight_to = to
+	_flight_left = FLIGHT_TIME
+
+
+func is_flying() -> bool:
+	return _flight_left > 0.0
 
 
 func _physics_process(delta: float) -> void:
 	_fuse_left -= delta
+	if _flight_left > 0.0:
+		_flight_left = maxf(0.0, _flight_left - delta)
+		global_position = _flight_from.lerp(_flight_to, 1.0 - _flight_left / FLIGHT_TIME)
+		if _flight_left <= 0.0:
+			Fx.spawn(get_tree(), DUST_SCENE, global_position + Vector2(0, 3))
+			AudioManager.play_sfx(&"bomb_place")
 	if _fuse_left <= 0.0:
 		explode()
 
@@ -79,7 +102,9 @@ func _hit(hurtbox: HurtboxComponent, damage: float) -> void:
 func _draw() -> void:
 	draw_set_transform(Vector2(0, 4), 0.0, Vector2(1.0, 0.4))
 	draw_circle(Vector2.ZERO, 5.0, Color(0, 0, 0, 0.35))
-	draw_set_transform(Vector2.ZERO)
+	# En vuelo, la bomba va por arriba de su sombra.
+	var t: float = 1.0 - _flight_left / FLIGHT_TIME
+	draw_set_transform(Vector2(0, -roundf(FLIGHT_HEIGHT * 4.0 * t * (1.0 - t))) if is_flying() else Vector2.ZERO)
 	var progress: float = 1.0 - clampf(_fuse_left / FUSE_TIME, 0.0, 1.0)
 	var period: float = lerpf(BLINK_SLOW, BLINK_FAST, progress)
 	var lit: bool = fmod(_blink_time, period) < period * 0.5

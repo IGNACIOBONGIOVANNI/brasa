@@ -15,6 +15,6 @@ func physics_update(delta: float) -> void:
 		machine.transition_to(&"Roll")
 		return
 	player.try_pulse()
-	player.try_bomb()
+	player.try_bomb(delta)
 	player.try_weapon_actions()
 	player.try_shoot(delta)

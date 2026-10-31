@@ -495,3 +495,16 @@ enemigos de un juego puntual) con nombres e historia propios (ver `docs/LORE.md`
   30): las salas nuevas tardan un poco más en la Forja, sin pasarse del objetivo. El bot encontró un
   error que los tests no veían: al morir las crías, contar las vivas fallaba porque la lista guardaba
   nodos ya liberados; ahora guarda ids y hay un test que las mata y espera que el nido vuelva a parir.
+
+## Tirar la bomba (2026-10-31)
+
+Pedido del usuario: que manteniendo el botón de bomba se tire en vez de quedar en el lugar.
+
+- Tocar sigue dejándola a los pies (el toque se decide al soltar, así no hay que elegir de antemano).
+  Mantener más de 0,2 s muestra una marca: un arco punteado y el radio de la explosión donde va a caer.
+  Al soltar vuela 0,4 s en arco hasta ahí; la mecha corre igual que siempre (1,6 s desde que sale).
+- Con el mouse cae donde apunta (entre 32 y 120 px); con el stick no hay a dónde apuntar la distancia,
+  así que va más lejos cuanto más se mantiene (0,6 s hasta el máximo). Nunca pasa una pared o roca:
+  cae 6 px antes.
+- Rodar o morir mientras se apunta cancela sin gastar la bomba. La ayuda de controles del menú
+  principal ahora tiene tres líneas (más chicas) para explicarlo.

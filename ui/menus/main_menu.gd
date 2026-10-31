@@ -9,9 +9,11 @@ signal achievements_requested
 signal options_requested
 signal quit_requested
 
-const CONTROLS: String = "WASD mover · mouse apuntar · click disparar · espacio rodar · E bomba\nF Pulso · Q activo · R recargar · Tab cambiar arma · I mochila · Esc pausa"
+const CONTROLS: String = "WASD mover · mouse apuntar · click disparar · espacio rodar\nE bomba (mantené para tirarla) · F Pulso · Q activo · R recargar\nTab cambiar arma · I mochila · Esc pausa"
+## Tamaño de la ayuda de controles (más chica que los botones: son tres líneas).
+const CONTROLS_FONT: int = 7
 ## Alto que ocupa la ayuda de controles abajo: los botones se centran en lo que queda arriba.
-const CONTROLS_HEIGHT: float = 28.0
+const CONTROLS_HEIGHT: float = 34.0
 
 var _play: Button
 var _sparks: Label
@@ -30,7 +32,7 @@ func _ready() -> void:
 	box.add_child(MenuBuilder.button("Logros", achievements_requested.emit))
 	box.add_child(MenuBuilder.button("Opciones", options_requested.emit))
 	box.add_child(MenuBuilder.button("Salir", quit_requested.emit))
-	var controls: Label = MenuBuilder.label(CONTROLS, 8, MenuBuilder.MUTED_COLOR)
+	var controls: Label = MenuBuilder.label(CONTROLS, CONTROLS_FONT, MenuBuilder.MUTED_COLOR)
 	controls.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 4)
 	controls.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	controls.grow_vertical = Control.GROW_DIRECTION_BEGIN

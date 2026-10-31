@@ -359,7 +359,10 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   LOCKED desde adentro con una llave la abre. Se abren de los dos lados (`_open_edge`).
 - **Pickups y bombas:** `Pickup` (Area2D en capa pickup) da monedas/bombas/llaves a `RunState` o cura
   (el corazón solo si falta vida). `Bomb`: mecha 1.6 s, radio 34, lastima a enemigos y jugador, rompe
-  rocas y emite `EventBus.exploded`.
+  rocas y emite `EventBus.exploded`. Tocar el botón la deja a los pies; mantenerlo más de 0,2 s
+  muestra `BombAim` (arco y radio donde cae) y al soltar `Player.try_bomb` la tira (`Bomb.launch`,
+  vuela 0,4 s en arco): con el mouse cae donde apunta, con el stick más lejos cuanto más se mantiene
+  (32 a 120 px), siempre antes de una pared o roca. Rodar o morir cancela la puntería sin gastarla.
 - **Meta-progresión:** `SaveManager` (autoload) tiene el `MetaProfile` (chispas, items y personajes
   desbloqueados, logros, último personaje, totales) y lo guarda con `SaveStore` después de cada
   cambio. `SaveStore` escribe JSON a un `.tmp` y lo renombra encima; al leer migra con `SaveSchema`

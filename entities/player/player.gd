@@ -25,6 +25,14 @@ const PULSE_WAVE_SCENE: PackedScene = preload("res://fx/pulse_wave.tscn")
 const BOMB_SCENE: PackedScene = preload("res://entities/bomb/bomb.tscn")
 const STEP_DUST_SCENE: PackedScene = preload("res://fx/step_dust.tscn")
 const LIGHT_FLASH_SCENE: PackedScene = preload("res://fx/light_flash.tscn")
+## Bomba: tocar la pone a los pies; mantener más de BOMB_HOLD_TIME apunta (marca dónde cae) y al
+## soltar la tira. Con el mouse cae donde apunta; con el stick, más lejos cuanto más se mantiene.
+const BOMB_HOLD_TIME: float = 0.2
+const BOMB_THROW_MIN: float = 32.0
+const BOMB_THROW_MAX: float = 120.0
+const BOMB_CHARGE_TIME: float = 0.6
+## Cae a esta distancia de la pared o roca que se cruce.
+const BOMB_WALL_MARGIN: float = 6.0
 ## Cada cuántos píxeles caminados se levanta polvo.
 const STEP_DISTANCE: float = 14.0
 ## Cuánto se aviva la luz con cada disparo.
@@ -47,6 +55,8 @@ var input_buffer: InputBuffer = InputBuffer.new()
 var _aim_with_mouse: bool = true
 var _roll_cooldown_left: float = 0.0
 var _step_left: float = STEP_DISTANCE
+## Segundos que se viene manteniendo el botón de bomba (negativo = no se está apretando).
+var _bomb_hold: float = -1.0
 
 @onready var visual: PlayerVisual = $Visual
 @onready var weapon: WeaponComponent = $WeaponComponent
@@ -57,6 +67,7 @@ var _step_left: float = STEP_DISTANCE
 @onready var machine: StateMachine = $StateMachine
 @onready var hooks: ItemHookRunner = $ItemHookRunner
 @onready var light: FlickerLight = $Light
+@onready var bomb_aim: BombAim = $BombAim
 
 
 func _ready() -> void:
@@ -189,15 +200,56 @@ func try_pulse() -> void:
 	AudioManager.play_sfx(&"pulse")
 
 
-## Si se apretó el botón y quedan bombas, deja una a los pies.
-func try_bomb() -> void:
-	if not input_buffer.consume(&"bomb"):
+## Bomba: al tocar el botón la deja a los pies; si se mantiene, muestra dónde va a caer y al soltar
+## la tira hasta ahí. Sin bombas, "clic".
+func try_bomb(delta: float) -> void:
+	if _bomb_hold < 0.0:
+		if not input_buffer.consume(&"bomb"):
+			return
+		if RunState.bombs <= 0:
+			AudioManager.play_sfx(&"empty")
+			return
+		_bomb_hold = 0.0
+	if Input.is_action_pressed(&"bomb"):
+		_bomb_hold += delta
+		if _bomb_hold >= BOMB_HOLD_TIME:
+			bomb_aim.show_at(global_position, bomb_target())
 		return
+	var thrown: bool = _bomb_hold >= BOMB_HOLD_TIME
+	var target: Vector2 = bomb_target()
+	cancel_bomb()
 	if not RunState.use_bomb():
 		AudioManager.play_sfx(&"empty")
 		return
-	Fx.spawn(get_tree(), BOMB_SCENE, global_position + Vector2(0, 2), Fx.ENTITIES_GROUP)
-	AudioManager.play_sfx(&"bomb_place")
+	var start: Vector2 = global_position + Vector2(0, 2)
+	var bomb := Fx.spawn(get_tree(), BOMB_SCENE, start, Fx.ENTITIES_GROUP) as Bomb
+	if thrown:
+		bomb.launch(start, target)
+		AudioManager.play_sfx(&"lob", 0.1)
+	else:
+		AudioManager.play_sfx(&"bomb_place")
+
+
+## Deja de apuntar la bomba sin gastarla (al rodar o morir).
+func cancel_bomb() -> void:
+	_bomb_hold = -1.0
+	bomb_aim.hide_aim()
+
+
+## Dónde caería la bomba si se suelta ahora: hacia la mira, sin pasar paredes ni rocas.
+func bomb_target() -> Vector2:
+	var distance: float
+	if _aim_with_mouse:
+		distance = clampf(global_position.distance_to(get_global_mouse_position()), BOMB_THROW_MIN, BOMB_THROW_MAX)
+	else:
+		var charge: float = clampf((_bomb_hold - BOMB_HOLD_TIME) / BOMB_CHARGE_TIME, 0.0, 1.0)
+		distance = lerpf(BOMB_THROW_MIN, BOMB_THROW_MAX, charge)
+	var target: Vector2 = global_position + aim_direction * distance
+	var query := PhysicsRayQueryParameters2D.create(global_position, target, PhysicsLayers.WALL)
+	var hit: Dictionary = get_world_2d().direct_space_state.intersect_ray(query)
+	if not hit.is_empty():
+		target = hit.position - aim_direction * BOMB_WALL_MARGIN
+	return target
 
 
 func _on_hurt(info: HitInfo) -> void:
