@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CharacterData" format=3]
+
+[ext_resource type="Script" path="res://data/character_data.gd" id="1_character"]
+[ext_resource type="Script" path="res://data/stat_block.gd" id="2_stats"]
+[ext_resource type="Resource" path="res://content/items/arma_trabuco.tres" id="3_item"]
+
+[sub_resource type="Resource" id="Stats_base"]
+script = ExtResource("2_stats")
+max_health = 4.0
+damage = 2.6
+move_speed = 100.0
+
+[resource]
+script = ExtResource("1_character")
+id = &"ceniza"
+display_name = "Ceniza"
+description = "Frágil y letal"
+stats = SubResource("Stats_base")
+start_item = ExtResource("3_item")
+locked = true
+body_color = Color(0.722, 0.769, 0.839, 1)

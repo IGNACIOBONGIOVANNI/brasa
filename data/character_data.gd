@@ -1,0 +1,21 @@
+class_name CharacterData
+extends Resource
+## Un personaje jugable: stats base (la vida incluida), el item con el que arranca la run y su color.
+## Los bloqueados se desbloquean con un logro (AchievementData.unlock_characters).
+
+@export var id: StringName = &""
+@export var display_name: String = ""
+## Una línea; se muestra al elegirlo.
+@export var description: String = ""
+@export var stats: StatBlock
+## Item con el que arranca (pasivo, activo o arma). Opcional.
+@export var start_item: ItemData
+@export var locked: bool = false
+
+@export_group("Visual placeholder")
+@export var body_color: Color = Color("e8c170")
+
+
+## Corazones enteros con los que arranca.
+func hearts() -> int:
+	return roundi(stats.max_health / 2.0)

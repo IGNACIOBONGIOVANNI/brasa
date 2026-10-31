@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="MetaConfig" format=3]
+
+[ext_resource type="Script" path="res://data/meta_config.gd" id="1_meta"]
+[ext_resource type="Script" path="res://data/character_data.gd" id="2_character_script"]
+[ext_resource type="Script" path="res://data/achievement_data.gd" id="3_achievement_script"]
+[ext_resource type="Resource" path="res://content/characters/brasa.tres" id="c0"]
+[ext_resource type="Resource" path="res://content/characters/musgo.tres" id="c1"]
+[ext_resource type="Resource" path="res://content/characters/ceniza.tres" id="c2"]
+[ext_resource type="Resource" path="res://content/achievements/silencio_en_el_sotano.tres" id="a0"]
+[ext_resource type="Resource" path="res://content/achievements/corona_caida.tres" id="a1"]
+[ext_resource type="Resource" path="res://content/achievements/exterminio.tres" id="a2"]
+[ext_resource type="Resource" path="res://content/achievements/furia.tres" id="a3"]
+[ext_resource type="Resource" path="res://content/achievements/mochila_llena.tres" id="a4"]
+
+[resource]
+script = ExtResource("1_meta")
+characters = Array[ExtResource("2_character_script")]([ExtResource("c0"), ExtResource("c1"), ExtResource("c2")])
+achievements = Array[ExtResource("3_achievement_script")]([ExtResource("a0"), ExtResource("a1"), ExtResource("a2"), ExtResource("a3"), ExtResource("a4")])

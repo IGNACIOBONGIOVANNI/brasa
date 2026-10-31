@@ -8,6 +8,7 @@ var _main: Main
 
 func before_each() -> void:
 	_main = MAIN_SCENE.instantiate() as Main
+	_main.save_path = ""
 	add_child_autofree(_main)
 
 

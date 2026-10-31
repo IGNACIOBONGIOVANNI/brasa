@@ -17,8 +17,14 @@
 [ext_resource type="Resource" path="res://content/items/arma_metralla.tres" id="i12"]
 [ext_resource type="Resource" path="res://content/items/arma_haz.tres" id="i13"]
 [ext_resource type="Resource" path="res://content/items/arma_orbita.tres" id="i14"]
+[ext_resource type="Resource" path="res://content/items/lupa.tres" id="i15"]
+[ext_resource type="Resource" path="res://content/items/zapatillas.tres" id="i16"]
+[ext_resource type="Resource" path="res://content/items/cuarzo.tres" id="i17"]
+[ext_resource type="Resource" path="res://content/items/colmillo.tres" id="i18"]
+[ext_resource type="Resource" path="res://content/items/ojo_de_vidrio.tres" id="i19"]
+[ext_resource type="Resource" path="res://content/items/corazon_de_piedra.tres" id="i20"]
 
 [resource]
 script = ExtResource("1_catalog")
-items = Array[ExtResource("2_item_script")]([ExtResource("i0"), ExtResource("i1"), ExtResource("i2"), ExtResource("i3"), ExtResource("i4"), ExtResource("i5"), ExtResource("i6"), ExtResource("i7"), ExtResource("i8"), ExtResource("i9"), ExtResource("i11"), ExtResource("i12"), ExtResource("i13"), ExtResource("i14")])
+items = Array[ExtResource("2_item_script")]([ExtResource("i0"), ExtResource("i1"), ExtResource("i2"), ExtResource("i3"), ExtResource("i4"), ExtResource("i5"), ExtResource("i6"), ExtResource("i7"), ExtResource("i8"), ExtResource("i9"), ExtResource("i11"), ExtResource("i12"), ExtResource("i13"), ExtResource("i14"), ExtResource("i15"), ExtResource("i16"), ExtResource("i17"), ExtResource("i18"), ExtResource("i19"), ExtResource("i20")])
 filler = ExtResource("i10")

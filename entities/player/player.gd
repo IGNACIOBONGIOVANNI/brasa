@@ -2,7 +2,7 @@ class_name Player
 extends CharacterBody2D
 ## Jugador. Lee el input (con buffer) y delega en su StateMachine: Move (caminar, apuntar,
 ## disparar, Pulso, bomba, recargar, cambiar de arma, usar el activo), Roll (rodar con i-frames)
-## y Dead. Sus stats, items y armas salen de RunState.
+## y Dead. Su personaje, stats, items y armas salen de RunState.
 ## Se apunta con el último dispositivo usado: mover el mouse vuelve a la mira por mouse,
 ## inclinar el stick derecho la pasa al stick.
 
@@ -55,6 +55,7 @@ func _ready() -> void:
 	weapon.fired.connect(_on_weapon_fired)
 	hurtbox.hurt.connect(_on_hurt)
 	health.died.connect(_on_died)
+	visual.set_body_color(RunState.character.body_color)
 	RunState.weapons_changed.connect(_sync_weapon)
 	RunState.stats_changed.connect(_on_stats_changed)
 	_sync_weapon()

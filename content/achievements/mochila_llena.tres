@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="AchievementData" format=3]
+
+[ext_resource type="Script" path="res://data/achievement_data.gd" id="1_achievement"]
+[ext_resource type="Script" path="res://data/item_data.gd" id="2_item_script"]
+[ext_resource type="Script" path="res://data/character_data.gd" id="3_character_script"]
+[ext_resource type="Resource" path="res://content/items/corazon_de_piedra.tres" id="i0"]
+
+[resource]
+script = ExtResource("1_achievement")
+id = &"mochila_llena"
+display_name = "Mochila llena"
+description = "Terminá una run con 5 items"
+condition = 3
+amount = 5
+unlock_items = Array[ExtResource("2_item_script")]([ExtResource("i0")])
+unlock_characters = Array[ExtResource("3_character_script")]([])

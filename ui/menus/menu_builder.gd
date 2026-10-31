@@ -5,6 +5,9 @@ extends RefCounted
 const TITLE_COLOR: Color = Color("e8c170")
 const MUTED_COLOR: Color = Color("9a93a6")
 const OUTLINE_COLOR: Color = Color("120c16")
+## Color de las chispas (moneda de la meta-progresión).
+const SPARK_COLOR: Color = Color("ffb35c")
+const BACKGROUND_COLOR: Color = Color(0.06, 0.05, 0.08)
 
 
 static func label(text: String, font_size: int = 8, color: Color = Color("f2efe6")) -> Label:
@@ -16,6 +19,28 @@ static func label(text: String, font_size: int = 8, color: Color = Color("f2efe6
 	result.add_theme_constant_override(&"outline_size", 2)
 	result.add_theme_color_override(&"font_outline_color", OUTLINE_COLOR)
 	return result
+
+
+## Texto alineado a la izquierda que corta líneas en `width` píxeles.
+static func paragraph(text: String, width: float, color: Color = Color("f2efe6")) -> Label:
+	var result: Label = label(text, 8, color)
+	result.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	result.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	result.custom_minimum_size = Vector2(width, 0)
+	return result
+
+
+static func sparks_text(amount: int) -> String:
+	return "%d chispa%s" % [amount, "" if amount == 1 else "s"]
+
+
+## Fondo liso que ocupa toda la pantalla (los menús que no van encima del juego).
+static func background(parent: Control) -> void:
+	parent.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var rect := ColorRect.new()
+	rect.color = BACKGROUND_COLOR
+	rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	parent.add_child(rect)
 
 
 ## Botón que suena al apretarlo y llama a `action`.

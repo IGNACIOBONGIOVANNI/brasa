@@ -5,7 +5,7 @@ extends Node2D
 ## el color y largo del arma equipada). También dibuja el rol (bolita que gira, sin arma), la muerte
 ## (tirado, ojos en cruz) y el escudo del Caparazón.
 ## Se reemplaza por un sprite animado manteniendo set_aim(), play_fire(), set_rolling(), set_dead(),
-## set_gun() y show_shield().
+## set_gun(), set_body_color() y show_shield().
 
 const FLASH_TIME: float = 0.05
 const RECOIL_PIXELS: float = 2.0
@@ -29,6 +29,12 @@ var _roll_spin: float = 0.0
 var _dead: bool = false
 var _shield_left: float = 0.0
 var _time: float = 0.0
+
+
+## El color del personaje elegido.
+func set_body_color(color: Color) -> void:
+	body_color = color
+	queue_redraw()
 
 
 func set_gun(color: Color, length: float) -> void:

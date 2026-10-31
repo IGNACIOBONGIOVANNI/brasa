@@ -1,6 +1,6 @@
 extends GutTest
-## Contenido (.tres): enemigos, patrones, sonidos, plantillas de sala, pickups, items, armas y el
-## tema del piso cargan bien y son coherentes entre sí.
+## Contenido (.tres): enemigos, patrones, sonidos, plantillas de sala, pickups, items, armas, pisos,
+## personajes y logros cargan bien y son coherentes entre sí.
 
 const ENEMIES_DIR: String = "res://content/enemies/"
 const PATTERNS_DIR: String = "res://content/patterns/"
@@ -12,6 +12,9 @@ const LIBRARY: SfxLibrary = preload("res://content/sfx/sfx_library.tres")
 const FLOOR_1: FloorTheme = preload("res://content/floors/floor_1.tres")
 const CATALOG: ItemCatalog = preload("res://content/items/catalog.tres")
 const RUN: RunConfig = preload("res://content/run/run_config.tres")
+const META: MetaConfig = preload("res://content/meta/meta_config.tres")
+const CHARACTERS_DIR: String = "res://content/characters/"
+const ACHIEVEMENTS_DIR: String = "res://content/achievements/"
 ## Distancia mínima (en celdas, contando diagonales) entre un enemigo y la entrada de una puerta.
 const ENEMY_DOOR_DISTANCE: int = 3
 ## Sonidos que el código pide por id (además de los sfx_id de armas, patrones y pickups).
@@ -19,7 +22,8 @@ const CODE_SFX: Array[StringName] = [
 	&"enemy_hit", &"enemy_die", &"player_hurt", &"player_die", &"roll", &"pulse", &"empty",
 	&"telegraph", &"charge", &"door_close", &"door_open", &"room_clear", &"bomb_place",
 	&"explosion", &"rock_break", &"secret_found", &"item_pickup", &"buy", &"unlock", &"reload",
-	&"weapon_swap", &"active_use", &"active_ready", &"pickup_heart",
+	&"weapon_swap", &"active_use", &"active_ready", &"pickup_heart", &"boss_phase", &"boss_die",
+	&"exit_open", &"ui_select", &"pause", &"achievement",
 ]
 
 
@@ -183,10 +187,11 @@ func test_catalog_has_the_milestone_items() -> void:
 	assert_gte(actives, 2, "al menos 2 activos")
 	for stat: StringName in [&"bounces", &"pierce", &"homing"]:
 		assert_true(stats_touched.has(stat), "algún item da %s" % stat)
+	# Sin nada desbloqueado los pools tienen que alcanzar igual.
 	for pool: int in [ItemData.POOL_TREASURE, ItemData.POOL_SHOP]:
 		var count: int = 0
 		for item: ItemData in CATALOG.items:
-			if item.is_in_pool(pool):
+			if item.is_in_pool(pool) and not item.locked:
 				count += 1
 		assert_gte(count, FloorController.SHOP_OFFERS + 1, "el pool %d alcanza para un piso" % pool)
 
@@ -268,3 +273,61 @@ func test_every_floor_2_room_file_is_in_floor_2() -> void:
 		in_theme[template.resource_path] = true
 	for resource: Resource in _load_all("res://content/rooms/floor_2/"):
 		assert_true(in_theme.has(resource.resource_path), "%s está en floor_2.tres" % resource.resource_path)
+
+
+func test_characters_are_valid() -> void:
+	assert_gte(META.characters.size(), 3, "tres personajes")
+	assert_false(META.default_character().locked, "el primero está desbloqueado")
+	var ids: Dictionary[StringName, bool] = {}
+	for character: CharacterData in META.characters:
+		assert_false(ids.has(character.id), "id repetido: %s" % character.id)
+		ids[character.id] = true
+		assert_ne(character.display_name, "", "%s tiene nombre" % character.id)
+		assert_ne(character.description, "", "%s tiene descripción" % character.id)
+		assert_not_null(character.stats, "%s tiene stats" % character.id)
+		assert_gt(character.stats.max_health, 0.0, "%s tiene vida" % character.id)
+		assert_eq(fmod(character.stats.max_health, 2.0), 0.0, "%s: corazones enteros" % character.id)
+		if character.start_item != null:
+			assert_has(CATALOG.items, character.start_item, "%s: el item inicial está en el catálogo" % character.id)
+		if character.locked:
+			assert_not_null(META.achievement_unlocking(character), "%s: algún logro lo desbloquea" % character.id)
+
+
+func test_achievements_are_valid() -> void:
+	var ids: Dictionary[StringName, bool] = {}
+	for achievement: AchievementData in META.achievements:
+		assert_false(ids.has(achievement.id), "id repetido: %s" % achievement.id)
+		ids[achievement.id] = true
+		assert_ne(achievement.display_name, "", "%s tiene nombre" % achievement.id)
+		assert_ne(achievement.description, "", "%s tiene descripción" % achievement.id)
+		assert_ne(achievement.unlocks_text(), "", "%s desbloquea algo" % achievement.id)
+		if achievement.condition == AchievementData.Condition.DEFEAT_BOSS:
+			assert_not_null(achievement.boss, "%s: qué jefe" % achievement.id)
+			assert_true(achievement.boss != null and achievement.boss.phases.size() > 0, "%s: es un jefe" % achievement.id)
+		else:
+			assert_gt(achievement.amount, 0, "%s: cuánto" % achievement.id)
+		for item: ItemData in achievement.unlock_items:
+			assert_true(item.locked, "%s: %s arranca bloqueado" % [achievement.id, item.id])
+			assert_has(CATALOG.items, item, "%s: %s está en el catálogo" % [achievement.id, item.id])
+		for character: CharacterData in achievement.unlock_characters:
+			assert_true(character.locked, "%s: %s arranca bloqueado" % [achievement.id, character.id])
+			assert_has(META.characters, character, "%s: %s está en la lista" % [achievement.id, character.id])
+
+
+func test_every_locked_item_can_be_unlocked() -> void:
+	var by_achievement: Dictionary[StringName, bool] = {}
+	for achievement: AchievementData in META.achievements:
+		for item: ItemData in achievement.unlock_items:
+			by_achievement[item.id] = true
+	for item: ItemData in CATALOG.items:
+		if item.locked:
+			assert_true(item.unlock_cost > 0 or by_achievement.has(item.id), "%s: se compra o sale de un logro" % item.id)
+	assert_gte(CATALOG.workshop_items().size(), 3, "el Taller vende algo")
+	assert_false(CATALOG.filler.locked, "el relleno no se bloquea")
+
+
+func test_every_character_and_achievement_file_is_listed() -> void:
+	for resource: Resource in _load_all(CHARACTERS_DIR):
+		assert_has(META.characters, resource, "%s está en meta_config" % resource.resource_path)
+	for resource: Resource in _load_all(ACHIEVEMENTS_DIR):
+		assert_has(META.achievements, resource, "%s está en meta_config" % resource.resource_path)

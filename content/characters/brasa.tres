@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CharacterData" format=3]
+
+[ext_resource type="Script" path="res://data/character_data.gd" id="1_character"]
+[ext_resource type="Script" path="res://data/stat_block.gd" id="2_stats"]
+
+[sub_resource type="Resource" id="Stats_base"]
+script = ExtResource("2_stats")
+
+[resource]
+script = ExtResource("1_character")
+id = &"brasa"
+display_name = "Brasa"
+description = "Pareja en todo"
+stats = SubResource("Stats_base")
+body_color = Color(0.91, 0.757, 0.439, 1)

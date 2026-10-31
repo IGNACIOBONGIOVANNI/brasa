@@ -21,6 +21,7 @@ GameRNG="*res://autoload/game_rng.gd"
 EventBus="*res://autoload/event_bus.gd"
 AudioManager="*res://autoload/audio_manager.gd"
 RunState="*res://autoload/run_state.gd"
+SaveManager="*res://autoload/save_manager.gd"
 Debug="*res://autoload/debug.gd"
 
 [debug]

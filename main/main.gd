@@ -1,19 +1,30 @@
 class_name Main
 extends Node
-## Raíz del juego y flujo de pantallas: menú principal → run → resumen (al morir o ganar) → menú u
-## otra run. También cierra el juego prolijo (corta el audio antes de salir).
-## Con --skip-menu o --demo-input (argumentos de usuario) arranca directo en una run.
+## Raíz del juego y flujo de pantallas: menú principal → elegir personaje → run → resumen (al morir
+## o ganar, con lo ganado) → menú u otra run. Desde el menú también se va al Taller y a los logros.
+## Abre el guardado al arrancar y cierra el juego prolijo (corta el audio antes de salir).
+## Argumentos de usuario: --skip-menu o --demo-input arrancan directo en una run; --save=RUTA usa
+## otro guardado; con --demo-input (y sin --save) el progreso queda solo en memoria.
 
 const MENU_SCENE: PackedScene = preload("res://ui/menus/main_menu.tscn")
+const CHARACTER_SCENE: PackedScene = preload("res://ui/menus/character_select.tscn")
+const WORKSHOP_SCENE: PackedScene = preload("res://ui/menus/workshop_menu.tscn")
+const ACHIEVEMENTS_SCENE: PackedScene = preload("res://ui/menus/achievements_menu.tscn")
 const GAME_SCENE: PackedScene = preload("res://main/game.tscn")
 const SUMMARY_SCENE: PackedScene = preload("res://ui/menus/run_summary.tscn")
+const SAVE_ARG: String = "--save="
+## Chispas que da el comando de debug.
+const DEV_SPARKS: int = 100
 ## Segundos entre la muerte del jugador y el resumen.
 const DEATH_DELAY: float = 1.5
 ## Espera entre cortar el audio y salir: Godot 4.7 tarda en liberar las reproducciones y, si el
 ## proceso sale antes, avisa "ObjectDB instances were leaked".
 const QUIT_AUDIO_DRAIN: float = 0.5
 
-## Pantalla actual (menú, run o resumen).
+## Guardado a abrir al arrancar (los argumentos lo pisan; vacío = solo en memoria).
+@export var save_path: String = SaveManager.DEFAULT_PATH
+
+## Pantalla actual (un menú, la run o el resumen).
 var screen: Node
 var game: Game
 var _quitting: bool = false
@@ -24,6 +35,10 @@ func _ready() -> void:
 	EventBus.player_died.connect(_on_player_died)
 	EventBus.run_ended.connect(finish_run)
 	var args: PackedStringArray = OS.get_cmdline_user_args()
+	SaveManager.open(save_path_from_args(args, save_path))
+	Debug.add_command(self, "Progreso/+%d chispas" % DEV_SPARKS, SaveManager.add_sparks.bind(DEV_SPARKS))
+	Debug.add_command(self, "Progreso/Desbloquear todo", SaveManager.unlock_everything)
+	Debug.add_command(self, "Progreso/Borrar progreso", SaveManager.reset_progress)
 	if "--skip-menu" in args or "--demo-input" in args:
 		start_run()
 	else:
@@ -35,32 +50,69 @@ func _notification(what: int) -> void:
 		quit_game()
 
 
+## --save=RUTA gana; si no, --demo-input usa solo memoria; si no, `default_path`.
+static func save_path_from_args(args: PackedStringArray, default_path: String) -> String:
+	for arg: String in args:
+		if arg.begins_with(SAVE_ARG):
+			return arg.trim_prefix(SAVE_ARG)
+	if "--demo-input" in args:
+		return ""
+	return default_path
+
+
 func show_menu() -> void:
 	var menu := MENU_SCENE.instantiate() as MainMenu
-	menu.play_requested.connect(start_run)
+	menu.play_requested.connect(show_character_select)
+	menu.workshop_requested.connect(show_workshop)
+	menu.achievements_requested.connect(show_achievements)
 	menu.quit_requested.connect(quit_game)
 	_set_screen(menu)
 
 
-func start_run() -> void:
+func show_character_select() -> void:
+	var select := CHARACTER_SCENE.instantiate() as CharacterSelect
+	select.character_chosen.connect(start_run)
+	select.back_requested.connect(show_menu)
+	_set_screen(select)
+
+
+func show_workshop() -> void:
+	var workshop := WORKSHOP_SCENE.instantiate() as WorkshopMenu
+	workshop.back_requested.connect(show_menu)
+	_set_screen(workshop)
+
+
+func show_achievements() -> void:
+	var achievements := ACHIEVEMENTS_SCENE.instantiate() as AchievementsMenu
+	achievements.back_requested.connect(show_menu)
+	_set_screen(achievements)
+
+
+## Empieza una run con ese personaje (null = el último elegido).
+func start_run(character: CharacterData = null) -> void:
+	if character == null:
+		character = SaveManager.selected_character()
+	SaveManager.select_character(character)
 	# Con --seed=N todas las runs usan esa seed; si no, cada run tiene una nueva.
 	GameRNG.start_run(RngStreams.seed_from_args(OS.get_cmdline_user_args(), RngStreams.random_seed()))
-	RunState.start_run()
+	RunState.start_run(character, SaveManager.profile)
 	game = GAME_SCENE.instantiate() as Game
 	game.menu_requested.connect(show_menu)
 	game.quit_requested.connect(quit_game)
 	_set_screen(game)
 
 
-## Termina la run y muestra el resumen.
+## Termina la run: la suma al progreso (chispas, logros) y muestra el resumen. Abandonarla desde la
+## pausa no pasa por acá: no cuenta.
 func finish_run(victory: bool) -> void:
 	if game == null:
 		return
+	var rewards: MetaProfile.RunRewards = SaveManager.record_run(RunState.make_record(victory))
 	var summary := SUMMARY_SCENE.instantiate() as RunSummary
 	summary.retry_requested.connect(start_run)
 	summary.menu_requested.connect(show_menu)
 	_set_screen(summary)
-	summary.show_summary(victory)
+	summary.show_summary(victory, rewards)
 
 
 ## Cierra el juego: pausa, corta el audio, espera a que Godot lo libere y sale.

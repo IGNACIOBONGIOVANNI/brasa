@@ -29,6 +29,12 @@ const POOL_SECRET: int = 8
 ## Armas: el arma que da.
 @export var weapon: WeaponData
 
+@export_group("Desbloqueo")
+## Arranca fuera de los pools: entra al comprarlo en el Taller o al cumplir un logro.
+@export var locked: bool = false
+## Chispas que cuesta en el Taller (0 = no se vende: lo desbloquea un logro).
+@export var unlock_cost: int = 0
+
 @export_group("Visual placeholder")
 ## Ícono de píxeles ("#" = píxel). Las armas usan el de su WeaponData si este está vacío.
 @export var icon: PackedStringArray = []

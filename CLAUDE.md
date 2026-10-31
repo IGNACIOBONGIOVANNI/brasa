@@ -4,8 +4,8 @@ Roguelite de acción top-down 2D (Godot 4.7.2, GDScript tipado) para Windows. In
 estructura de los roguelites de salas + bullet hell, con contenido 100 % original.
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 5 (loop completo) terminado. Próximo: hito 6 (meta-progresión), arrancar solo con OK
-del usuario.
+**Estado:** Hito 6 (meta-progresión) terminado. Próximo: hito 7 (pulido y release), arrancar solo con
+OK del usuario.
 
 ## Ejecutables (rutas exactas)
 
@@ -42,9 +42,15 @@ Todos los flags están confirmados con `--help` en 4.7.2. `sed 's/\x1b\[[0-9;]*m
 Argumentos de usuario del juego (van después de `--`): `--seed=N` fija la seed de todas las runs,
 `--skip-menu` arranca directo en una run, `--demo-input` simula input (moverse en ocho, girar la mira,
 disparar, rodar, Pulso, bomba y "aceptar" en los menús cada 3 s; también salta el menú),
-`--debug-overlay` muestra el overlay y `--quit-frames=N` cierra el juego prolijo a los N frames.
+`--debug-overlay` muestra el overlay, `--quit-frames=N` cierra el juego prolijo a los N frames y
+`--save=RUTA` usa otro archivo de guardado (por ejemplo `--save=user://prueba.json`).
 **Para cortar corridas usar `--quit-frames`, no el `--quit-after` de Godot** (ver gotchas). Sin
 `--skip-menu` ni `--demo-input` el juego arranca en el menú principal.
+
+**Guardado:** el real es `user://save.json` =
+`%APPDATA%\Godot\app_userdata\mi-roguelite\save.json`. Con `--demo-input` (y sin `--save=`) el
+progreso queda solo en memoria, así las corridas automáticas no lo tocan. Los tests tampoco: el
+`pre_run_script` de `.gutconfig.json` (`tests/pre_run_hook.gd`) deja el `SaveManager` en memoria.
 
 **Movie Maker funciona** (abre una ventana unos segundos): graba PNG a 320x180 en `captures/`
 (`frame00000000.png`, ...) y además `frame.wav` (estéreo, 48 kHz, 32 bits) con el audio del juego.
@@ -114,6 +120,13 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   `MenuBuilder.focus_later`).
 - En headless, `_process` corre mucho más rápido que la física (no hay vsync): para medir tiempo en
   corridas automáticas contar ticks de `_physics_process`, no frames de `_process`.
+- El JSON devuelve todos los números como `float`: al leer el guardado convertir con `int()` (ver
+  `MetaProfile.from_dict`). `JSON.new().parse()` no imprime nada si el texto está roto (sirve para
+  detectar un guardado corrupto sin ensuciar la consola).
+- `DirAccess.rename_absolute()` en Windows reemplaza el destino si existe (borra y renombra): por eso
+  `SaveStore.read()` también busca el `.tmp` por si un corte quedó justo entre los dos pasos.
+- Un `SaveManager.profile_changed` emitido mientras un menú está en pantalla lo rearma (los menús se
+  reconstruyen al cambiar el perfil): en los tests no tocar el perfil después del último `await`.
 - Hay una clase global `State` (máquina de estados): ningún enum interno puede llamarse `State`
   (por eso `Door.Mode` y `Room.Phase`).
 - Desde un callback de física (`body_entered`, `area_entered`) no se pueden agregar ni sacar cuerpos o
@@ -145,27 +158,30 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   `main/game.tscn` con `GameRNG.start_run(seed)` antes de instanciarla.
 - Plantillas de sala: texto de 9 x 15 con la leyenda de `RoomTemplateParser`; cada `.tres` nuevo va
   en `content/rooms/floor_N/` y en la lista `templates` del `FloorTheme` (lo exige un test).
-- Items: un `.tres` por item en `content/items/` y en `catalog.tres` (lo exige un test). Los efectos
+- Items: un `.tres` por item en `content/items/` y en `catalog.tres` (lo exige un test). Un item
+  `locked` tiene que tener `unlock_cost` (se vende en el Taller) o salir de un logro. Los efectos
   son `StatModifier` (stats de `StatBlock.STAT_NAMES`) y, si hace falta algo especial, un script en
   `items/hooks/` que extiende `ItemHook`. Los activos necesitan hook con `on_use` y `max_charge`.
   Las armas son items de tipo WEAPON que apuntan a un `WeaponData` de `content/weapons/`.
+- Personajes en `content/characters/` y logros en `content/achievements/`; los dos van en la lista
+  de `content/meta/meta_config.tres` (lo exige un test). El primer personaje es el de por defecto.
 
 ## Configuración del proyecto (project.godot)
 
 - Escena principal `res://main/main.tscn`. Autoloads (en este orden): GameRNG, EventBus, AudioManager,
-  RunState, Debug.
+  RunState, SaveManager, Debug.
 - Viewport 320x180, ventana 1280x720, stretch `viewport` + aspect `keep` + escala **entera**.
 - Filtro de texturas nearest, snap de transforms y vértices a píxel. Renderer Compatibility.
 - Física 60 ticks, gravedad 2D en 0 (top-down).
 - Capas de colisión 2D: 1 wall, 2 player, 3 enemy, 4 player_bullet, 5 enemy_bullet, 6 pickup,
   7 player_hurtbox, 8 enemy_hurtbox, 9 pit, 10 door, 11 trigger (constantes en `PhysicsLayers`).
-- Plugin GUT 9.7.1 activado; config de tests en `.gutconfig.json`.
+- Plugin GUT 9.7.1 activado; config de tests en `.gutconfig.json` (con `pre_run_script`).
 
 ## Estructura actual
 
 ```
 addons/gut/                 GUT 9.7.1 (terceros, no modificar)
-autoload/                   game_rng, event_bus, audio_manager, run_state, debug
+autoload/                   game_rng, event_bus, audio_manager, run_state, save_manager, debug
 core/physics_layers.gd      PhysicsLayers: bits de las capas de colisión
 core/rng/                   RngStreams: streams con seed derivada
 core/combat/                ShotSpec, HealthMath, PatternMath, HitInfo, WeaponSlot (munición y recarga),
@@ -177,14 +193,17 @@ core/rooms/                 RoomTemplateParser (texto → RoomGrid)
 core/loot/                  RoomReward (premio por limpiar sala)
 core/stats/                 StatCalculator (base + ADD, × MULT, límites)
 core/items/                 ItemPool (sorteo por pool y rareza, sin repetir)
+core/save/                  SaveSchema (versión y migraciones), SaveStore (JSON con escritura atómica)
+core/meta/                  MetaProfile (progreso entre runs), MetaRules (chispas y logros), RunRecord
 data/                       StatBlock, StatModifier, WeaponData, ItemData, ItemCatalog, EnemyData, BossPhase,
                             BulletPatternData, SfxData, SfxLibrary, RoomTemplate, FloorTheme, PickupData,
-                            RunConfig
-content/                    weapons/ (pistola, trabuco, metralla, haz, órbita), items/ (15 + catalog),
+                            RunConfig, CharacterData, AchievementData, MetaConfig
+content/                    weapons/ (pistola, trabuco, metralla, haz, órbita), items/ (21 + catalog),
                             enemies/ (carnero, vigia, farol, centinela; jefes campanario y rey_carnero),
                             patterns/ (14), sfx/sfx_library, rooms/floor_1/ (16) y floor_2/ (5),
                             floors/ (floor_1 Sótano, floor_2 Cloacas), run/run_config,
-                            pickups/ (coin, heart, bomb, key)
+                            pickups/ (coin, heart, bomb, key), characters/ (brasa, musgo, ceniza),
+                            achievements/ (5), meta/meta_config
 items/                      ItemHook (base), HookContext, hooks/ (diente de leche, rencor, estallido, caparazón)
 components/                 Weapon, LaserBeam, OrbitRing, Health, Hurtbox, Hitbox, Knockback, Flash,
                             BulletEmitter, ItemHookRunner, state_machine/
@@ -200,7 +219,8 @@ fx/                         game_camera, hit_stop, fx (spawner), flash.gdshader,
                             partículas (bullet_impact, burst, dust_puff), floor_stain, pulse_wave,
                             placeholder_shape, screen_fade
 ui/theme/                   ui_theme.tres (tema de todos los Control; gui/theme/custom en project.godot)
-ui/menus/                   main_menu, pause_menu, run_summary, menu_builder (arman la UI por código)
+ui/menus/                   main_menu, character_select, workshop_menu (Taller), achievements_menu,
+                            pause_menu, run_summary, menu_builder (arman la UI por código)
 ui/hud/                     hud.tscn/.gd, hearts_display, pulse_display, counters_display, active_display,
                             items_display, weapon_display, item_banner, boss_bar
 ui/minimap/                 minimap.gd
@@ -210,9 +230,11 @@ tools/                      check_scripts.gd, setup_input_map.gd
 tests/fixtures/             arena.tscn (sala fija con jugador, para tests de combate)
 tests/unit/                 rng_streams, shot_spec, health_math, pattern_math, input_buffer, sfx_synth, content,
                             floor_generator (500 seeds), room_template_parser, template_picker, minimap_model,
-                            room_reward, stat_calculator, item_pool, weapon_slot, phase_math
+                            room_reward, stat_calculator, item_pool, weapon_slot, phase_math,
+                            save_schema, save_store, meta_profile
 tests/integration/          player_shooting, bullets, combat, main_flow, floor, rooms, items,
-                            bullet_behaviors, weapons, boss
+                            bullet_behaviors, weapons, boss, meta_flow
+tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria
 docs/PLAN.md                plan, arquitectura e hitos
 ```
 
@@ -223,10 +245,12 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
 - **Aleatoriedad:** `GameRNG.stream(RngStreams.FLOOR | LOOT | COMBAT | COSMETIC)`. Seed de cada stream =
   `hash(seed_run, nombre, piso)`. `GameRNG.set_floor(i)` re-deriva todos. Lo visual usa `COSMETIC`; el
   azar de la IA (cooldowns, hacia qué lado se mueve) usa `COMBAT`.
-- **Flujo:** `Main` maneja las pantallas (`screen`): menú principal → run (`start_run`:
-  `GameRNG.start_run`, `RunState.start_run`, instancia `game.tscn`) → resumen (`finish_run`, 1.5 s
-  después de `EventBus.player_died` o al recibir `EventBus.run_ended(true)`) → otra run o menú. Cierra
-  con `quit_game()` (también al cerrar la ventana). `Game` conecta el HUD (y el minimapa si hay
+- **Flujo:** `Main` abre el guardado (`SaveManager.open`) y maneja las pantallas (`screen`): menú
+  principal (Jugar, Taller, Logros) → elegir personaje → run (`start_run(personaje)`:
+  `GameRNG.start_run`, `RunState.start_run(personaje, perfil)`, instancia `game.tscn`) → resumen
+  (`finish_run`, 1.5 s después de `EventBus.player_died` o al recibir `EventBus.run_ended(true)`:
+  suma la run al perfil y muestra lo ganado) → otra run (mismo personaje) o menú. Abandonar desde la
+  pausa no cuenta. Cierra con `quit_game()` (también al cerrar la ventana). `Game` conecta el HUD (y el minimapa si hay
   `FloorController`), cuenta `RunState.run_time`, tiene el `PauseMenu` (Esc) y registra comandos del F3.
 - **Pisos:** `FloorController` (en `game.tscn`) recorre los pisos de `RunConfig`. `load_floor(i)` borra
   el piso anterior, hace `GameRNG.set_floor(i)` y genera el layout con `FloorGenerator` (grilla 9x8,
@@ -250,6 +274,17 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
 - **Pickups y bombas:** `Pickup` (Area2D en capa pickup) da monedas/bombas/llaves a `RunState` o cura
   (el corazón solo si falta vida). `Bomb`: mecha 1.6 s, radio 34, lastima a enemigos y jugador, rompe
   rocas y emite `EventBus.exploded`.
+- **Meta-progresión:** `SaveManager` (autoload) tiene el `MetaProfile` (chispas, items y personajes
+  desbloqueados, logros, último personaje, totales) y lo guarda con `SaveStore` después de cada
+  cambio. `SaveStore` escribe JSON a un `.tmp` y lo renombra encima; al leer migra con `SaveSchema`
+  (`VERSION` + una migración por versión), aparta un archivo roto como `.corrupt` y no pisa uno de
+  una versión más nueva. Al terminar una run, `RunState.make_record()` → `MetaProfile.record_run()`:
+  chispas (`MetaRules.sparks_for`: 1 cada 5 enemigos, 10 por jefe, 10 por ganar), totales y logros
+  (`AchievementData` con condición DEFEAT_BOSS / TOTAL_KILLS / KILLS_IN_RUN / ITEMS_IN_RUN, se revisan
+  con `MetaRules.is_met`) que desbloquean items y personajes. En el Taller se compran los items
+  `locked` con `unlock_cost`. Los items bloqueados no entran al `ItemPool` de la run.
+- **Personajes:** `CharacterData` (stats base con la vida, item inicial, color). `RunState.character`;
+  el jugador toma el color con `PlayerVisual.set_body_color` y la vida de `stats.max_health`.
 - **Items:** `RunState.add_item()` reparte por tipo: pasivo (a `items`, recalcula `stats` con
   `StatCalculator`), activo (reemplaza al anterior y lo devuelve para dejarlo en el pedestal), arma
   (`add_weapon`). `RunState.item_pool` (`ItemPool`) sortea sin repetir en la run; `FloorController`
@@ -309,8 +344,9 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   balas), F2 formas de colisión (hurtbox verde, hitbox rojo), F3 menú dev con los comandos que
   registra la escena (`Debug.add_command(dueño, texto, callable)`; un texto "Grupo/Nombre" va a un
   submenú; pausa el juego): ir al jefe, tesoro, tienda, secreta o inicio, revelar mapa, limpiar sala,
-  siguiente piso (o ganar), curar, invulnerable, Pulsos, +5 recursos, cargar activo, morir e "Items"
-  (un pedestal gratis con cualquier item del catálogo, arriba del jugador).
+  siguiente piso (o ganar), curar, invulnerable, Pulsos, +5 recursos, cargar activo, morir, "Items"
+  (un pedestal gratis con cualquier item del catálogo, arriba del jugador) y "Progreso" (+100
+  chispas, desbloquear todo, borrar progreso; andan también en los menús).
 - **Coordenadas de una sala:** origen en el centro del interior; interior 240x144 (15x9 tiles de 16 px),
   paredes de 16 px. La celda (i, j) tiene centro en `(-112 + 16i, -64 + 16j)` (`RoomGrid.cell_center`).
   La sala inicial está en el origen del mundo; las demás en `(celda - inicio) * ROOM_STRIDE`.

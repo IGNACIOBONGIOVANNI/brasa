@@ -245,3 +245,37 @@ Formato: fecha, decisión, por qué. Lo marcado **(propuesta)** espera el OK del
 - **`--skip-menu`** arranca directo en una run. `--demo-input` también salta el menú y aprieta
   "aceptar" cada 3 s, así una corrida automática pasa por el resumen y arranca otra run.
 - La plantilla provisoria del jefe del hito 3 se borró (la reemplaza la sala del Campanario).
+
+## Hito 6 — meta-progresión (2026-10-31)
+
+- **Guardado:** JSON en `user://save.json` con `"version"`. Se escribe a un `.tmp` y se renombra
+  encima; si un corte deja solo el `.tmp` completo, se usa ese. Un archivo roto se aparta como
+  `.corrupt` (no se borra) y se empieza de cero; uno de una versión más nueva del juego no se toca y
+  en esa sesión no se guarda nada. Se guarda después de cada cambio (run terminada, compra, personaje).
+- **Migraciones:** el formato arranca en la versión 1, así que todavía no hay ninguna migración real.
+  El mecanismo (una función por versión, encadenadas) está probado con migraciones de prueba; al
+  cambiar el formato se sube `SaveSchema.VERSION` y se agrega la función. Las claves que faltan o
+  tienen tipos raros toman su valor por defecto, así agregar campos no necesita migración.
+- **Nunca tocar el guardado real sin querer:** con `--demo-input` el progreso queda en memoria, y los
+  tests también (hook `pre_run_script` de GUT). `--save=RUTA` permite probar con otro archivo.
+- **Chispas (moneda meta):** 1 cada 5 enemigos, 10 por jefe vencido y 10 más por ganar. Se suman al
+  terminar la run, muriendo o ganando. Abandonar desde la pausa no cuenta (ni chispas ni logros).
+- **Taller:** en el menú se compran 3 items nuevos (Lupa 20, Zapatillas 15, Cuarzo 35 chispas).
+  Comprar no da el item: lo mete en los pools de las runs siguientes. Los items bloqueados no salen
+  hasta desbloquearse, así que la misma seed puede dar otros items según lo que tengas desbloqueado.
+- **3 personajes:** Brasa (el de siempre, 3 corazones), Musgo (4 corazones, más lento, dispara un poco
+  más lento, arranca con Caparazón) y Ceniza (2 corazones, más daño y velocidad, arranca con el
+  Trabuco). Todos tienen la pistola; el item inicial se agrega como si lo hubieran agarrado. El último
+  elegido queda guardado y "Otra run" lo repite.
+- **5 logros, revisados al terminar la run** (no en vivo): vencer al Campanario (desbloquea a Musgo),
+  vencer al Rey Carnero (Ceniza), 100 enemigos en total (Colmillo), 40 en una run (Ojo de vidrio) y
+  terminar una run con 5 items (Corazón de piedra). El plan hablaba de un `AchievementTracker` que
+  escuche el `EventBus`: `RunState` ya junta esos datos (enemigos, jefes vencidos, items), así que los
+  logros se evalúan una sola vez al final con `MetaRules` (lógica pura, con tests).
+- **Resumen:** muestra el personaje, las chispas ganadas (y el total) y hasta 2 logros nuevos con lo
+  que desbloquean (si hay más, "y N logros más"); suena un aviso si hubo alguno.
+- **Menús nuevos:** elegir personaje (los bloqueados se ven en sombra con el logro que los abre),
+  Taller y Logros (tabla con los totales de todas las runs). Esc vuelve al menú en los tres.
+- **Opciones:** el plan las ponía en el guardado; no hay ninguna todavía, así que no se agregó nada.
+  Si en el hito 7 hacen falta (volumen, pantalla completa), van en una clave nueva del guardado.
+- **Debug:** F3 → "Progreso" con +100 chispas, desbloquear todo y borrar progreso (andan en los menús).

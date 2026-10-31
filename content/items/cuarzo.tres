@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://data/item_data.gd" id="1_item"]
+[ext_resource type="Script" path="res://data/stat_modifier.gd" id="2_modifier"]
+
+[sub_resource type="Resource" id="Modifier_0"]
+script = ExtResource("2_modifier")
+stat = &"damage"
+op = 1
+value = 1.3
+
+[sub_resource type="Resource" id="Modifier_1"]
+script = ExtResource("2_modifier")
+stat = &"fire_rate"
+op = 1
+value = 0.9
+
+[resource]
+script = ExtResource("1_item")
+id = &"cuarzo"
+display_name = "Cuarzo"
+description = "Mucho más daño, dispara un poco más lento"
+kind = 0
+rarity = 2
+pools = 13
+price = 12
+modifiers = Array[ExtResource("2_modifier")]([SubResource("Modifier_0"), SubResource("Modifier_1")])
+locked = true
+unlock_cost = 35
+icon = PackedStringArray("...#...", "..###..", ".#####.", ".#####.", ".#####.", "..###..", "...#...")
+icon_color = Color(0.851, 0.604, 1, 1)

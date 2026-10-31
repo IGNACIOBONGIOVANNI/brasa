@@ -1,7 +1,8 @@
 extends Node
-## Estado de la run en curso: piso, tiempo y muertes (para el resumen), stats (recalculados desde los
-## items), items pasivos, el activo y su carga, armas con su munición, el pool de items, cargas de
-## Pulso y monedas, bombas y llaves. La vida vive en el HealthComponent del jugador.
+## Estado de la run en curso: personaje, piso, tiempo, muertes y jefes vencidos (para el resumen y la
+## meta-progresión), stats (los del personaje recalculados con los items), items pasivos, el activo y
+## su carga, armas con su munición, el pool de items, cargas de Pulso y monedas, bombas y llaves.
+## La vida vive en el HealthComponent del jugador.
 
 signal stats_changed(stats: StatBlock)
 signal blanks_changed(count: int)
@@ -21,6 +22,7 @@ const MAX_COUNT: int = 99
 ## Fracción de la munición máxima que recupera cada arma al limpiar una sala.
 const ROOM_CLEAR_AMMO: float = 0.25
 
+var character: CharacterData
 var base_stats: StatBlock = StatBlock.new()
 var stats: StatBlock = StatBlock.new()
 var blanks: int = START_BLANKS
@@ -38,27 +40,35 @@ var floor_name: String = ""
 ## Segundos jugados (sin contar pausas ni transiciones).
 var run_time: float = 0.0
 var kills: int = 0
+## ids de los jefes vencidos en esta run.
+var bosses_defeated: Array[StringName] = []
 
 
 func _ready() -> void:
 	EventBus.room_cleared.connect(_on_room_cleared)
 	EventBus.enemy_killed.connect(_on_enemy_killed)
+	EventBus.boss_defeated.connect(_on_boss_defeated)
 	start_run()
 
 
-func start_run() -> void:
-	base_stats = StatBlock.new()
+## Empieza una run con ese personaje (null = el de por defecto). Los items bloqueados entran al pool
+## solo si `profile` los tiene desbloqueados (null = perfil nuevo).
+func start_run(run_character: CharacterData = null, profile: MetaProfile = null) -> void:
+	character = run_character if run_character != null else MetaConfig.get_default().default_character()
+	base_stats = character.stats.duplicate() as StatBlock
 	floor_index = 0
 	floor_name = ""
 	run_time = 0.0
 	kills = 0
+	bosses_defeated.clear()
 	items.clear()
 	active_item = null
 	active_charge = 0
 	weapons = [WeaponSlot.new(BASE_WEAPON)]
 	current_weapon = 0
 	var catalog := load(CATALOG_PATH) as ItemCatalog
-	item_pool = ItemPool.new(catalog.items, catalog.filler)
+	var unlocks: MetaProfile = profile if profile != null else MetaProfile.new()
+	item_pool = ItemPool.new(unlocks.available_items(catalog.items), catalog.filler)
 	blanks = START_BLANKS
 	coins = 0
 	bombs = START_BOMBS
@@ -69,6 +79,25 @@ func start_run() -> void:
 	items_changed.emit()
 	active_changed.emit()
 	weapons_changed.emit()
+	if character.start_item != null:
+		add_item(character.start_item)
+
+
+## Items que lleva: pasivos, el activo y las armas además de la pistola.
+func item_count() -> int:
+	return items.size() + (1 if active_item != null else 0) + weapons.size() - 1
+
+
+## Lo que la meta-progresión necesita de la run que termina.
+func make_record(victory: bool) -> RunRecord:
+	var record := RunRecord.new()
+	record.victory = victory
+	record.floor_reached = floor_index + 1
+	record.kills = kills
+	record.items = item_count()
+	record.bosses = bosses_defeated.duplicate()
+	record.character = character.id
+	return record
 
 
 ## Le da un item al jugador. Si es un activo y ya tenía otro, devuelve el viejo (para dejarlo en el
@@ -201,3 +230,9 @@ func _on_room_cleared(_cell: Vector2i) -> void:
 
 func _on_enemy_killed(_enemy: Node2D) -> void:
 	kills += 1
+
+
+func _on_boss_defeated(boss: Node2D) -> void:
+	var data := boss.get(&"data") as EnemyData
+	if data != null:
+		bosses_defeated.append(data.id)
