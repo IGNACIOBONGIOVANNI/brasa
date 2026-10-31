@@ -35,6 +35,14 @@ func _character(id: StringName) -> CharacterData:
 	return SaveManager.config.character_by_id(id)
 
 
+## Input de verdad (como una tecla): pasa por _unhandled_input de la pantalla.
+func _press(action: StringName) -> void:
+	var event := InputEventAction.new()
+	event.action = action
+	event.pressed = true
+	get_tree().root.push_input(event)
+
+
 func _screen_text() -> String:
 	var lines: PackedStringArray = []
 	for node: Node in _main.screen.find_children("*", "Label", true, false):
@@ -218,6 +226,20 @@ func test_intro_can_be_skipped_and_seen_again_from_options() -> void:
 	(_main.screen as OptionsMenu).story_requested.emit()
 	(_main.screen as IntroScreen).skip()
 	assert_true(_main.screen is OptionsMenu, "vuelve a Opciones")
+	await _settle()
+
+
+func test_intro_keys_change_the_screen_without_errors() -> void:
+	(_main.screen as MainMenu).play_requested.emit()
+	await wait_process_frames(2)
+	_press(&"ui_cancel")
+	assert_true(_main.screen is CharacterSelect, "Esc la saltea")
+	_main.show_options()
+	(_main.screen as OptionsMenu).story_requested.emit()
+	await wait_process_frames(2)
+	for _i: int in IntroScreen.LINES.size():
+		_press(&"ui_accept")
+	assert_true(_main.screen is OptionsMenu, "Enter en la última línea vuelve a Opciones")
 	await _settle()
 
 

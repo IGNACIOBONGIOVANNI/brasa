@@ -85,6 +85,8 @@ enabled=PackedStringArray("res://addons/gut/plugin.cfg")
 [gui]
 
 theme/custom="res://ui/theme/ui_theme.tres"
+theme/default_font_antialiasing=0
+theme/default_font_hinting=2
 
 [input]
 

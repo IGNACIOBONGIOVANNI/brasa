@@ -6,7 +6,7 @@ estructura de los roguelites de salas + bullet hell, con contenido 100 % origina
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
 **Estado:** Hito 9 (lore) terminado: título "Brasa", intro, una línea por piso, apodo de los jefes y
-final. Antes, hito 8: texto nítido, Haz y Órbita rehechos, Trabuco ajustado y Mochila (I). Cualquier
+final; después, arreglo del cuelgue de la intro y texto con pixelado fino. Antes, hito 8: texto nítido, Haz y Órbita rehechos, Trabuco ajustado y Mochila (I). Cualquier
 trabajo nuevo, solo con OK del usuario. El `.exe` se exporta a `builds/Brasa.exe` (ignorado por git).
 
 ## Ejecutables (rutas exactas)
@@ -162,6 +162,11 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   (ver `LaserBeam`, si no el láser no le pega a un enemigo pegado al jugador).
 - En el tool Bash, algunos heredocs largos con comillas fallan con "unexpected EOF": escribir el
   archivo con Write (o un `.py` en el scratchpad) y correrlo.
+- En un `_unhandled_input` que puede cambiar de pantalla (emitir algo que hace que `Main` saque el
+  menú del árbol), llamar `get_viewport().set_input_as_handled()` **antes**: después el nodo ya no
+  está en el árbol, `get_viewport()` da null y en el editor el juego se frena con el error (pasó en
+  la intro). Los tests de menús que usan teclas mandan input de verdad con
+  `get_tree().root.push_input(InputEventAction)`.
 - **No cambiar `application/config/name`** ("mi-roguelite"): define la carpeta de `user://` (el
   guardado). El título que se ve es `MenuBuilder.GAME_TITLE` (Main lo pone en la ventana al arrancar).
 - `--write-movie` en un `.exe` exportado necesita una ruta absoluta (`C:/.../f.png`).
@@ -210,8 +215,11 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
 - Escena principal `res://main/main.tscn`. Autoloads (en este orden): GameRNG, EventBus, AudioManager,
   RunState, SaveManager, Debug.
 - Viewport 320x180, ventana 1280x720, stretch `canvas_items` + aspect `keep` + escala **entera**. El
-  mundo se dibuja aparte a 320x180 (SubViewport en `game.tscn`), así que sigue pixelado; la UI y el
-  texto se dibujan a la resolución de la ventana (con antialiasing). `Label` sin `line_spacing` extra.
+  mundo se dibuja aparte a 320x180 (SubViewport en `game.tscn`), así que sigue pixelado; la UI se
+  dibuja a la resolución de la ventana. Las letras se rasterizan al doble de la resolución del juego
+  (`MenuBuilder.TEXT_OVERSAMPLING` → `oversampling_override` de la ventana, en `Main._ready`) sin
+  antialiasing y con hinting normal (`gui/theme/default_font_*`): pixeladas, pero más finas que el
+  mundo. `Label` sin `line_spacing` extra.
 - Filtro de texturas nearest, snap de transforms y vértices a píxel. Renderer Compatibility.
 - Física 60 ticks, gravedad 2D en 0 (top-down).
 - Capas de colisión 2D: 1 wall, 2 player, 3 enemy, 4 player_bullet, 5 enemy_bullet, 6 pickup,
@@ -396,7 +404,7 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   defecto, nítido porque el HUD está fuera del SubViewport del mundo).
 - **Render:** `Game` tiene `WorldView` (SubViewportContainer de 320x180) → `World` (SubViewport) con
   salas, manchas, entidades, balas, efectos y la cámara. HUD, pausa, Mochila, fundido, menús y debug
-  quedan afuera, en la ventana: texto nítido y pixel art intacto.
+  quedan afuera, en la ventana: el texto con pixelado fino (ver configuración) y el pixel art intacto.
 - **Capas de dibujo:** pisos, paredes y manchas (`Decals`) en z 0; pickups de las salas, entidades,
   balas y efectos en z 1, así las manchas nunca tapan un pedestal o la trampilla.
 - **Menús:** `MainMenu`, `PauseMenu` y `RunSummary` arman su UI por código con `MenuBuilder` y el

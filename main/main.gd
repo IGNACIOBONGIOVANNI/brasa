@@ -36,6 +36,8 @@ var _quitting: bool = false
 func _ready() -> void:
 	get_tree().set_auto_accept_quit(false)
 	get_window().title = MenuBuilder.GAME_TITLE
+	# Las letras se rasterizan a 640x360 y se agrandan sin suavizar (filtro nearest, sin antialiasing).
+	get_window().oversampling_override = MenuBuilder.TEXT_OVERSAMPLING
 	EventBus.player_died.connect(_on_player_died)
 	EventBus.run_ended.connect(finish_run)
 	var args: PackedStringArray = OS.get_cmdline_user_args()

@@ -5,6 +5,9 @@ extends RefCounted
 ## Título del juego. `application/config/name` sigue siendo "mi-roguelite" porque define la carpeta
 ## del guardado (cambiarlo dejaría atrás el progreso).
 const GAME_TITLE: String = "Brasa"
+## Resolución a la que se dibujan las letras, en veces la del juego (320x180). Con 2 cada píxel de
+## letra mide medio píxel del mundo: pixelado, pero más fino que los dibujos (ver Main._ready).
+const TEXT_OVERSAMPLING: float = 2.0
 const TITLE_COLOR: Color = Color("e8c170")
 const MUTED_COLOR: Color = Color("9a93a6")
 const OUTLINE_COLOR: Color = Color("120c16")

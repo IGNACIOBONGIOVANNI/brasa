@@ -77,16 +77,17 @@ func _process(delta: float) -> void:
 			advance()
 
 
+## La tecla se marca como usada antes de actuar: al terminar, Main cambia de pantalla y la intro ya
+## no está en el árbol (get_viewport() daría null).
 func _unhandled_input(event: InputEvent) -> void:
 	var click := event as InputEventMouseButton
 	if event.is_action_pressed(&"ui_cancel"):
+		get_viewport().set_input_as_handled()
 		skip()
 	elif event.is_action_pressed(&"ui_accept") or (click != null and click.pressed):
+		get_viewport().set_input_as_handled()
 		AudioManager.play_sfx(&"ui_select")
 		advance()
-	else:
-		return
-	get_viewport().set_input_as_handled()
 
 
 func _finish() -> void:

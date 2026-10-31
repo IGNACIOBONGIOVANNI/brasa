@@ -381,3 +381,18 @@ El usuario aprobó el borrador de `docs/LORE.md` ("Sí, integralo").
   Solo cambia el nombre que se ve; el id sigue siendo `fragua_apagada` para no tocar guardados.
 - Los textos de la intro y el final viven como constantes en sus pantallas; los de pisos y jefes, en
   sus `.tres` (con un test que exige que no falten).
+
+## Después del hito 9: cuelgue de la intro y texto pixelado (2026-10-31)
+
+- **Cuelgue de la intro:** al aceptar la última línea o saltearla, `Main` cambiaba de pantalla dentro
+  del `_unhandled_input` de la intro y después la intro pedía `get_viewport()`, que ya era null: error
+  de script (en el editor frena el juego). Ahora marca la tecla como usada antes de actuar, igual que
+  los otros menús. Los tests anteriores llamaban a `advance()`/`skip()` directo y no lo veían; el test
+  nuevo manda Enter y Esc de verdad (`push_input`).
+- **Texto pixelado, pero menos que al principio:** pedido del usuario después del hito 8 (el texto
+  liso no tenía la estética pixel). Las letras se rasterizan al doble de la resolución del juego
+  (640x360) y se agrandan sin suavizar: cada píxel de letra mide medio píxel del mundo. Se hace con
+  `oversampling_override = 2` en la ventana, antialiasing de fuente apagado y hinting normal. Se
+  probaron cuatro combinaciones de hinting y subpíxel: sin posición de subpíxel el espaciado quedaba
+  desparejo ("Tal ler"); con subpíxel automático y hinting normal queda parejo y con trazos sólidos.
+  Sigue siendo la fuente de Godot (no una fuente pixel propia): no hizo falta dibujar una.
