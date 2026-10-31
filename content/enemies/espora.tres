@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="2_pattern_script"]
+[ext_resource type="Resource" path="res://content/patterns/espora_ring.tres" id="p0"]
+[ext_resource type="Resource" path="res://content/patterns/espora_spiral.tres" id="p1"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"espora"
+display_name = "Espora"
+template_char = "E"
+max_health = 14.0
+move_style = 1
+move_speed = 25.0
+preferred_distance = 95.0
+attack_kind = 1
+attack_range = 200.0
+attack_cooldown = 1.8
+telegraph_time = 0.5
+recover_time = 0.5
+patterns = Array[ExtResource("2_pattern_script")]([ExtResource("p0"), ExtResource("p1")])
+body_radius = 5.0
+hurtbox_radius = 7.0
+visual_style = 3
+visual_radius = 7.0
+body_color = Color(0.851, 0.549, 0.769, 1)

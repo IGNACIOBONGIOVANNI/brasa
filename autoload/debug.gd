@@ -1,6 +1,7 @@
 extends Node
 ## Herramientas de debug, solo en builds debug.
-## F1: overlay (abajo a la derecha) con FPS, seed, sala actual y cantidad de balas.
+## F1: overlay (abajo a la derecha) con FPS, seed, sala actual, cantidad de balas y tiempo de la run
+## (sin pausas: sirve para medir cuánto dura una run).
 ## F2: muestra las formas de colisión (cuerpos, hurtboxes en verde, hitboxes en rojo).
 ## F3: menú de desarrollo con los comandos que registra la escena actual (pausa el juego). Un
 ## comando "Grupo/Nombre" va adentro del submenú "Grupo".
@@ -86,11 +87,12 @@ func _process(_delta: float) -> void:
 		_quit_game()
 	if not _layer.visible:
 		return
-	_label.text = "FPS %d\nseed %d\nsala %s\nbalas %d" % [
+	_label.text = "FPS %d\nseed %d\nsala %s\nbalas %d\ntiempo %s" % [
 		Engine.get_frames_per_second(),
 		GameRNG.get_run_seed(),
 		_room_text,
 		get_tree().get_node_count_in_group(Bullet.GROUP),
+		RunSummary.format_time(RunState.run_time),
 	]
 
 

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://data/item_data.gd" id="1_item"]
+[ext_resource type="Script" path="res://items/hooks/shards_hook.gd" id="3_hook"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"esquirlas"
+display_name = "Esquirlas"
+description = "Los enemigos revientan en balas al morir"
+kind = 0
+rarity = 2
+pools = 13
+price = 12
+hook_script = ExtResource("3_hook")
+locked = true
+icon = PackedStringArray("#..#..#", ".#.#.#.", "..###..", "#######", "..###..", ".#.#.#.", "#..#..#")
+icon_color = Color(1, 0.604, 0.235, 1)

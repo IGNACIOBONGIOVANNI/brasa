@@ -1,0 +1,60 @@
+[gd_resource type="Resource" script_class="FloorTheme" format=3]
+
+[ext_resource type="Script" path="res://data/floor_theme.gd" id="1_theme"]
+[ext_resource type="Script" path="res://data/room_template.gd" id="2_template_script"]
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="3_enemy_script"]
+[ext_resource type="Script" path="res://data/pickup_data.gd" id="4_pickup_script"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/inicio.tres" id="r0"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/tesoro.tres" id="r1"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/tienda.tres" id="r2"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/secreta.tres" id="r3"]
+[ext_resource type="Resource" path="res://content/rooms/floor_3/jefe_raigon.tres" id="r4"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/patio.tres" id="r5"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/pilares.tres" id="r6"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/esquinas.tres" id="r7"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/solitario.tres" id="r8"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/foso.tres" id="r9"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/columnas.tres" id="r10"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/cruz.tres" id="r11"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/pasillo.tres" id="r12"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/emboscada.tres" id="r13"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/fortaleza.tres" id="r14"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/remolino.tres" id="r15"]
+[ext_resource type="Resource" path="res://content/rooms/floor_2/cloaca_canal.tres" id="r16"]
+[ext_resource type="Resource" path="res://content/rooms/floor_2/cloaca_pilares.tres" id="r17"]
+[ext_resource type="Resource" path="res://content/rooms/floor_2/cloaca_emboscada.tres" id="r18"]
+[ext_resource type="Resource" path="res://content/rooms/floor_2/cloaca_laberinto.tres" id="r19"]
+[ext_resource type="Resource" path="res://content/rooms/floor_3/raices_bosque.tres" id="r20"]
+[ext_resource type="Resource" path="res://content/rooms/floor_3/raices_nido.tres" id="r21"]
+[ext_resource type="Resource" path="res://content/rooms/floor_3/raices_tuneles.tres" id="r22"]
+[ext_resource type="Resource" path="res://content/rooms/floor_3/raices_emboscada.tres" id="r23"]
+[ext_resource type="Resource" path="res://content/enemies/carnero.tres" id="e_carnero"]
+[ext_resource type="Resource" path="res://content/enemies/vigia.tres" id="e_vigia"]
+[ext_resource type="Resource" path="res://content/enemies/farol.tres" id="e_farol"]
+[ext_resource type="Resource" path="res://content/enemies/centinela.tres" id="e_centinela"]
+[ext_resource type="Resource" path="res://content/enemies/espora.tres" id="e_espora"]
+[ext_resource type="Resource" path="res://content/enemies/raigon.tres" id="e_raigon"]
+[ext_resource type="Resource" path="res://content/pickups/coin.tres" id="p_coin"]
+[ext_resource type="Resource" path="res://content/pickups/heart.tres" id="p_heart"]
+[ext_resource type="Resource" path="res://content/pickups/bomb.tres" id="p_bomb"]
+[ext_resource type="Resource" path="res://content/pickups/key.tres" id="p_key"]
+
+[resource]
+script = ExtResource("1_theme")
+id = &"floor_3"
+display_name = "Raíces"
+room_count_min = 10
+room_count_max = 12
+min_boss_distance = 4
+enemy_health_mult = 1.8
+enemy_bullet_speed_mult = 1.2
+difficulty_bonus = 1
+floor_color = Color(0.169, 0.129, 0.09, 1)
+floor_checker_color = Color(0.2, 0.153, 0.106, 1)
+wall_color = Color(0.329, 0.251, 0.165, 1)
+outline_color = Color(0.09, 0.063, 0.039, 1)
+rock_color = Color(0.451, 0.376, 0.247, 1)
+pit_color = Color(0.043, 0.031, 0.02, 1)
+templates = Array[ExtResource("2_template_script")]([ExtResource("r0"), ExtResource("r1"), ExtResource("r2"), ExtResource("r3"), ExtResource("r4"), ExtResource("r5"), ExtResource("r6"), ExtResource("r7"), ExtResource("r8"), ExtResource("r9"), ExtResource("r10"), ExtResource("r11"), ExtResource("r12"), ExtResource("r13"), ExtResource("r14"), ExtResource("r15"), ExtResource("r16"), ExtResource("r17"), ExtResource("r18"), ExtResource("r19"), ExtResource("r20"), ExtResource("r21"), ExtResource("r22"), ExtResource("r23")])
+enemies = Array[ExtResource("3_enemy_script")]([ExtResource("e_carnero"), ExtResource("e_vigia"), ExtResource("e_farol"), ExtResource("e_centinela"), ExtResource("e_espora"), ExtResource("e_raigon")])
+pickups = Array[ExtResource("4_pickup_script")]([ExtResource("p_coin"), ExtResource("p_heart"), ExtResource("p_bomb"), ExtResource("p_key")])

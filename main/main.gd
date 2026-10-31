@@ -1,7 +1,8 @@
 class_name Main
 extends Node
 ## Raíz del juego y flujo de pantallas: menú principal → elegir personaje → run → resumen (al morir
-## o ganar, con lo ganado) → menú u otra run. Desde el menú también se va al Taller y a los logros.
+## o ganar, con lo ganado) → menú u otra run. Desde el menú también se va al Taller, a los logros y a
+## las opciones.
 ## Abre el guardado al arrancar y cierra el juego prolijo (corta el audio antes de salir).
 ## Argumentos de usuario: --skip-menu o --demo-input arrancan directo en una run; --save=RUTA usa
 ## otro guardado; con --demo-input (y sin --save) el progreso queda solo en memoria.
@@ -10,6 +11,7 @@ const MENU_SCENE: PackedScene = preload("res://ui/menus/main_menu.tscn")
 const CHARACTER_SCENE: PackedScene = preload("res://ui/menus/character_select.tscn")
 const WORKSHOP_SCENE: PackedScene = preload("res://ui/menus/workshop_menu.tscn")
 const ACHIEVEMENTS_SCENE: PackedScene = preload("res://ui/menus/achievements_menu.tscn")
+const OPTIONS_SCENE: PackedScene = preload("res://ui/menus/options_menu.tscn")
 const GAME_SCENE: PackedScene = preload("res://main/game.tscn")
 const SUMMARY_SCENE: PackedScene = preload("res://ui/menus/run_summary.tscn")
 const SAVE_ARG: String = "--save="
@@ -65,6 +67,7 @@ func show_menu() -> void:
 	menu.play_requested.connect(show_character_select)
 	menu.workshop_requested.connect(show_workshop)
 	menu.achievements_requested.connect(show_achievements)
+	menu.options_requested.connect(show_options)
 	menu.quit_requested.connect(quit_game)
 	_set_screen(menu)
 
@@ -86,6 +89,12 @@ func show_achievements() -> void:
 	var achievements := ACHIEVEMENTS_SCENE.instantiate() as AchievementsMenu
 	achievements.back_requested.connect(show_menu)
 	_set_screen(achievements)
+
+
+func show_options() -> void:
+	var options := OPTIONS_SCENE.instantiate() as OptionsMenu
+	options.back_requested.connect(show_menu)
+	_set_screen(options)
 
 
 ## Empieza una run con ese personaje (null = el último elegido).

@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="2_pattern_script"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"fundidor"
+display_name = "Fundidor"
+template_char = "U"
+max_health = 18.0
+contact_damage = 1.0
+move_speed = 42.0
+acceleration = 500.0
+knockback_resistance = 0.6
+attack_range = 90.0
+attack_cooldown = 1.1
+telegraph_time = 0.4
+recover_time = 0.6
+charge_speed = 250.0
+charge_time = 0.45
+body_radius = 5.0
+hurtbox_radius = 7.0
+visual_style = 4
+visual_radius = 7.0
+body_color = Color(0.949, 0.549, 0.2, 1)

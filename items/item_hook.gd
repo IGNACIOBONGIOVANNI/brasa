@@ -38,11 +38,15 @@ func on_use(_context: HookContext) -> bool:
 	return false
 
 
-## Dispara `count` balas del jugador en anillo con sus stats actuales: heredan rebote, perforación
-## y teledirigido como cualquier disparo.
+## Dispara `count` balas del jugador en anillo alrededor de él.
 static func fire_ring(player: Player, count: int) -> void:
+	fire_from(player, player.global_position + Vector2(0, -2), PatternMath.ring(count, player.aim_direction.angle()))
+
+
+## Dispara balas del jugador desde `center` con sus stats actuales: heredan rebote, perforación y
+## teledirigido como cualquier disparo.
+static func fire_from(player: Player, center: Vector2, directions: Array[Vector2]) -> void:
 	var spec := ShotSpec.build(RunState.stats, RunState.BASE_WEAPON)
-	var center: Vector2 = player.global_position + Vector2(0, -2)
-	for direction: Vector2 in PatternMath.ring(count, player.aim_direction.angle()):
+	for direction: Vector2 in directions:
 		Bullet.spawn(player.get_tree(), BULLET_SCENE, spec, center + direction * 6.0, direction,
 				PhysicsLayers.PLAYER_BULLET, PhysicsLayers.WALL | PhysicsLayers.ENEMY_HURTBOX)

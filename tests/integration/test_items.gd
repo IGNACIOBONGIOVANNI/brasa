@@ -146,3 +146,65 @@ func test_spite_fires_a_ring_when_hurt() -> void:
 	await wait_physics_frames(2)
 	assert_gte(_player_bullets(), 8)
 	await wait_physics_frames(1)
+
+
+## Hito 7.
+func test_lightning_hits_every_enemy() -> void:
+	var carnero := load("res://content/enemies/carnero.tres") as EnemyData
+	var enemies: Array[Enemy] = [
+		_game.spawn_enemy(carnero, Vector2(-70, -30)),
+		_game.spawn_enemy(carnero, Vector2(70, -30)),
+	]
+	await wait_physics_frames(roundi(carnero.spawn_delay * 60.0) + 5)
+	RunState.add_item(_item("relampago"))
+	await _tap(&"use_active")
+	await wait_physics_frames(1)
+	for enemy: Enemy in enemies:
+		assert_almost_eq(enemy.health.current, carnero.max_health - 8.0, 0.001, "le pegó el rayo")
+	assert_false(RunState.is_active_ready(), "gastó la carga")
+	await wait_physics_frames(2)
+
+
+func test_lightning_without_enemies_keeps_its_charge() -> void:
+	RunState.add_item(_item("relampago"))
+	await _tap(&"use_active")
+	await wait_physics_frames(1)
+	assert_true(RunState.is_active_ready())
+
+
+func test_medkit_heals_a_heart_and_is_not_wasted_at_full_health() -> void:
+	RunState.add_item(_item("botiquin"))
+	await _tap(&"use_active")
+	await wait_physics_frames(1)
+	assert_true(RunState.is_active_ready(), "con la vida llena no se gasta")
+	_player.health.take_damage(3.0)
+	await _tap(&"use_active")
+	await wait_physics_frames(1)
+	assert_eq(_player.health.current, 5.0, "curó un corazón")
+	assert_false(RunState.is_active_ready())
+
+
+func test_echo_fires_backwards_every_fourth_shot() -> void:
+	var hook := _item("eco").hook_script.new() as ItemHook
+	var context := HookContext.new()
+	context.player = _player
+	context.position = _player.global_position
+	context.direction = Vector2.RIGHT
+	for _i: int in 3:
+		hook.on_shoot(context)
+	assert_eq(_player_bullets(), 0, "los primeros 3 no")
+	hook.on_shoot(context)
+	assert_eq(_player_bullets(), 1, "el cuarto sí")
+	await wait_physics_frames(1)
+
+
+func test_shards_burst_out_of_killed_enemies() -> void:
+	RunState.add_item(_item("esquirlas"))
+	await wait_physics_frames(1)
+	var dummy := Node2D.new()
+	add_child_autofree(dummy)
+	dummy.global_position = Vector2(0, -48)
+	EventBus.enemy_killed.emit(dummy)
+	await wait_physics_frames(1)
+	assert_gte(_player_bullets(), 6)
+	await wait_physics_frames(1)

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://data/item_data.gd" id="1_item"]
+[ext_resource type="Resource" path="res://content/weapons/ballesta.tres" id="4_weapon"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"arma_ballesta"
+display_name = "Ballesta"
+description = "Pocos tiros pero muy fuertes y rápidos"
+kind = 2
+rarity = 1
+pools = 3
+price = 9
+weapon = ExtResource("4_weapon")

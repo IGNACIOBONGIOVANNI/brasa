@@ -2,10 +2,15 @@ class_name Hud
 extends CanvasLayer
 ## HUD de la run. Arriba a la izquierda (sobre la pared): corazones, cargas de Pulso, monedas/bombas/
 ## llaves y el activo con su carga. Arriba a la derecha: el minimapa. Abajo (sobre la pared): los
-## items pasivos a la izquierda y el arma con su munición a la derecha. El cartel (item agarrado o
-## piso nuevo) y la barra del jefe.
+## items pasivos a la izquierda y el arma con su munición a la derecha. El cartel (item agarrado,
+## piso nuevo o jefe que aparece), la barra del jefe y los bordes rojos de peligro (golpe y vida baja).
+
+## Con esta vida o menos (en medios corazones) suena el latido.
+const LOW_HEALTH: float = 2.0
+const BOSS_INTRO_TRAUMA: float = 0.35
 
 var _floor: FloorController
+var _last_health: float = -1.0
 
 @onready var _hearts: HeartsDisplay = $Hearts
 @onready var _pulses: PulseDisplay = $Pulses
@@ -16,6 +21,7 @@ var _floor: FloorController
 @onready var _banner: ItemBanner = $Banner
 @onready var _boss_bar: BossBar = $BossBar
 @onready var _minimap: Minimap = $Minimap
+@onready var _danger: DangerOverlay = $Danger
 
 
 func bind_player(player: Player) -> void:
@@ -29,7 +35,7 @@ func bind_player(player: Player) -> void:
 	RunState.active_changed.connect(_refresh_active)
 	RunState.weapons_changed.connect(_refresh_weapon)
 	EventBus.item_picked.connect(_banner.show_item)
-	EventBus.boss_spawned.connect(_boss_bar.track)
+	EventBus.boss_spawned.connect(_on_boss_spawned)
 	EventBus.boss_defeated.connect(_boss_bar.untrack)
 	_refresh_items()
 	_refresh_active()
@@ -46,6 +52,19 @@ func bind_floor(floor_controller: FloorController) -> void:
 
 func _on_health_changed(current: float, max_value: float) -> void:
 	_hearts.set_health(roundi(current), roundi(max_value))
+	if _last_health >= 0.0 and current < _last_health:
+		_danger.flash()
+	_last_health = current
+	_danger.set_low_health(current > 0.0 and current <= LOW_HEALTH)
+
+
+func _on_boss_spawned(boss: Node2D) -> void:
+	_boss_bar.track(boss)
+	var data := boss.get(&"data") as EnemyData
+	if data != null:
+		_banner.show_text(data.display_name, "Jefe")
+	AudioManager.play_sfx(&"boss_intro")
+	EventBus.shake_requested.emit(BOSS_INTRO_TRAUMA)
 
 
 func _refresh_items() -> void:

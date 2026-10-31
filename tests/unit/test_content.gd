@@ -23,7 +23,8 @@ const CODE_SFX: Array[StringName] = [
 	&"telegraph", &"charge", &"door_close", &"door_open", &"room_clear", &"bomb_place",
 	&"explosion", &"rock_break", &"secret_found", &"item_pickup", &"buy", &"unlock", &"reload",
 	&"weapon_swap", &"active_use", &"active_ready", &"pickup_heart", &"boss_phase", &"boss_die",
-	&"exit_open", &"ui_select", &"pause", &"achievement",
+	&"exit_open", &"ui_select", &"pause", &"achievement", &"lightning", &"heartbeat", &"boss_intro",
+	&"victory", &"defeat", &"medkit",
 ]
 
 
@@ -100,7 +101,11 @@ func test_room_templates_are_valid_and_resolvable() -> void:
 
 
 func test_enemies_spawn_away_from_doors() -> void:
-	for template: RoomTemplate in FLOOR_1.templates:
+	var templates: Dictionary[RoomTemplate, bool] = {}
+	for theme: FloorTheme in RUN.floors:
+		for template: RoomTemplate in theme.templates:
+			templates[template] = true
+	for template: RoomTemplate in templates:
 		for marker: RoomGrid.EnemyMarker in RoomTemplateParser.parse(template.layout).enemies:
 			for side: Vector2i in FloorLayout.DIRECTIONS:
 				var entrance: Vector2i = RoomGrid.door_cells(side)[1]
@@ -230,7 +235,7 @@ func test_treasure_and_shop_have_pedestal_spots() -> void:
 
 
 func test_run_floors_are_complete() -> void:
-	assert_eq(RUN.floors.size(), 2, "dos pisos")
+	assert_eq(RUN.floors.size(), 4, "cuatro pisos")
 	for theme: FloorTheme in RUN.floors:
 		var kinds: Dictionary[RoomSlot.Kind, bool] = {}
 		for template: RoomTemplate in theme.templates:
@@ -245,7 +250,12 @@ func test_run_floors_are_complete() -> void:
 				assert_false(boss == null or boss.phases.is_empty(), "%s/%s: es un jefe con fases" % [theme.id, template.id])
 		for kind: int in RoomSlot.Kind.size():
 			assert_true(kinds.has(kind), "%s tiene plantillas de tipo %d" % [theme.id, kind])
-	assert_gt(RUN.floors[1].enemy_health_mult, RUN.floors[0].enemy_health_mult, "el piso 2 es más difícil")
+	for i: int in range(1, RUN.floors.size()):
+		var previous: FloorTheme = RUN.floors[i - 1]
+		var current: FloorTheme = RUN.floors[i]
+		assert_gt(current.enemy_health_mult, previous.enemy_health_mult, "el piso %d es más difícil" % (i + 1))
+		assert_gte(current.enemy_bullet_speed_mult, previous.enemy_bullet_speed_mult, "piso %d: balas" % (i + 1))
+		assert_gte(current.room_count_min, previous.room_count_min, "piso %d: salas" % (i + 1))
 
 
 func test_bosses_have_valid_phases() -> void:
@@ -264,15 +274,36 @@ func test_bosses_have_valid_phases() -> void:
 				assert_gt(boss_phase.behavior.patterns.size(), 0, "%s: fase %d con patrones" % [enemy.id, i])
 			if i > 0:
 				assert_lt(boss_phase.health_fraction, enemy.phases[i - 1].health_fraction, "%s: umbrales de mayor a menor" % enemy.id)
-	assert_gte(bosses, 2, "un jefe por piso")
+	assert_gte(bosses, RUN.floors.size(), "un jefe por piso")
 
 
-func test_every_floor_2_room_file_is_in_floor_2() -> void:
-	var in_theme: Dictionary[String, bool] = {}
-	for template: RoomTemplate in RUN.floors[1].templates:
-		in_theme[template.resource_path] = true
-	for resource: Resource in _load_all("res://content/rooms/floor_2/"):
-		assert_true(in_theme.has(resource.resource_path), "%s está en floor_2.tres" % resource.resource_path)
+func test_every_room_file_is_in_its_floor() -> void:
+	for i: int in RUN.floors.size():
+		var in_theme: Dictionary[String, bool] = {}
+		for template: RoomTemplate in RUN.floors[i].templates:
+			in_theme[template.resource_path] = true
+		for resource: Resource in _load_all("res://content/rooms/floor_%d/" % (i + 1)):
+			assert_true(in_theme.has(resource.resource_path), "%s está en floor_%d.tres" % [resource.resource_path, i + 1])
+
+
+func test_each_floor_has_its_own_boss_and_enemy_letters_are_unique() -> void:
+	var bosses: Dictionary[EnemyData, bool] = {}
+	for theme: FloorTheme in RUN.floors:
+		var letters: Dictionary[String, bool] = {}
+		for enemy: EnemyData in theme.enemies:
+			assert_false(letters.has(enemy.template_char), "%s: letra %s repetida" % [theme.id, enemy.template_char])
+			letters[enemy.template_char] = true
+			if not enemy.phases.is_empty():
+				assert_false(bosses.has(enemy), "%s: el jefe %s ya está en otro piso" % [theme.id, enemy.id])
+				bosses[enemy] = true
+	assert_eq(bosses.size(), RUN.floors.size(), "un jefe distinto por piso")
+
+
+func test_floor_names_are_unique() -> void:
+	var names: Dictionary[String, bool] = {}
+	for theme: FloorTheme in RUN.floors:
+		assert_false(names.has(theme.display_name), "nombre repetido: %s" % theme.display_name)
+		names[theme.display_name] = true
 
 
 func test_characters_are_valid() -> void:
@@ -331,3 +362,9 @@ func test_every_character_and_achievement_file_is_listed() -> void:
 		assert_has(META.characters, resource, "%s está en meta_config" % resource.resource_path)
 	for resource: Resource in _load_all(ACHIEVEMENTS_DIR):
 		assert_has(META.achievements, resource, "%s está en meta_config" % resource.resource_path)
+
+
+## Al exportar, Godot convierte los .tres a binario y en 4.7 eso vacía los PackedStringArray (los
+## íconos de píxeles): el proyecto exporta los recursos como texto.
+func test_export_keeps_text_resources() -> void:
+	assert_false(ProjectSettings.get_setting("editor/export/convert_text_resources_to_binary", true))

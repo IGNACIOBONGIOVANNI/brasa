@@ -5,7 +5,7 @@ extends Resource
 
 enum MoveStyle { CHASE, KEEP_DISTANCE }
 enum AttackKind { CHARGE, SHOOT }
-enum VisualStyle { HORNED, EYE, LANTERN }
+enum VisualStyle { HORNED, EYE, LANTERN, SPORE, BLOCK }
 
 @export var id: StringName = &""
 @export var display_name: String = ""

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://data/weapon_data.gd" id="1_weapon"]
+
+[resource]
+script = ExtResource("1_weapon")
+id = &"ballesta"
+display_name = "Ballesta"
+damage_mult = 2.6
+fire_rate_mult = 0.45
+range_mult = 1.4
+shot_speed_mult = 1.6
+ammo = 40
+magazine = 6
+reload_time = 1.2
+knockback = 140.0
+shake_trauma = 0.3
+sfx_id = &"crossbow"
+bullet_radius = 2.0
+bullet_color = Color(0.91, 0.941, 1, 1)
+gun_color = Color(0.478, 0.361, 0.239, 1)
+gun_length = 9.0
+icon = PackedStringArray("#.......#", ".#.....#.", "#########", "....#....", "....#....")
+icon_color = Color(0.788, 0.639, 0.42, 1)

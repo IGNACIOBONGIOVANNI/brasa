@@ -3,14 +3,17 @@ extends GutTest
 ## salas especiales presentes y reglas de la secreta. Misma seed = mismo piso.
 
 const SEEDS: int = 500
+## Seeds por cada piso de la run (con los parámetros de su tema).
+const SEEDS_PER_FLOOR: int = 200
+const RUN: RunConfig = preload("res://content/run/run_config.tres")
 
 var _params := FloorParams.new()
 
 
-func _generate(seed_value: int) -> FloorLayout:
+func _generate(seed_value: int, params: FloorParams = _params) -> FloorLayout:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
-	return FloorGenerator.generate(rng, _params)
+	return FloorGenerator.generate(rng, params)
 
 
 ## Celdas alcanzables desde el inicio sin pasar por la secreta.
@@ -41,7 +44,7 @@ func test_every_seed_generates_a_valid_floor() -> void:
 		if layout == null:
 			failures += 1
 			continue
-		var problems: PackedStringArray = _problems(layout)
+		var problems: PackedStringArray = _problems(layout, _params)
 		if not problems.is_empty():
 			failures += 1
 			if failures <= 5:
@@ -49,10 +52,24 @@ func test_every_seed_generates_a_valid_floor() -> void:
 	assert_eq(failures, 0, "pisos inválidos en %d seeds" % SEEDS)
 
 
-func _problems(layout: FloorLayout) -> PackedStringArray:
+func test_every_floor_of_the_run_generates() -> void:
+	for theme: FloorTheme in RUN.floors:
+		var params := FloorParams.new()
+		params.room_count_min = theme.room_count_min
+		params.room_count_max = theme.room_count_max
+		params.min_boss_distance = theme.min_boss_distance
+		var failures: int = 0
+		for seed_value: int in SEEDS_PER_FLOOR:
+			var layout: FloorLayout = _generate(seed_value, params)
+			if layout == null or not _problems(layout, params).is_empty():
+				failures += 1
+		assert_eq(failures, 0, "%s: pisos inválidos en %d seeds" % [theme.id, SEEDS_PER_FLOOR])
+
+
+func _problems(layout: FloorLayout, params: FloorParams) -> PackedStringArray:
 	var problems := PackedStringArray()
 	var normal_rooms: int = layout.slots.size() - 1
-	if normal_rooms < _params.room_count_min or normal_rooms > _params.room_count_max:
+	if normal_rooms < params.room_count_min or normal_rooms > params.room_count_max:
 		problems.append("%d salas sin contar la secreta" % normal_rooms)
 	if layout.get_slot(layout.start).kind != RoomSlot.Kind.START:
 		problems.append("el inicio no es START")
@@ -72,7 +89,7 @@ func _problems(layout: FloorLayout) -> PackedStringArray:
 		problems.append("hay ciclos")
 	var boss: Vector2i = layout.first_of_kind(RoomSlot.Kind.BOSS)
 	var boss_distance: int = layout.get_slot(boss).distance
-	if boss_distance < _params.min_boss_distance:
+	if boss_distance < params.min_boss_distance:
 		problems.append("jefe a %d pasos" % boss_distance)
 	for kind: RoomSlot.Kind in [RoomSlot.Kind.BOSS, RoomSlot.Kind.TREASURE, RoomSlot.Kind.SHOP]:
 		if layout.neighbors(layout.first_of_kind(kind), false).size() != 1:

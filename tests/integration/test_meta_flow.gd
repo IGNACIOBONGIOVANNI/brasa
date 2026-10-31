@@ -188,3 +188,20 @@ func test_save_path_from_args() -> void:
 	assert_eq(Main.save_path_from_args(PackedStringArray(["--demo-input"]), "x"), "", "la demo no guarda")
 	assert_eq(Main.save_path_from_args(PackedStringArray(["--demo-input", "--save=user://d.json"]), "x"), "user://d.json")
 	assert_eq(Main.save_path_from_args(PackedStringArray(), "x"), "x")
+
+
+func test_options_change_the_volume_and_are_saved() -> void:
+	(_main.screen as MainMenu).options_requested.emit()
+	var options := _main.screen as OptionsMenu
+	assert_not_null(options)
+	options.change_volume(-OptionsMenu.VOLUME_STEP)
+	options.change_volume(-OptionsMenu.VOLUME_STEP)
+	assert_almost_eq(SaveManager.profile.volume, 0.8, 0.0001)
+	assert_almost_eq(AudioServer.get_bus_volume_db(SaveManager.MASTER_BUS), linear_to_db(0.8), 0.01, "se aplicó")
+	options.change_volume(5.0)
+	assert_eq(SaveManager.profile.volume, 1.0, "no pasa del máximo")
+	options.toggle_fullscreen()
+	assert_true(SaveManager.profile.fullscreen)
+	options.toggle_fullscreen()
+	assert_false(SaveManager.profile.fullscreen)
+	await _settle()

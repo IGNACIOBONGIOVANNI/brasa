@@ -2,7 +2,8 @@
 class_name EnemyVisual
 extends Node2D
 ## Placeholder de enemigo dibujado por código. El estilo sale de EnemyData.visual_style:
-## HORNED (cuernos, embiste), EYE (un ojo grande que sigue al jugador), LANTERN (rombo con núcleo).
+## HORNED (cuernos, embiste), EYE (un ojo grande que sigue al jugador), LANTERN (rombo con núcleo),
+## SPORE (bola con manchas que late) y BLOCK (bloque con ojos que brillan al atacar).
 ## Muestra la aparición, el aplastamiento al recibir un golpe y un "!" durante el telegraph.
 ## Se reemplaza por un sprite animado manteniendo la misma interfaz.
 
@@ -92,6 +93,10 @@ func _draw() -> void:
 			_draw_eye()
 		EnemyData.VisualStyle.LANTERN:
 			_draw_lantern()
+		EnemyData.VisualStyle.SPORE:
+			_draw_spore()
+		EnemyData.VisualStyle.BLOCK:
+			_draw_block()
 	draw_set_transform(Vector2.ZERO)
 	if _alert:
 		var origin := Vector2(0, BODY_OFFSET.y - radius - 7.0)
@@ -128,6 +133,30 @@ func _draw_lantern() -> void:
 	var glow: float = 0.5 + 0.5 * sin(_time * 4.0)
 	draw_circle(Vector2.ZERO, radius * 0.45, body_color.lightened(0.3 + 0.3 * glow))
 	draw_circle(Vector2.ZERO, radius * 0.2, Color.WHITE)
+
+
+func _draw_spore() -> void:
+	var size: float = radius * (1.0 + 0.06 * sin(_time * 3.0))
+	draw_circle(Vector2.ZERO, size, OUTLINE_COLOR)
+	draw_circle(Vector2.ZERO, size - 1.0, body_color)
+	var spot_color: Color = body_color.darkened(0.35)
+	for spot: Vector2 in [Vector2(-0.45, -0.4), Vector2(0.4, -0.15), Vector2(-0.1, 0.45)]:
+		draw_circle((spot * radius).round(), maxf(1.0, radius * 0.18), spot_color)
+	var look: Vector2 = (look_direction * 1.5).round()
+	draw_rect(Rect2(Vector2(-2, -1) + look, Vector2(1, 2)), OUTLINE_COLOR)
+	draw_rect(Rect2(Vector2(1, -1) + look, Vector2(1, 2)), OUTLINE_COLOR)
+
+
+func _draw_block() -> void:
+	var half: float = roundf(radius * 0.9)
+	draw_rect(Rect2(-half - 1.0, -half - 1.0, half * 2.0 + 2.0, half * 2.0 + 2.0), OUTLINE_COLOR)
+	draw_rect(Rect2(-half, -half, half * 2.0, half * 2.0), body_color)
+	draw_rect(Rect2(-half, roundf(half * 0.4), half * 2.0, roundf(half * 0.6)), body_color.darkened(0.3))
+	var eye_color: Color = ALERT_COLOR if _alert or _charging else body_color.lightened(0.55)
+	var eye_width: float = maxf(2.0, roundf(radius * 0.35))
+	var look: Vector2 = (look_direction * 1.5).round()
+	draw_rect(Rect2(Vector2(-eye_width - 1.0, -2.0) + look, Vector2(eye_width, 1.0)), eye_color)
+	draw_rect(Rect2(Vector2(1.0, -2.0) + look, Vector2(eye_width, 1.0)), eye_color)
 
 
 func _diamond(size: float) -> PackedVector2Array:

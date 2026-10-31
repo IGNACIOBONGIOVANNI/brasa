@@ -1,7 +1,7 @@
 class_name BossBar
 extends Control
 ## Barra de vida del jefe (abajo, adentro de la sala): nombre, vida y marcas donde cambia de fase.
-## Aparece con EventBus.boss_spawned y se va cuando el jefe muere.
+## Aparece con EventBus.boss_spawned y se va cuando el jefe muere o sale de la escena (cambio de piso).
 
 const BAR_HEIGHT: float = 4.0
 const OUTLINE_COLOR: Color = Color("120c16")
@@ -33,11 +33,14 @@ func track(boss: Node2D) -> void:
 	_name.text = _boss.data.display_name
 	_fraction = 1.0
 	_boss.health.health_changed.connect(_on_health_changed)
+	_boss.tree_exiting.connect(untrack.bind(_boss), CONNECT_ONE_SHOT)
 	visible = true
 	queue_redraw()
 
 
-func untrack(_boss_node: Node2D) -> void:
+func untrack(boss_node: Node2D) -> void:
+	if _boss != null and boss_node != _boss:
+		return
 	_boss = null
 	visible = false
 

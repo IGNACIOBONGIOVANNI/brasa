@@ -4,7 +4,9 @@
 [ext_resource type="Script" path="res://data/floor_theme.gd" id="2_theme_script"]
 [ext_resource type="Resource" path="res://content/floors/floor_1.tres" id="3_floor_1"]
 [ext_resource type="Resource" path="res://content/floors/floor_2.tres" id="4_floor_2"]
+[ext_resource type="Resource" path="res://content/floors/floor_3.tres" id="5_floor_3"]
+[ext_resource type="Resource" path="res://content/floors/floor_4.tres" id="6_floor_4"]
 
 [resource]
 script = ExtResource("1_run")
-floors = Array[ExtResource("2_theme_script")]([ExtResource("3_floor_1"), ExtResource("4_floor_2")])
+floors = Array[ExtResource("2_theme_script")]([ExtResource("3_floor_1"), ExtResource("4_floor_2"), ExtResource("5_floor_3"), ExtResource("6_floor_4")])

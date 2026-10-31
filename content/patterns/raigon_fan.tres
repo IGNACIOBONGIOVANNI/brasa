@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BulletPatternData" format=3]
+
+[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="1_pattern"]
+
+[resource]
+script = ExtResource("1_pattern")
+id = &"raigon_fan"
+kind = 2
+count = 5
+spread_degrees = 70.0
+volleys = 3
+volley_interval = 0.25
+bullet_speed = 95.0
+bullet_color = Color(0.624, 0.863, 0.353, 1)

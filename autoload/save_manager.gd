@@ -1,12 +1,14 @@
 extends Node
 ## El progreso entre runs: el MetaProfile y su archivo. Arranca en memoria (perfil nuevo, sin disco)
 ## hasta que Main llama a `open()` con la ruta del guardado. Guarda después de cada cambio: run
-## terminada, compra en el Taller, personaje elegido.
+## terminada, compra en el Taller, personaje elegido, opciones. También aplica las opciones (volumen
+## del bus Master y pantalla completa).
 ## Los tests lo dejan siempre en memoria (tests/pre_run_hook.gd) para no tocar el guardado real.
 
 signal profile_changed
 
 const DEFAULT_PATH: String = "user://save.json"
+const MASTER_BUS: int = 0
 
 var profile: MetaProfile = MetaProfile.new()
 var config: MetaConfig
@@ -37,6 +39,7 @@ func open(save_path: String) -> void:
 				_store = null
 		if not data.is_empty():
 			profile = MetaProfile.from_dict(data)
+	apply_options()
 	profile_changed.emit()
 
 
@@ -88,6 +91,31 @@ func select_character(character: CharacterData) -> void:
 	_changed()
 
 
+func set_volume(volume: float) -> void:
+	profile.volume = clampf(volume, 0.0, 1.0)
+	apply_options()
+	_changed()
+
+
+func set_fullscreen(fullscreen: bool) -> void:
+	profile.fullscreen = fullscreen
+	apply_options()
+	_changed()
+
+
+## Lleva las opciones del perfil al audio y a la ventana.
+func apply_options() -> void:
+	AudioServer.set_bus_mute(MASTER_BUS, profile.volume <= 0.0)
+	AudioServer.set_bus_volume_db(MASTER_BUS, linear_to_db(maxf(profile.volume, 0.0001)))
+	if DisplayServer.get_name() == "headless":
+		return
+	var current: DisplayServer.WindowMode = DisplayServer.window_get_mode()
+	var is_fullscreen: bool = current == DisplayServer.WINDOW_MODE_FULLSCREEN \
+			or current == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
+	if is_fullscreen != profile.fullscreen:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if profile.fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
+
+
 ## Menú de debug.
 func add_sparks(amount: int) -> void:
 	profile.sparks += amount
@@ -106,9 +134,12 @@ func unlock_everything() -> void:
 	_changed()
 
 
-## Menú de debug: perfil nuevo (se guarda vacío).
+## Menú de debug: perfil nuevo (se guarda vacío). Las opciones se mantienen.
 func reset_progress() -> void:
+	var previous: MetaProfile = profile
 	profile = MetaProfile.new()
+	profile.volume = previous.volume
+	profile.fullscreen = previous.fullscreen
 	_changed()
 
 

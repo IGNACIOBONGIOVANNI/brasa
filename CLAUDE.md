@@ -4,8 +4,8 @@ Roguelite de acción top-down 2D (Godot 4.7.2, GDScript tipado) para Windows. In
 estructura de los roguelites de salas + bullet hell, con contenido 100 % original.
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 6 (meta-progresión) terminado. Próximo: hito 7 (pulido y release), arrancar solo con
-OK del usuario.
+**Estado:** Hito 7 (pulido y release) terminado: están los 7 hitos del plan. Cualquier trabajo nuevo,
+solo con OK del usuario. El `.exe` se exporta a `builds/mi-roguelite.exe` (ignorado por git).
 
 ## Ejecutables (rutas exactas)
 
@@ -37,7 +37,10 @@ Todos los flags están confirmados con `--help` en 4.7.2. `sed 's/\x1b\[[0-9;]*m
 | Abrir una escena en el editor sin ventana (prueba los `@tool`) | `"$G" --headless --path . -e res://main/game.tscn --quit-after 200` |
 | Regenerar el Input Map | `"$G" --headless --path . -s res://tools/setup_input_map.gd` |
 | Abrir el editor | `"/c/Godot_v4.7.2-stable_win64.exe/Godot_v4.7.2-stable_win64.exe" --path . -e` |
-| Exportar .exe (hito 7) | `"$G" --headless --path . --export-release "Windows Desktop" builds/mi-roguelite.exe` |
+| Exportar el .exe | `"$G" --headless --path . --export-release "Windows Desktop" builds/mi-roguelite.exe` |
+| Exportar build debug (con consola) | `"$G" --headless --path . --export-debug "Windows Desktop" builds/debug/mi-roguelite.exe` |
+| Probar la build debug exportada | `builds/debug/mi-roguelite.console.exe -- --demo-input --seed=1234 --quit-frames=900` |
+| Medir el balance (bot) | `"$G" --headless --fixed-fps 60 --path . res://debug/balance_probe.tscn -- --seed=1234` |
 
 Argumentos de usuario del juego (van después de `--`): `--seed=N` fija la seed de todas las runs,
 `--skip-menu` arranca directo en una run, `--demo-input` simula input (moverse en ocho, girar la mira,
@@ -57,6 +60,17 @@ progreso queda solo en memoria, así las corridas automáticas no lo tocan. Los 
 Para mirar los PNG, escalarlos con nearest-neighbor (System.Drawing desde PowerShell) y abrirlos con
 Read; para el audio, leer los picos del WAV (datos desde el byte 44). En Movie Maker el "FPS" del
 overlay no significa nada.
+
+**Exportación:** las plantillas de 4.7.2 están instaladas en
+`%APPDATA%\Godot\export_templates\4.7.2.stable\` (solo las de Windows x86_64). El preset "Windows Desktop"
+está en `export_presets.cfg`: deja afuera `tests/`, `tools/`, `captures/`, `docs/`, `addons/gut/` y el
+medidor de balance. La build **release** no tiene el autoload Debug activo (ni F1/F2/F3, ni
+`--demo-input`, ni `--quit-frames`): para probar el exportado con input simulado usar la build debug.
+Sin rcedit, el `.exe` lleva el ícono de Godot.
+
+**Balance:** `debug/balance_probe.tscn` juega una run con un bot invulnerable (con items típicos) y
+estima cuánto dura para una persona (combate del bot × 2 + 8 s por sala). Con `--fixed-fps 60` corre
+sin esperar al reloj real (un par de minutos). El tiempo real de una run se ve en F1 ("tiempo").
 
 Códigos de salida: `check_scripts.gd`, `--check-only` y GUT devuelven **1** si algo falla, 0 si todo OK.
 Para comandos que podrían colgarse, envolverlos en `timeout 120 ...`.
@@ -127,6 +141,12 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   `SaveStore.read()` también busca el `.tmp` por si un corte quedó justo entre los dos pasos.
 - Un `SaveManager.profile_changed` emitido mientras un menú está en pantalla lo rearma (los menús se
   reconstruyen al cambiar el perfil): en los tests no tocar el perfil después del último `await`.
+- **Al exportar, Godot convierte los `.tres` de texto a binario y en 4.7 eso deja vacíos los
+  `PackedStringArray`** (todos los íconos de píxeles). Por eso `project.godot` tiene
+  `editor/export/convert_text_resources_to_binary=false` (un test lo controla). En el editor y en los
+  tests no se nota: hay que probar el juego exportado.
+- Un enemigo que sale de la escena sin morir (cambio de piso por debug) no emite `boss_defeated`: la
+  barra del jefe se apaga también con `tree_exiting`.
 - Hay una clase global `State` (máquina de estados): ningún enum interno puede llamarse `State`
   (por eso `Door.Mode` y `Room.Phase`).
 - Desde un callback de física (`body_entered`, `area_entered`) no se pueden agregar ni sacar cuerpos o
@@ -176,6 +196,7 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
 - Capas de colisión 2D: 1 wall, 2 player, 3 enemy, 4 player_bullet, 5 enemy_bullet, 6 pickup,
   7 player_hurtbox, 8 enemy_hurtbox, 9 pit, 10 door, 11 trigger (constantes en `PhysicsLayers`).
 - Plugin GUT 9.7.1 activado; config de tests en `.gutconfig.json` (con `pre_run_script`).
+- `[editor] export/convert_text_resources_to_binary=false` (ver gotchas).
 
 ## Estructura actual
 
@@ -198,13 +219,15 @@ core/meta/                  MetaProfile (progreso entre runs), MetaRules (chispa
 data/                       StatBlock, StatModifier, WeaponData, ItemData, ItemCatalog, EnemyData, BossPhase,
                             BulletPatternData, SfxData, SfxLibrary, RoomTemplate, FloorTheme, PickupData,
                             RunConfig, CharacterData, AchievementData, MetaConfig
-content/                    weapons/ (pistola, trabuco, metralla, haz, órbita), items/ (21 + catalog),
-                            enemies/ (carnero, vigia, farol, centinela; jefes campanario y rey_carnero),
-                            patterns/ (14), sfx/sfx_library, rooms/floor_1/ (16) y floor_2/ (5),
-                            floors/ (floor_1 Sótano, floor_2 Cloacas), run/run_config,
+content/                    weapons/ (pistola, trabuco, metralla, haz, órbita, ballesta), items/ (27 +
+                            catalog), enemies/ (carnero, vigia, farol, centinela, espora, fundidor; jefes
+                            campanario, rey_carnero, raigon y yunque), patterns/ (24), sfx/sfx_library,
+                            rooms/floor_1/ (16), floor_2/ (5), floor_3/ (5), floor_4/ (6),
+                            floors/ (Sótano, Cloacas, Raíces, Forja), run/run_config,
                             pickups/ (coin, heart, bomb, key), characters/ (brasa, musgo, ceniza),
-                            achievements/ (5), meta/meta_config
-items/                      ItemHook (base), HookContext, hooks/ (diente de leche, rencor, estallido, caparazón)
+                            achievements/ (7), meta/meta_config
+items/                      ItemHook (base), HookContext, hooks/ (diente de leche, rencor, estallido,
+                            caparazón, relámpago, botiquín, eco, esquirlas)
 components/                 Weapon, LaserBeam, OrbitRing, Health, Hurtbox, Hitbox, Knockback, Flash,
                             BulletEmitter, ItemHookRunner, state_machine/
 entities/player/            player.tscn/.gd, player_visual.gd, states/ (move, roll, dead)
@@ -220,20 +243,21 @@ fx/                         game_camera, hit_stop, fx (spawner), flash.gdshader,
                             placeholder_shape, screen_fade
 ui/theme/                   ui_theme.tres (tema de todos los Control; gui/theme/custom en project.godot)
 ui/menus/                   main_menu, character_select, workshop_menu (Taller), achievements_menu,
-                            pause_menu, run_summary, menu_builder (arman la UI por código)
+                            options_menu, pause_menu, run_summary, menu_builder (arman la UI por código)
 ui/hud/                     hud.tscn/.gd, hearts_display, pulse_display, counters_display, active_display,
-                            items_display, weapon_display, item_banner, boss_bar
+                            items_display, weapon_display, item_banner, boss_bar, danger_overlay
 ui/minimap/                 minimap.gd
-debug/                      demo_input.gd
+debug/                      demo_input.gd, balance_probe.tscn/.gd (bot que mide cuánto dura una run)
 main/                       main.tscn/.gd (flujo de pantallas y salida prolija) → game.tscn/.gd (una run)
 tools/                      check_scripts.gd, setup_input_map.gd
+export_presets.cfg          preset "Windows Desktop" (builds/ está en .gitignore)
 tests/fixtures/             arena.tscn (sala fija con jugador, para tests de combate)
 tests/unit/                 rng_streams, shot_spec, health_math, pattern_math, input_buffer, sfx_synth, content,
                             floor_generator (500 seeds), room_template_parser, template_picker, minimap_model,
                             room_reward, stat_calculator, item_pool, weapon_slot, phase_math,
                             save_schema, save_store, meta_profile
 tests/integration/          player_shooting, bullets, combat, main_flow, floor, rooms, items,
-                            bullet_behaviors, weapons, boss, meta_flow
+                            bullet_behaviors, weapons, boss, meta_flow, feedback
 tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria
 docs/PLAN.md                plan, arquitectura e hitos
 ```
@@ -262,7 +286,9 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   tests). Al vencer al jefe aparece una `Trapdoor`: `advance_floor()` (fundido con `ScreenFade`) o, en
   el último piso, `EventBus.run_ended(true)`.
 - **Dificultad por piso (FloorTheme):** `enemy_health_mult` y `enemy_bullet_speed_mult` (la sala los
-  pasa a cada `Enemy`), `difficulty_bonus`, más salas y su propio pool de plantillas y enemigos.
+  pasa a cada `Enemy`), `difficulty_bonus`, más salas y su propio pool de plantillas y enemigos. La run
+  son 4 pisos: Sótano (×1), Cloacas (×1.4), Raíces (×1.8) y Forja (×2.0 de vida); cada piso reusa las
+  salas de los anteriores más las suyas y suma un enemigo nuevo y su jefe.
 - **Salas:** `Room` + `RoomBuilder` arman piso, paredes con huecos de 32 px, puertas, rocas (`Rock`,
   rompibles) y fosos (capa pit: frenan cuerpos, no balas) desde el `RoomGrid` de la plantilla.
   Fases: UNVISITED → FIGHTING (puertas cerradas, oleadas por mayúsculas/minúsculas) → CLEARED
@@ -329,6 +355,11 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   contenedores `Effects` y `Decals` de `game.tscn`.
 - **Audio:** `SfxLibrary` (`content/sfx/sfx_library.tres`) con un `SfxData` por id; si no tiene archivo,
   `SfxSynth` lo genera al arrancar. Pool de 16 reproductores; si están todos ocupados se omite el sonido.
+- **Avisos:** `DangerOverlay` (en el HUD) pone bordes rojos al recibir daño y, con un corazón o menos,
+  late con un sonido de corazón. Al aparecer un jefe: cartel con su nombre, sonido y sacudida. El
+  resumen suena distinto al ganar o perder.
+- **Opciones:** volumen general y pantalla completa, en el perfil (clave `options` del guardado);
+  `SaveManager.apply_options()` las aplica al abrir el guardado y al cambiarlas.
 - **HUD:** `ui/hud` (CanvasLayer), dibujado con `PixelBitmap` + `PixelIcons`. Arriba (sobre la pared):
   corazones, Pulsos, contadores y el activo con su carga; minimapa (`MinimapModel` → `Minimap`) arriba
   a la derecha. Abajo: items pasivos a la izquierda, arma y munición a la derecha, y la barra del jefe
@@ -341,7 +372,7 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
 - **Arte placeholder:** cada entidad tiene un hijo `Visual` (script `@tool` que dibuja). Reemplazable
   por sprites manteniendo su interfaz (`set_aim`, `play_hit`, `set_alert`, etc.).
 - **Debug:** autoload `Debug` (solo builds debug): F1 overlay abajo a la derecha (FPS, seed, sala,
-  balas), F2 formas de colisión (hurtbox verde, hitbox rojo), F3 menú dev con los comandos que
+  balas, tiempo de la run), F2 formas de colisión (hurtbox verde, hitbox rojo), F3 menú dev con los comandos que
   registra la escena (`Debug.add_command(dueño, texto, callable)`; un texto "Grupo/Nombre" va a un
   submenú; pausa el juego): ir al jefe, tesoro, tienda, secreta o inicio, revelar mapa, limpiar sala,
   siguiente piso (o ganar), curar, invulnerable, Pulsos, +5 recursos, cargar activo, morir, "Items"

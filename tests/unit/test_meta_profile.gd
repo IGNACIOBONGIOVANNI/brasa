@@ -178,3 +178,15 @@ func test_from_dict_tolerates_missing_and_bad_values() -> void:
 	assert_eq(copy.runs, 0, "nunca negativos")
 	assert_eq(copy.total_kills, 5)
 	assert_eq(MetaProfile.from_dict({}).sparks, 0, "vacío = perfil nuevo")
+
+
+func test_options_round_trip_and_clamp() -> void:
+	_profile.volume = 0.4
+	_profile.fullscreen = true
+	var copy: MetaProfile = MetaProfile.from_dict(JSON.parse_string(JSON.stringify(_profile.to_dict())))
+	assert_almost_eq(copy.volume, 0.4, 0.0001)
+	assert_true(copy.fullscreen)
+	var bad: MetaProfile = MetaProfile.from_dict({"options": {"volume": 7, "fullscreen": "sí"}})
+	assert_eq(bad.volume, 1.0, "recortado a 1")
+	assert_false(bad.fullscreen, "solo true cuenta")
+	assert_eq(MetaProfile.from_dict({}).volume, 1.0, "sin opciones: volumen al máximo")

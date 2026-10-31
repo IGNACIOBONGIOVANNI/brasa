@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="AchievementData" format=3]
+
+[ext_resource type="Script" path="res://data/achievement_data.gd" id="1_achievement"]
+[ext_resource type="Script" path="res://data/item_data.gd" id="2_item_script"]
+[ext_resource type="Script" path="res://data/character_data.gd" id="3_character_script"]
+[ext_resource type="Resource" path="res://content/enemies/raigon.tres" id="4_boss"]
+[ext_resource type="Resource" path="res://content/items/esquirlas.tres" id="i0"]
+
+[resource]
+script = ExtResource("1_achievement")
+id = &"poda"
+display_name = "Poda"
+description = "Vencé al Raigón"
+condition = 0
+boss = ExtResource("4_boss")
+unlock_items = Array[ExtResource("2_item_script")]([ExtResource("i0")])
+unlock_characters = Array[ExtResource("3_character_script")]([])

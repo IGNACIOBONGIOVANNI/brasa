@@ -279,3 +279,41 @@ Formato: fecha, decisión, por qué. Lo marcado **(propuesta)** espera el OK del
 - **Opciones:** el plan las ponía en el guardado; no hay ninguna todavía, así que no se agregó nada.
   Si en el hito 7 hacen falta (volumen, pantalla completa), van en una clave nueva del guardado.
 - **Debug:** F3 → "Progreso" con +100 chispas, desbloquear todo y borrar progreso (andan en los menús).
+
+## Hito 7 — pulido y release (2026-10-31)
+
+- **La run son 4 pisos:** Sótano, Cloacas, Raíces y Forja. El jefe final es el Yunque; el Rey Carnero
+  pasa a ser el jefe del piso 2 (su logro sigue igual: desbloquea a Ceniza).
+- **Piso 3, Raíces:** enemigo nuevo **Espora** (se mantiene lejos y tira anillos y espirales) y jefe
+  **Raigón** (anillos y abanicos → espiral y ráfaga apuntada → embiste). **Piso 4, Forja:** enemigo
+  **Fundidor** (embiste fuerte y casi no se deja empujar) y jefe **Yunque** (embiste → anillos y
+  abanicos → espiral rápida y ráfaga). Dos formas nuevas de placeholder: bola con manchas y bloque
+  con ojos que brillan al atacar. Cada piso suma 4 o 5 salas propias y reusa las de los anteriores.
+- **Dificultad por piso:** vida de los enemigos ×1 / ×1,4 / ×1,8 / ×2,0; velocidad de balas ×1 / ×1,15 /
+  ×1,2 / ×1,25; salas 8–10 / 9–11 / 10–12 / 10–12.
+- **Balance medido con un bot** (`debug/balance_probe.tscn`): juega invulnerable con un item típico más
+  por piso y limpia todo. La estimación para una persona supone el doble del tiempo de combate del
+  bot (esquivar, errar) más 8 s por sala (caminar, transiciones). Con 4 seeds dio entre 23 y 30 min.
+  Con el piso 4 a ×2,2 de vida y 11–13 salas quedaba al límite, así que lo bajé a ×2,0 y 10–12. Es una
+  estimación: el bot a veces se traba contra las rocas (esa sala cuenta 90 s). Hay que confirmarlo
+  jugando, con el tiempo que muestra F1.
+- **6 items nuevos:** Relámpago (activo, 3 salas: 8 de daño a todos los enemigos; lo desbloquea el logro
+  "Fragua apagada"), Botiquín (activo, 4 salas: cura un corazón), Eco (cada 4 disparos sale otro para
+  atrás), Esquirlas (los enemigos revientan en 6 balas; logro "Poda"), Guantes (Taller, 25 chispas) y
+  la Ballesta (arma de pocos tiros, muy fuertes y rápidos). Los activos que no harían nada (rayo sin
+  enemigos, botiquín con la vida llena) no se gastan.
+- **2 logros nuevos:** "Poda" (vencer al Raigón) y "Fragua apagada" (vencer al Yunque).
+- **Audio y juice:** bordes rojos al recibir daño; con un corazón o menos, borde que late y sonido de
+  corazón; al aparecer un jefe, cartel con su nombre, sonido y sacudida; sonidos de victoria, derrota
+  y logro en el resumen; sonidos propios para rayo, botiquín y ballesta. No hay música: todo el audio
+  sigue siendo sintetizado (placeholder, reemplazable por archivos en la SfxLibrary).
+- **Opciones:** volumen general (de a 10 %) y pantalla completa, guardados en el perfil (clave
+  `options`; no hizo falta migración porque si falta toma los valores por defecto). Se cambian desde
+  el menú principal, no desde la pausa.
+- **Exportación:** preset "Windows Desktop" x86_64 con el PCK adentro del `.exe`. De las plantillas
+  (1,28 GB, verificadas con el SHA-512 oficial) se extrajeron solo las de Windows x86_64 y se borró el
+  archivo descargado. Los recursos se exportan como texto porque la conversión a binario de Godot 4.7
+  vacía los `PackedStringArray` (los íconos). Sin rcedit el `.exe` lleva el ícono de Godot y sin datos
+  de versión. El título sigue siendo "mi-roguelite" (provisorio).
+- **Debug:** F1 muestra el tiempo de la run; la barra del jefe se apaga si el jefe sale de la escena
+  sin morir (cambio de piso por debug).

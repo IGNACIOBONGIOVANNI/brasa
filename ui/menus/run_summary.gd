@@ -11,6 +11,8 @@ const LOSE_COLOR: Color = Color("e0464e")
 const ACHIEVEMENT_COLOR: Color = Color("7fb069")
 ## Logros nuevos que se listan uno por uno; si hay más, se resumen en una línea.
 const MAX_ACHIEVEMENT_LINES: int = 2
+## El aviso de logro suena después del de victoria o derrota.
+const ACHIEVEMENT_SFX_DELAY: float = 0.6
 
 var _retry: Button
 
@@ -18,6 +20,7 @@ var _retry: Button
 ## `rewards`: lo que dejó la run (null = nada, por ejemplo en los tests del resumen solo).
 func show_summary(victory: bool, rewards: MetaProfile.RunRewards = null) -> void:
 	MenuBuilder.background(self)
+	AudioManager.play_sfx(&"victory" if victory else &"defeat")
 	var box: VBoxContainer = MenuBuilder.centered_box(self, true)
 	box.add_child(MenuBuilder.label("¡Ganaste!" if victory else "Fin de la run", 16, WIN_COLOR if victory else LOSE_COLOR))
 	box.add_child(MenuBuilder.label("%s · Piso %d · %s" % [RunState.character.display_name, RunState.floor_index + 1, RunState.floor_name]))
@@ -51,7 +54,7 @@ func _add_rewards(box: VBoxContainer, rewards: MetaProfile.RunRewards) -> void:
 	if extra > 0:
 		box.add_child(MenuBuilder.label("y %d logro%s más" % [extra, "" if extra == 1 else "s"], 8, ACHIEVEMENT_COLOR))
 	if not rewards.achievements.is_empty():
-		AudioManager.play_sfx(&"achievement")
+		get_tree().create_timer(ACHIEVEMENT_SFX_DELAY).timeout.connect(AudioManager.play_sfx.bind(&"achievement"))
 
 
 ## "m:ss".

@@ -12,7 +12,9 @@
 [ext_resource type="Resource" path="res://content/achievements/furia.tres" id="a3"]
 [ext_resource type="Resource" path="res://content/achievements/mochila_llena.tres" id="a4"]
 
+[ext_resource type="Resource" path="res://content/achievements/poda.tres" id="a5"]
+[ext_resource type="Resource" path="res://content/achievements/fragua_apagada.tres" id="a6"]
 [resource]
 script = ExtResource("1_meta")
 characters = Array[ExtResource("2_character_script")]([ExtResource("c0"), ExtResource("c1"), ExtResource("c2")])
-achievements = Array[ExtResource("3_achievement_script")]([ExtResource("a0"), ExtResource("a1"), ExtResource("a2"), ExtResource("a3"), ExtResource("a4")])
+achievements = Array[ExtResource("3_achievement_script")]([ExtResource("a0"), ExtResource("a1"), ExtResource("a2"), ExtResource("a3"), ExtResource("a4"), ExtResource("a5"), ExtResource("a6")])

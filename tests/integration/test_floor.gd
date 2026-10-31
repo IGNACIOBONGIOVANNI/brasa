@@ -238,7 +238,7 @@ func test_trapdoor_takes_the_player_to_floor_two() -> void:
 
 
 func test_last_floor_exit_wins_the_run() -> void:
-	_floor.load_floor(1)
+	_floor.load_floor(_floor.run.floors.size() - 1)
 	_layout = _floor.layout
 	var room: Room = await _beat_the_boss()
 	var exit: Trapdoor = _exit_in(room)

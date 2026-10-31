@@ -10,10 +10,21 @@
 [ext_resource type="Script" path="res://ui/hud/weapon_display.gd" id="8_weapon"]
 [ext_resource type="Script" path="res://ui/hud/item_banner.gd" id="9_banner"]
 [ext_resource type="Script" path="res://ui/hud/boss_bar.gd" id="10_boss_bar"]
+[ext_resource type="Script" path="res://ui/hud/danger_overlay.gd" id="11_danger"]
 
 [node name="Hud" type="CanvasLayer"]
 layer = 10
 script = ExtResource("1_hud")
+
+[node name="Danger" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("11_danger")
 
 [node name="Hearts" type="Control" parent="."]
 layout_mode = 3

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://data/item_data.gd" id="1_item"]
+[ext_resource type="Script" path="res://items/hooks/lightning_hook.gd" id="3_hook"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"relampago"
+display_name = "Relámpago"
+description = "Activo: un rayo le pega a todos los enemigos. Se carga en 3 salas"
+kind = 1
+rarity = 1
+pools = 7
+price = 9
+hook_script = ExtResource("3_hook")
+max_charge = 3
+locked = true
+icon = PackedStringArray("....##.", "...##..", "..##...", ".#####.", "...##..", "..##...", ".##....")
+icon_color = Color(1, 0.82, 0.4, 1)
