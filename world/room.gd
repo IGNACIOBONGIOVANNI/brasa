@@ -158,10 +158,16 @@ func _spawn_wave(index: int, combat_id: int) -> void:
 		enemy.bullet_speed_multiplier = _theme.enemy_bullet_speed_mult
 		enemy.position = _entities.to_local(to_global(RoomGrid.cell_center(marker.cell)))
 		_entities.add_child(enemy)
-		enemy.health.died.connect(_on_enemy_died.bind(enemy))
-		_enemies.append(enemy)
+		_register_enemy(enemy)
 	if _enemies.is_empty():
 		_on_wave_done()
+
+
+## Cuenta al enemigo para la oleada, y también a los que cree (babosas, crías).
+func _register_enemy(enemy: Enemy) -> void:
+	enemy.killed.connect(_on_enemy_died.bind(enemy))
+	enemy.spawned.connect(_register_enemy)
+	_enemies.append(enemy)
 
 
 func _on_enemy_died(enemy: Enemy) -> void:

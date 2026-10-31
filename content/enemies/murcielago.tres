@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"murcielago"
+display_name = "Murciélago"
+template_char = "B"
+max_health = 7.0
+move_style = 3
+move_speed = 55.0
+acceleration = 300.0
+preferred_distance = 80.0
+attack_kind = 2
+attack_range = 170.0
+attack_cooldown = 2.4
+telegraph_time = 0.8
+recover_time = 0.5
+attack_damage = 1.0
+beam_time = 0.45
+body_radius = 4.0
+hurtbox_radius = 6.0
+visual_style = 6
+visual_radius = 6.0
+body_color = Color(0.42, 0.353, 0.541, 1)

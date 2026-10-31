@@ -24,7 +24,8 @@ const CODE_SFX: Array[StringName] = [
 	&"explosion", &"rock_break", &"secret_found", &"item_pickup", &"buy", &"unlock", &"reload",
 	&"weapon_swap", &"active_use", &"active_ready", &"pickup_heart", &"boss_phase", &"boss_die",
 	&"exit_open", &"ui_select", &"pause", &"achievement", &"lightning", &"heartbeat", &"boss_intro",
-	&"victory", &"defeat", &"medkit", &"revive",
+	&"victory", &"defeat", &"medkit", &"revive", &"hop", &"beam", &"burrow", &"summon", &"lob",
+	&"shield_block",
 ]
 
 

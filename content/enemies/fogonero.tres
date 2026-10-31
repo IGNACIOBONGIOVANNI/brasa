@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="2_pattern_script"]
+[ext_resource type="Resource" path="res://content/patterns/fogonero_brasas.tres" id="p0"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"fogonero"
+display_name = "Fogonero"
+template_char = "P"
+max_health = 14.0
+move_style = 1
+move_speed = 22.0
+preferred_distance = 110.0
+attack_kind = 5
+attack_range = 220.0
+attack_cooldown = 2.2
+telegraph_time = 0.5
+recover_time = 0.6
+attack_damage = 2.0
+blast_radius = 22.0
+lob_time = 1.0
+body_radius = 5.5
+hurtbox_radius = 7.5
+patterns = Array[ExtResource("2_pattern_script")]([ExtResource("p0")])
+visual_style = 12
+visual_radius = 7.0
+body_color = Color(0.541, 0.29, 0.227, 1)

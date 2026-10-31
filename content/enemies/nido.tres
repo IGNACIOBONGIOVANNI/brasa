@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Resource" path="res://content/enemies/cria.tres" id="3_summon"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"nido"
+display_name = "Nido"
+template_char = "N"
+max_health = 22.0
+move_style = 4
+knockback_resistance = 1.0
+attack_kind = 4
+attack_range = 220.0
+attack_cooldown = 3.0
+telegraph_time = 0.6
+recover_time = 0.5
+summon_count = 2
+summon_cap = 4
+body_radius = 7.0
+hurtbox_radius = 9.0
+summon = ExtResource("3_summon")
+visual_style = 8
+visual_radius = 10.0
+body_color = Color(0.541, 0.416, 0.29, 1)

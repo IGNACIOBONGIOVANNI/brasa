@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Resource" path="res://content/enemies/gotita.tres" id="4_split"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"grasita"
+display_name = "Grasita"
+template_char = ""
+max_health = 5.0
+spawn_delay = 0.25
+move_style = 2
+move_speed = 38.0
+acceleration = 240.0
+hop_interval = 0.7
+attack_range = 40.0
+attack_cooldown = 2.0
+telegraph_time = 0.4
+recover_time = 0.5
+charge_speed = 180.0
+charge_time = 0.25
+split_count = 2
+body_radius = 4.0
+hurtbox_radius = 6.0
+split_into = ExtResource("4_split")
+visual_style = 5
+visual_radius = 5.5
+body_color = Color(0.659, 0.722, 0.29, 1)

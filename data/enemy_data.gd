@@ -2,10 +2,15 @@ class_name EnemyData
 extends Resource
 ## Definición de un enemigo: vida, cómo se mueve, cómo ataca y su placeholder visual.
 ## Todos usan la misma escena (enemy.tscn) y los mismos estados; estos datos eligen el comportamiento.
+## Movimiento: CHASE (persigue), KEEP_DISTANCE (mantiene distancia), HOP (a saltos), FLY (vuela en
+## círculos alrededor del jugador, por arriba de los fosos), STAY (quieto), BURROW (bajo tierra,
+## invulnerable, y asoma para atacar) y PHASE (se vuelve fantasma un rato: ni pega ni recibe).
+## Ataque: CHARGE (embestida), SHOOT (patrones de balas), BEAM (rayo que avisa la línea), EXPLODE
+## (explota y muere), SUMMON (invoca otros enemigos) y LOB (tira bolas que caen donde estabas).
 
-enum MoveStyle { CHASE, KEEP_DISTANCE }
-enum AttackKind { CHARGE, SHOOT }
-enum VisualStyle { HORNED, EYE, LANTERN, SPORE, BLOCK }
+enum MoveStyle { CHASE, KEEP_DISTANCE, HOP, FLY, STAY, BURROW, PHASE }
+enum AttackKind { CHARGE, SHOOT, BEAM, EXPLODE, SUMMON, LOB }
+enum VisualStyle { HORNED, EYE, LANTERN, SPORE, BLOCK, SLIME, BAT, FUSE, NEST, MOLE, WISP, SHIELD, MORTAR }
 
 @export var id: StringName = &""
 @export var display_name: String = ""
@@ -27,6 +32,11 @@ enum VisualStyle { HORNED, EYE, LANTERN, SPORE, BLOCK }
 @export var preferred_distance: float = 90.0
 ## 0 = recibe todo el empujón de los golpes, 1 = no se mueve.
 @export_range(0.0, 1.0) var knockback_resistance: float = 0.0
+## HOP: segundos entre saltos.
+@export var hop_interval: float = 0.8
+## PHASE: segundos sólido y segundos fantasma.
+@export var solid_time: float = 2.2
+@export var ghost_time: float = 1.4
 
 @export_group("Ataque")
 @export var attack_kind: AttackKind = AttackKind.CHARGE
@@ -40,8 +50,31 @@ enum VisualStyle { HORNED, EYE, LANTERN, SPORE, BLOCK }
 @export var recover_time: float = 0.6
 @export var charge_speed: float = 200.0
 @export var charge_time: float = 0.4
-## Patrones que dispara (SHOOT): uno por ataque, en orden.
+## Patrones que dispara (SHOOT): uno por ataque, en orden. EXPLODE y LOB sueltan el primero (un
+## anillo) donde explotan.
 @export var patterns: Array[BulletPatternData] = []
+## BEAM, EXPLODE y LOB: daño del rayo o de la explosión, en medios corazones.
+@export var attack_damage: float = 1.0
+## BEAM: segundos que dura el rayo.
+@export var beam_time: float = 0.5
+## EXPLODE y LOB: radio de la explosión.
+@export var blast_radius: float = 24.0
+## LOB: segundos que tarda en caer la bola.
+@export var lob_time: float = 0.9
+## SUMMON: qué invoca, cuántos por vez y cuántos vivos como máximo.
+@export var summon: EnemyData
+@export var summon_count: int = 2
+@export var summon_cap: int = 3
+
+@export_group("Al morir")
+## Se divide en `split_count` copias de `split_into` (las babosas). Cada una puede dividirse de nuevo.
+@export var split_into: EnemyData
+@export var split_count: int = 2
+
+@export_group("Escudo")
+## Ancho del escudo frontal, en grados (0 = sin escudo). Mientras camina o avisa frena las balas y los
+## rayos que le llegan de frente; al atacar baja la guardia.
+@export_range(0.0, 360.0) var shield_degrees: float = 0.0
 
 @export_group("Cuerpo")
 ## Círculo que choca con paredes y otros enemigos; también es el radio del daño por contacto.

@@ -464,3 +464,34 @@ partículas. Además va a crear objetos propios: la ficha para mandarlos está e
   quedaban de 1,5 o 2,5 píxeles de pantalla, desparejos. Ahora se calcula según el tamaño de la
   ventana (`WindowScales.text_oversampling`) para que siempre ocupen píxeles enteros; en 1280x720
   queda igual que antes (medio píxel del mundo).
+
+## Hito 12 — enemigos nuevos (2026-10-31)
+
+Pedido del usuario: más variedad de enemigos, "slimes que se dividen, murciélagos con láser", con
+ideas de los roguelites actuales del mismo estilo. Se tomaron arquetipos comunes del género (no
+enemigos de un juego puntual) con nombres e historia propios (ver `docs/LORE.md`).
+
+- **8 enemigos, dos por piso:** Sótano: *Grasa* (babosa a saltos que se divide en 2 *Grasitas* y cada
+  una en 2 *Gotitas*) y *Mecha* (corre, avisa 0,7 s y explota: 1 corazón de daño en su radio y un
+  anillo de brasas). Cloacas: *Murciélago* (vuela en círculos sobre los fosos; avisa con una línea
+  que sigue al jugador y en el último 35 % queda fija; después dispara un rayo de 0,45 s; rodando se
+  atraviesa) y *Nido* (quieto, larga 2 *Crías* por ataque, hasta 4 vivas). Raíces: *Topo* (bajo tierra
+  es un montículo invulnerable que persigue; asoma para tirar un anillo y queda 1,1 s expuesto) y
+  *Hollín* (1,6 s fantasma, sin pegar ni recibir, y 1,8 s sólido, cuando dispara ráfagas). Forja:
+  *Escudero* (escudo de 120° adelante que frena balas, láser y orbes mientras camina o avisa; al
+  atacar lo baja; se lo rodea o se le pega con bombas) y *Fogonero* (mantiene distancia y tira una
+  bola en arco que tarda 1 s en caer donde estaba el jugador, con una marca en el piso; explota en
+  un anillo de brasas; el Pulso la apaga en el aire).
+- **Las salas cuentan a los hijos:** `Enemy.spawn_child` avisa con `spawned` en el acto aunque el
+  hijo entra al árbol diferido (puede nacer en un callback de física), y la sala escucha `killed`,
+  que el enemigo emite recién después de crear a sus hijos. Si no, al morir la babosa grande la sala
+  se daba por limpia con las chicas vivas.
+- **Las explosiones de enemigos cuentan como muertes** (la mecha que revienta suma a la cuenta de
+  enemigos, como si la hubieras matado): más simple, y el caso es raro.
+- **Contenido:** 5 patrones, 6 sonidos sintetizados (salto, rayo, cavar, invocar, tiro en arco y
+  golpe en el escudo) y 8 salas (dos por piso); cada piso suma a su lista los enemigos de sus salas y
+  los de los pisos anteriores.
+- **Balance (bot, 3 seeds):** una run entera estimada en 24 a 31 minutos para una persona (antes 23 a
+  30): las salas nuevas tardan un poco más en la Forja, sin pasarse del objetivo. El bot encontró un
+  error que los tests no veían: al morir las crías, contar las vivas fallaba porque la lista guardaba
+  nodos ya liberados; ahora guarda ids y hay un test que las mata y espera que el nido vuelva a parir.

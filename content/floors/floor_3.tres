@@ -38,6 +38,18 @@
 [ext_resource type="Resource" path="res://content/pickups/heart.tres" id="p_heart"]
 [ext_resource type="Resource" path="res://content/pickups/bomb.tres" id="p_bomb"]
 [ext_resource type="Resource" path="res://content/pickups/key.tres" id="p_key"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/sotano_grasa.tres" id="rn0"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/sotano_mechas.tres" id="rn1"]
+[ext_resource type="Resource" path="res://content/rooms/floor_2/cloaca_murcielagos.tres" id="rn2"]
+[ext_resource type="Resource" path="res://content/rooms/floor_2/cloaca_nido.tres" id="rn3"]
+[ext_resource type="Resource" path="res://content/rooms/floor_3/raices_topos.tres" id="rn4"]
+[ext_resource type="Resource" path="res://content/rooms/floor_3/raices_hollin.tres" id="rn5"]
+[ext_resource type="Resource" path="res://content/enemies/grasa.tres" id="e_grasa"]
+[ext_resource type="Resource" path="res://content/enemies/mecha.tres" id="e_mecha"]
+[ext_resource type="Resource" path="res://content/enemies/murcielago.tres" id="e_murcielago"]
+[ext_resource type="Resource" path="res://content/enemies/nido.tres" id="e_nido"]
+[ext_resource type="Resource" path="res://content/enemies/topo.tres" id="e_topo"]
+[ext_resource type="Resource" path="res://content/enemies/hollin.tres" id="e_hollin"]
 
 [resource]
 script = ExtResource("1_theme")
@@ -60,6 +72,6 @@ wall_color = Color(0.329, 0.251, 0.165, 1)
 outline_color = Color(0.09, 0.063, 0.039, 1)
 rock_color = Color(0.451, 0.376, 0.247, 1)
 pit_color = Color(0.043, 0.031, 0.02, 1)
-templates = Array[ExtResource("2_template_script")]([ExtResource("r0"), ExtResource("r1"), ExtResource("r2"), ExtResource("r3"), ExtResource("r4"), ExtResource("r5"), ExtResource("r6"), ExtResource("r7"), ExtResource("r8"), ExtResource("r9"), ExtResource("r10"), ExtResource("r11"), ExtResource("r12"), ExtResource("r13"), ExtResource("r14"), ExtResource("r15"), ExtResource("r16"), ExtResource("r17"), ExtResource("r18"), ExtResource("r19"), ExtResource("r20"), ExtResource("r21"), ExtResource("r22"), ExtResource("r23")])
-enemies = Array[ExtResource("3_enemy_script")]([ExtResource("e_carnero"), ExtResource("e_vigia"), ExtResource("e_farol"), ExtResource("e_centinela"), ExtResource("e_espora"), ExtResource("e_raigon")])
+templates = Array[ExtResource("2_template_script")]([ExtResource("r0"), ExtResource("r1"), ExtResource("r2"), ExtResource("r3"), ExtResource("r4"), ExtResource("r5"), ExtResource("r6"), ExtResource("r7"), ExtResource("r8"), ExtResource("r9"), ExtResource("r10"), ExtResource("r11"), ExtResource("r12"), ExtResource("r13"), ExtResource("r14"), ExtResource("r15"), ExtResource("r16"), ExtResource("r17"), ExtResource("r18"), ExtResource("r19"), ExtResource("r20"), ExtResource("r21"), ExtResource("r22"), ExtResource("r23"), ExtResource("rn0"), ExtResource("rn1"), ExtResource("rn2"), ExtResource("rn3"), ExtResource("rn4"), ExtResource("rn5")])
+enemies = Array[ExtResource("3_enemy_script")]([ExtResource("e_carnero"), ExtResource("e_vigia"), ExtResource("e_farol"), ExtResource("e_centinela"), ExtResource("e_espora"), ExtResource("e_raigon"), ExtResource("e_grasa"), ExtResource("e_mecha"), ExtResource("e_murcielago"), ExtResource("e_nido"), ExtResource("e_topo"), ExtResource("e_hollin")])
 pickups = Array[ExtResource("4_pickup_script")]([ExtResource("p_coin"), ExtResource("p_heart"), ExtResource("p_bomb"), ExtResource("p_key")])

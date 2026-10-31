@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="2_pattern_script"]
+[ext_resource type="Resource" path="res://content/patterns/mecha_estallido.tres" id="p0"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"mecha"
+display_name = "Mecha"
+template_char = "M"
+max_health = 6.0
+move_speed = 55.0
+acceleration = 500.0
+attack_kind = 3
+attack_range = 26.0
+attack_cooldown = 0.3
+telegraph_time = 0.7
+recover_time = 0.2
+attack_damage = 2.0
+blast_radius = 26.0
+body_radius = 4.5
+hurtbox_radius = 6.5
+patterns = Array[ExtResource("2_pattern_script")]([ExtResource("p0")])
+visual_style = 7
+visual_radius = 6.0
+body_color = Color(0.29, 0.267, 0.345, 1)

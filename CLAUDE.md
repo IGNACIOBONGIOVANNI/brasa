@@ -5,9 +5,10 @@ estructura de los roguelites de salas + bullet hell, con contenido 100 % origina
 [docs/LORE.md](docs/LORE.md).
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 11 (pulido visual) terminado: penumbra por piso con la luz del jugador, partículas de
-ambiente, polvo al caminar, fantasma al rodar, estelas, chispas al matar y destellos. Antes: hito 10
-(calidades C a S++), hito 9 (lore, título "Brasa"), hito 8 (texto, armas, Mochila). El usuario va a
+**Estado:** Hito 12 (enemigos nuevos) terminado: 8 enemigos con mecánicas nuevas (babosas que se
+dividen, mecha que explota, murciélago con rayo, nido que invoca, topo bajo tierra, hollín fantasma,
+escudero con escudo, fogonero que tira bolas en arco), dos salas nuevas por piso. Antes: hito 11 (luz y
+efectos), hito 10 (calidades C a S++), hito 9 (lore, título "Brasa"), hito 8 (texto, armas, Mochila). El usuario va a
 mandar objetos propios con la ficha de [docs/OBJETOS.md](docs/OBJETOS.md). Cualquier trabajo nuevo, solo con OK del
 usuario. El `.exe` se exporta a `builds/Brasa.exe` (ignorado por git).
 
@@ -176,6 +177,10 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   trampilla, láser, orbes, partículas de impacto/estallido/onda) o, si usa `FlashComponent`, el
   `render_mode unshaded` de `fx/flash.gdshader` (jugador y enemigos). Algo nuevo que tenga que
   destacarse en la oscuridad necesita uno de los dos. El polvo y las manchas sí se oscurecen.
+- Una lista de nodos que se pueden liberar (hijos, invocaciones) no se recorre con un parámetro tipado
+  (`filter(func(e: Enemy) ...)`, `for e: Enemy in ...`): con un nodo ya liberado falla "Cannot convert
+  argument 1 from Object to Object". Guardar `get_instance_id()` y buscarlos con `instance_from_id`
+  (ver `Enemy.living_children`).
 - **No cambiar `application/config/name`** ("mi-roguelite"): define la carpeta de `user://` (el
   guardado). El título que se ve es `MenuBuilder.GAME_TITLE` (Main lo pone en la ventana al arrancar).
 - `--write-movie` en un `.exe` exportado necesita una ruta absoluta (`C:/.../f.png`).
@@ -264,18 +269,20 @@ data/                       StatBlock, StatModifier, WeaponData, ItemData, ItemC
                             BulletPatternData, SfxData, SfxLibrary, RoomTemplate, FloorTheme, PickupData,
                             RunConfig, CharacterData, AchievementData, MetaConfig
 content/                    weapons/ (pistola, trabuco, metralla, haz, órbita, ballesta), items/ (29 +
-                            catalog), enemies/ (carnero, vigia, farol, centinela, espora, fundidor; jefes
-                            campanario, rey_carnero, raigon y yunque), patterns/ (24), sfx/sfx_library,
-                            rooms/floor_1/ (16), floor_2/ (5), floor_3/ (5), floor_4/ (6),
+                            catalog), enemies/ (carnero, vigia, farol, centinela, espora, fundidor, grasa
+                            (→ grasita → gotita), mecha, murcielago, nido (→ cria), topo, hollin, escudero,
+                            fogonero; jefes campanario, rey_carnero, raigon y yunque), patterns/ (29),
+                            sfx/sfx_library, rooms/floor_1/ (18), floor_2/ (7), floor_3/ (7), floor_4/ (8),
                             floors/ (Sótano, Cloacas, Raíces, Forja), run/run_config,
                             pickups/ (coin, heart, bomb, key), characters/ (brasa, musgo, ceniza),
                             achievements/ (7), meta/meta_config
 items/                      ItemHook (base), HookContext, hooks/ (diente de leche, rencor, estallido,
                             caparazón, relámpago, botiquín, eco, esquirlas, segunda chispa)
-components/                 Weapon, LaserBeam, OrbitRing, Health, Hurtbox, Hitbox, Knockback, Flash,
-                            BulletEmitter, ItemHookRunner, state_machine/
+components/                 Weapon, LaserBeam, OrbitRing, Health, Hurtbox (con escudo), Hitbox, Knockback,
+                            Flash, BulletEmitter, EnemyBeam (rayo de enemigo), ItemHookRunner, state_machine/
 entities/player/            player.tscn/.gd, player_visual.gd, states/ (move, roll, dead)
-entities/enemies/           enemy.tscn/.gd, enemy_visual.gd, states/ (idle, move, telegraph, attack, recover)
+entities/enemies/           enemy.tscn/.gd, enemy_visual.gd, states/ (idle, move, telegraph, attack, recover),
+                            enemy_blast.gd (explosiones), lob_shell.tscn/.gd (bola en arco)
 entities/bullets/           bullet.tscn/.gd (rebote, perforación, teledirigido)
 entities/pickups/           pickup.tscn/.gd, pickup_visual.gd, item_pedestal.tscn/.gd, item_pedestal_visual.gd
 entities/bomb/              bomb.tscn/.gd
@@ -304,7 +311,7 @@ tests/unit/                 rng_streams, shot_spec, health_math, pattern_math, i
                             room_reward, stat_calculator, item_pool, weapon_slot, phase_math,
                             save_schema, save_store, meta_profile, inventory_text, window_scales
 tests/integration/          player_shooting, bullets, combat, main_flow, floor, rooms, items,
-                            bullet_behaviors, weapons, boss, meta_flow, feedback, inventory
+                            bullet_behaviors, weapons, boss, meta_flow, feedback, inventory, enemy_kinds
 tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria
 docs/PLAN.md                plan, arquitectura e hitos
 docs/LORE.md                la historia y dónde está cada texto en el juego
@@ -403,11 +410,19 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   reload, swap_weapon y use_active, y delega en Move (caminar, apuntar, disparar, Pulso, bomba,
   recargar, cambiar de arma, usar el activo), Roll (0.32 s invulnerable, cooldown 0.3 s) y Dead.
   Sigue a `RunState`: el arma equipada (`weapons_changed`) y la vida máxima (`stats_changed`).
-- **Enemigos:** una sola escena `enemy.tscn` configurada por `EnemyData` (moverse: CHASE o
-  KEEP_DISTANCE; atacar: CHARGE o SHOOT con patrones en orden). Estados compartidos:
-  Idle (aparece, sin daño de contacto) → Move → Telegraph (parpadeo amarillo + "!" + sonido) →
-  Attack → Recover. Los estados leen `enemy.behavior` (movimiento y ataque); `enemy.data` da vida,
-  cuerpo y dibujo. `BulletEmitter` dispara ráfagas re-apuntando; direcciones con `PatternMath`.
+- **Enemigos:** una sola escena `enemy.tscn` configurada por `EnemyData`. Moverse: CHASE, KEEP_DISTANCE,
+  HOP (a saltos), FLY (vuela en círculos, sin chocar fosos), STAY, BURROW (bajo tierra, invulnerable,
+  asoma al atacar) o PHASE (fantasma un rato: ni pega ni recibe). Atacar: CHARGE, SHOOT (patrones en
+  orden), BEAM (`EnemyBeam`: la línea avisa, se fija y dispara; rodando se esquiva), EXPLODE
+  (`EnemyBlast` y muere), SUMMON (crea `summon` hasta `summon_cap` vivos) o LOB (`LobShell`: cae
+  donde estaba el jugador; el Pulso la apaga). `split_into` lo divide al morir y `shield_degrees`
+  le da un escudo frontal (`HurtboxComponent.guards`, que consultan balas, láser y orbes) mientras
+  camina o avisa. Los hijos (división, invocación) los crea `Enemy.spawn_child`: avisa `spawned` en
+  el acto y entra al árbol diferido; la sala los cuenta (`Room._register_enemy`) y escucha `killed`,
+  que sale después de crear a los hijos. Estados compartidos: Idle (aparece, sin daño de contacto) →
+  Move → Telegraph (parpadeo amarillo + "!" + sonido) → Attack → Recover. Los estados leen
+  `enemy.behavior` (movimiento y ataque); `enemy.data` da vida, cuerpo y dibujo. `BulletEmitter`
+  dispara ráfagas re-apuntando; direcciones con `PatternMath`.
 - **Jefes:** un `EnemyData` con `phases` (`BossPhase`: umbral de vida + un EnemyData de comportamiento).
   Al bajar de cada umbral (`PhaseMath`) cambia `behavior`, destella y hace una pausa. Avisan
   `EventBus.boss_spawned` / `boss_defeated` (barra de vida en el HUD). Al morir borran sus balas; la

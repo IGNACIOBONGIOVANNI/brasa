@@ -211,6 +211,10 @@ objetos S++ nuevos.
 penumbra por piso, partículas de ambiente, efectos de movimiento, estelas, chispas al matar y
 destellos.
 
+**Hito 12 — Enemigos nuevos** (pedido del usuario: más variedad, estilo de los roguelites actuales):
+8 enemigos con mecánicas nuevas (dividirse, explotar, rayo, invocar, bajo tierra, fantasma, escudo y
+bolas en arco) y dos salas nuevas por piso.
+
 ## 6. Cosas a tener en cuenta desde ya
 
 - **Export templates.** Para el hito 7 hacen falta las plantillas de exportación de 4.7.2 instaladas

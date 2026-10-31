@@ -4,6 +4,14 @@ extends CharacterBody2D
 ## Idle (aparece) → Move → Telegraph → Attack → Recover → Move. Muere al quedarse sin vida.
 ## Los estados leen el movimiento y los ataques de `behavior`: para un enemigo común es su data;
 ## para un jefe es la de la fase actual, que cambia cuando la vida baja de cada umbral.
+## Los enemigos que crea otro (las babosas al dividirse, las crías de un nido) se avisan con
+## `spawned` en el acto, aunque entran al árbol diferidos: así la sala los cuenta antes de enterarse
+## (con `killed`) de que murió el que los creó.
+
+## Murió (después de avisar a sus hijos con `spawned`).
+signal killed
+## Creó otro enemigo (todavía no está en el árbol: entra al final del frame).
+signal spawned(child: Enemy)
 
 const GROUP: StringName = &"enemies"
 const HIT_FLASH_TIME: float = 0.07
@@ -22,6 +30,11 @@ const LIGHT_FLASH_SCENE: PackedScene = preload("res://fx/light_flash.tscn")
 ## Chispas que suelta al morir (las de un jefe, muchas más).
 const DEATH_SPARKS: int = 3
 const BOSS_DEATH_SPARKS: int = 16
+const ENEMY_SCENE: PackedScene = preload("res://entities/enemies/enemy.tscn")
+## Empujón con el que salen disparados los hijos (al dividirse o al nacer).
+const CHILD_PUSH: float = 140.0
+## Alfa del dibujo mientras es fantasma (PHASE).
+const GHOST_ALPHA: float = 0.3
 
 @export var data: EnemyData
 
@@ -37,6 +50,15 @@ var target: Player
 var move_velocity: Vector2 = Vector2.ZERO
 var _attack_count: int = 0
 var _dead: bool = false
+## Dirección del empujón con el que nace (si lo creó otro enemigo).
+var _birth_push: Vector2 = Vector2.ZERO
+## Bajo tierra (BURROW) o fantasma (PHASE): ni recibe ni hace daño.
+var _hidden: bool = false
+## Hijos que creó, por id (para el tope de SUMMON). Se guardan ids y no nodos: un nodo liberado no se
+## puede leer como Enemy.
+var _children: Array[int] = []
+## BEAM: por dónde va el rayo (lo apunta el aviso y queda fijo al disparar).
+var beam_direction: Vector2 = Vector2.DOWN
 
 @onready var visual: EnemyVisual = $Visual
 @onready var health: HealthComponent = $HealthComponent
@@ -45,6 +67,7 @@ var _dead: bool = false
 @onready var knockback: KnockbackComponent = $KnockbackComponent
 @onready var flash: FlashComponent = $FlashComponent
 @onready var emitter: BulletEmitter = $BulletEmitter
+@onready var beam: EnemyBeam = $Beam
 @onready var machine: StateMachine = $StateMachine
 @onready var _body_shape: CollisionShape2D = $CollisionShape2D
 @onready var _hurtbox_shape: CollisionShape2D = $HurtboxComponent/CollisionShape2D
@@ -65,6 +88,11 @@ func _ready() -> void:
 	_set_radius(_hurtbox_shape, data.hurtbox_radius)
 	_set_radius(_hitbox_shape, data.body_radius)
 	visual.configure(data)
+	if data.move_style == EnemyData.MoveStyle.FLY:
+		# Vuela: los fosos no lo frenan.
+		collision_mask &= ~PhysicsLayers.PIT
+	if _birth_push != Vector2.ZERO:
+		knockback.apply(_birth_push, CHILD_PUSH)
 	machine.start()
 	if is_boss():
 		EventBus.boss_spawned.emit(self)
@@ -72,6 +100,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	machine.physics_update(delta)
+	_update_guard()
 
 
 func is_boss() -> bool:
@@ -123,6 +152,77 @@ func next_pattern() -> BulletPatternData:
 	return pattern
 
 
+## Crea otro enemigo de `child_data` en `at` (global), empujado desde acá. Avisa con `spawned` en el
+## acto y lo agrega al árbol diferido (puede pasar en un callback de física, al morir).
+func spawn_child(child_data: EnemyData, at: Vector2) -> Enemy:
+	var child := ENEMY_SCENE.instantiate() as Enemy
+	child.data = child_data
+	child.health_multiplier = health_multiplier
+	child.bullet_speed_multiplier = bullet_speed_multiplier
+	var offset: Vector2 = at - global_position
+	child._birth_push = offset.normalized() if offset != Vector2.ZERO else Vector2.DOWN
+	_children.append(child.get_instance_id())
+	spawned.emit(child)
+	_attach_child.call_deferred(get_parent().get_instance_id(), child, at)
+	return child
+
+
+## Hijos que siguen vivos (los muertos o liberados se descartan).
+func living_children() -> int:
+	var alive: Array[int] = []
+	for id: int in _children:
+		var child := instance_from_id(id) as Enemy
+		if child != null and not child.is_queued_for_deletion() and not child._dead:
+			alive.append(id)
+	_children = alive
+	return alive.size()
+
+
+## De dónde sale el rayo (BEAM): el borde del cuerpo, hacia donde apunta.
+func beam_origin() -> Vector2:
+	return global_position + Vector2(0, -2) + beam_direction * data.body_radius
+
+
+func is_hidden() -> bool:
+	return _hidden
+
+
+## Bajo tierra o fantasma: sin hurtbox ni daño por contacto; el dibujo cambia.
+func set_hidden(hide_it: bool) -> void:
+	if hide_it == _hidden:
+		return
+	_hidden = hide_it
+	_hurtbox_shape.set_deferred(&"disabled", hide_it)
+	hitbox.active = not hide_it
+	match data.move_style:
+		EnemyData.MoveStyle.BURROW:
+			visual.set_burrowed(hide_it)
+		_:
+			visual.modulate.a = GHOST_ALPHA if hide_it else 1.0
+
+
+## Si el contenedor ya no está (fin de la run), el hijo se libera sin entrar. Se pasa el id porque un
+## objeto liberado no se puede pasar como argumento tipado.
+static func _attach_child(container_id: int, child: Enemy, at: Vector2) -> void:
+	var container := instance_from_id(container_id) as Node2D
+	if container == null or not container.is_inside_tree():
+		child.free()
+		return
+	child.position = container.to_local(at)
+	container.add_child(child)
+
+
+## El escudo mira al jugador mientras camina o avisa; al atacar (y después) baja la guardia.
+func _update_guard() -> void:
+	if behavior.shield_degrees <= 0.0:
+		return
+	var state: StringName = machine.get_state_name()
+	var guarding: bool = state == &"Move" or state == &"Telegraph"
+	hurtbox.guard_direction = visual.look_direction if guarding else Vector2.ZERO
+	hurtbox.guard_cos = cos(deg_to_rad(behavior.shield_degrees * 0.5))
+	visual.set_guarding(guarding)
+
+
 func _set_radius(shape_node: CollisionShape2D, radius: float) -> void:
 	var circle := CircleShape2D.new()
 	circle.radius = radius
@@ -162,6 +262,10 @@ func _die() -> void:
 	if _dead:
 		return
 	_dead = true
+	if data.split_into != null:
+		for i: int in data.split_count:
+			var angle: float = TAU * i / data.split_count + PI * 0.25
+			spawn_child(data.split_into, global_position + Vector2.from_angle(angle) * data.body_radius)
 	EventBus.enemy_killed.emit(self)
 	var burst := Fx.spawn(get_tree(), BURST_SCENE, global_position + Vector2(0, -2)) as CPUParticles2D
 	burst.color = data.body_color.lightened(0.2)
@@ -189,4 +293,5 @@ func _die() -> void:
 		EventBus.shake_requested.emit(DEATH_TRAUMA)
 		EventBus.hitstop_requested.emit(DEATH_HITSTOP)
 		AudioManager.play_sfx(&"enemy_die", 0.1)
+	killed.emit()
 	queue_free()

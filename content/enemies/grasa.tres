@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Resource" path="res://content/enemies/grasita.tres" id="4_split"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"grasa"
+display_name = "Grasa"
+template_char = "G"
+max_health = 12.0
+move_style = 2
+move_speed = 30.0
+acceleration = 220.0
+knockback_resistance = 0.3
+hop_interval = 0.9
+attack_range = 45.0
+attack_cooldown = 2.2
+telegraph_time = 0.45
+recover_time = 0.6
+charge_speed = 170.0
+charge_time = 0.3
+split_count = 2
+body_radius = 6.0
+hurtbox_radius = 8.0
+split_into = ExtResource("4_split")
+visual_style = 5
+visual_radius = 8.0
+body_color = Color(0.659, 0.722, 0.29, 1)

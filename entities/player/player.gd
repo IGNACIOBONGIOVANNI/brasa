@@ -173,6 +173,8 @@ func try_pulse() -> void:
 		var bullet := node as Bullet
 		if bullet != null and bullet.is_hostile_to_player():
 			bullet.destroy()
+	for node: Node in get_tree().get_nodes_in_group(LobShell.GROUP):
+		(node as LobShell).fizzle()
 	for node: Node in get_tree().get_nodes_in_group(Enemy.GROUP):
 		var enemy := node as Enemy
 		var offset: Vector2 = enemy.global_position - global_position

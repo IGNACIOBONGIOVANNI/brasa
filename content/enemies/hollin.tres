@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="2_pattern_script"]
+[ext_resource type="Resource" path="res://content/patterns/hollin_rafaga.tres" id="p0"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"hollin"
+display_name = "Hollín"
+template_char = "H"
+max_health = 10.0
+move_style = 6
+move_speed = 35.0
+acceleration = 300.0
+solid_time = 1.8
+ghost_time = 1.6
+attack_kind = 1
+attack_range = 150.0
+attack_cooldown = 1.0
+telegraph_time = 0.45
+recover_time = 0.4
+body_radius = 4.5
+hurtbox_radius = 6.5
+patterns = Array[ExtResource("2_pattern_script")]([ExtResource("p0")])
+visual_style = 10
+visual_radius = 7.0
+body_color = Color(0.341, 0.322, 0.373, 1)

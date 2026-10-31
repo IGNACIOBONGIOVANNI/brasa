@@ -87,7 +87,7 @@ func _cast(from: Vector2, direction: Vector2, length: float) -> Array[HurtboxCom
 		if hit.is_empty():
 			break
 		var hurtbox := hit.collider as HurtboxComponent
-		if hurtbox == null:
+		if hurtbox == null or hurtbox.guards(direction):
 			_to = hit.position
 			break
 		targets.append(hurtbox)

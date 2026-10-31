@@ -158,6 +158,10 @@ func _on_area_entered(area: Area2D) -> void:
 	var hurtbox := area as HurtboxComponent
 	if _dead or hurtbox == null or _hit_targets.has(hurtbox.get_instance_id()):
 		return
+	if hurtbox.guards(_velocity):
+		AudioManager.play_sfx(&"shield_block", 0.1)
+		destroy()
+		return
 	if hurtbox.receive_hit(HitInfo.create(spec.damage, _velocity, spec.knockback)):
 		_hit_targets[hurtbox.get_instance_id()] = true
 		if _pierce_left > 0:

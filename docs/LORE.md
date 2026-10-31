@@ -46,6 +46,16 @@ encender y bajar otra vez.
 - **Faroles, vigías, centinelas, fundidores:** cosas del pueblo que se quedaron abajo y se volvieron
   raras con el fuego suelto (faroles que escupen llama, ojos de vidrio de los vitrales, ollas de
   fundir que embisten).
+- **Grasa:** la grasa de las lámparas del sótano, que se juntó y camina a saltos; si la rompés, se
+  separa en gotas que siguen.
+- **Mecha:** pólvora de la fragua que agarró una chispa suelta; corre a abrazarte y revienta.
+- **Murciélagos:** colgaban de los vitrales; el fuego robado les quedó en los ojos y lo escupen en un
+  rayo.
+- **Nido:** donde los carneros chiquitos de las cloacas se crían; no para de largar crías.
+- **Topo:** cava por las raíces buscando calor y asoma justo debajo tuyo.
+- **Hollín:** humo de la fragua apagada que todavía flota; a ratos es solo sombra.
+- **Escudero:** un aprendiz de herrero que se quedó con una tapa de olla como escudo.
+- **Fogonero:** el que alimentaba los hornos; sigue tirando paladas de brasas.
 
 ## Título
 

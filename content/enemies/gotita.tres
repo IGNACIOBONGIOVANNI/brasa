@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"gotita"
+display_name = "Gotita"
+template_char = ""
+max_health = 2.0
+spawn_delay = 0.25
+move_style = 2
+move_speed = 45.0
+acceleration = 260.0
+hop_interval = 0.55
+attack_range = 0.0
+body_radius = 3.0
+hurtbox_radius = 4.5
+visual_style = 5
+visual_radius = 4.0
+body_color = Color(0.659, 0.722, 0.29, 1)

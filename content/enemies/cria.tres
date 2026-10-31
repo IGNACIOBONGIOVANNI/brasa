@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"cria"
+display_name = "Cría"
+template_char = ""
+max_health = 2.0
+spawn_delay = 0.3
+move_speed = 62.0
+acceleration = 600.0
+attack_range = 0.0
+body_radius = 3.0
+hurtbox_radius = 4.5
+visual_style = 0
+visual_radius = 4.0
+body_color = Color(0.627, 0.471, 0.314, 1)

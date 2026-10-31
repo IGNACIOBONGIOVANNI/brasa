@@ -113,6 +113,8 @@ func _touch(area: Area2D, orb: Area2D, spec: ShotSpec) -> void:
 	var hurtbox := area as HurtboxComponent
 	if hurtbox == null or _cooldowns.has(hurtbox.get_instance_id()):
 		return
+	if hurtbox.guards(hurtbox.global_position - orb.global_position):
+		return
 	_cooldowns[hurtbox.get_instance_id()] = HIT_COOLDOWN
 	hurtbox.receive_hit(HitInfo.create(spec.damage * CONTACT_DAMAGE, hurtbox.global_position - orb.global_position, KNOCKBACK))
 
