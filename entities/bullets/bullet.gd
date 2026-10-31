@@ -15,6 +15,10 @@ const IMPACT_SCENE: PackedScene = preload("res://fx/bullet_impact.tscn")
 const HOMING_RANGE: float = 110.0
 ## Radianes por segundo que dobla una bala con homing 1.
 const HOMING_TURN_RATE: float = 9.0
+## Estela: cuántas posiciones guarda, su ancho (en radios de la bala) y su opacidad.
+const TRAIL_LENGTH: int = 4
+const TRAIL_WIDTH: float = 1.2
+const TRAIL_ALPHA: float = 0.45
 
 var spec: ShotSpec
 var _velocity: Vector2 = Vector2.ZERO
@@ -24,9 +28,12 @@ var _bounces_left: int = 0
 var _pierce_left: int = 0
 ## Hurtboxes que ya golpeó (por id), para que al atravesar no pegue dos veces al mismo.
 var _hit_targets: Dictionary[int, bool] = {}
+## Últimas posiciones (globales) para la estela.
+var _trail_points: PackedVector2Array = []
 
 @onready var _shape: CollisionShape2D = $CollisionShape2D
 @onready var _visual: PlaceholderShape = $Visual
+@onready var _trail: Line2D = $Trail
 
 
 ## Crea una bala y la agrega al nodo del grupo "projectiles" (así no se mueve con el tirador).
@@ -64,6 +71,10 @@ func _ready() -> void:
 	_visual.size = Vector2.ONE * spec.radius * 2.0
 	_visual.color = spec.color
 	_visual.outline_color = spec.color.darkened(0.6)
+	_trail.width = spec.radius * TRAIL_WIDTH
+	var fade := Gradient.new()
+	fade.colors = PackedColorArray([Color(spec.color, 0.0), Color(spec.color, TRAIL_ALPHA)])
+	_trail.gradient = fade
 
 
 func _physics_process(delta: float) -> void:
@@ -73,6 +84,10 @@ func _physics_process(delta: float) -> void:
 	if not (_bounces_left > 0 and _try_bounce(step)):
 		position += step
 	_traveled += step.length()
+	_trail_points.append(global_position)
+	if _trail_points.size() > TRAIL_LENGTH:
+		_trail_points.remove_at(0)
+	_trail.points = _trail_points
 	if _traveled >= spec.max_range:
 		destroy()
 

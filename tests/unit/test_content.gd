@@ -320,6 +320,15 @@ func test_each_floor_has_its_own_boss_and_enemy_letters_are_unique() -> void:
 	assert_eq(bosses.size(), RUN.floors.size(), "un jefe distinto por piso")
 
 
+func test_each_floor_has_its_own_mood() -> void:
+	var lights: Dictionary[Color, bool] = {}
+	for theme: FloorTheme in RUN.floors:
+		assert_false(lights.has(theme.ambient_light), "%s: penumbra propia" % theme.id)
+		lights[theme.ambient_light] = true
+		assert_gt(theme.mote_amount, 0, "%s: tiene partículas de ambiente" % theme.id)
+		assert_gt(theme.mote_color.a, 0.0, "%s: partículas visibles" % theme.id)
+
+
 func test_floor_names_are_unique() -> void:
 	var names: Dictionary[String, bool] = {}
 	for theme: FloorTheme in RUN.floors:

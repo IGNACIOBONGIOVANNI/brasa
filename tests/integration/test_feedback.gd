@@ -39,6 +39,19 @@ func test_picked_item_banner_shows_its_quality() -> void:
 	assert_eq(titles[0].get_theme_color(&"font_color"), laser.quality_color(), "del color de su calidad")
 
 
+func test_killed_enemy_sparks_fly_to_the_player_and_vanish() -> void:
+	var vigia := load("res://content/enemies/vigia.tres") as EnemyData
+	var enemy: Enemy = _game.spawn_enemy(vigia, _game.player.global_position + Vector2(40, -20))
+	await wait_physics_frames(1)
+	enemy.health.kill()
+	await wait_process_frames(2)
+	var swarms: Array[Node] = get_tree().get_first_node_in_group(Fx.EFFECTS_GROUP).get_children().filter(
+			func(node: Node) -> bool: return node is SparkSwarm)
+	assert_eq(swarms.size(), 1, "suelta chispas")
+	await wait_seconds(SparkSwarm.MAX_LIFETIME + 0.2)
+	assert_false(is_instance_valid(swarms[0]), "llegan al jugador (o se apagan) y se borran")
+
+
 func test_boss_spawn_shows_its_name() -> void:
 	watch_signals(EventBus)
 	_game.spawn_enemy(CAMPANARIO, Vector2(0, -40))

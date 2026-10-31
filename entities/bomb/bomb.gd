@@ -20,6 +20,7 @@ const OUTLINE_COLOR: Color = Color("120c16")
 const BURST_SCENE: PackedScene = preload("res://fx/burst.tscn")
 const WAVE_SCENE: PackedScene = preload("res://fx/pulse_wave.tscn")
 const STAIN_SCENE: PackedScene = preload("res://fx/floor_stain.tscn")
+const LIGHT_FLASH_SCENE: PackedScene = preload("res://fx/light_flash.tscn")
 
 var _fuse_left: float = FUSE_TIME
 var _blink_time: float = 0.0
@@ -55,6 +56,11 @@ func explode() -> void:
 	var burst := Fx.spawn(get_tree(), BURST_SCENE, global_position) as CPUParticles2D
 	burst.color = FIRE_COLOR
 	burst.amount = 24
+	var glow := Fx.spawn(get_tree(), LIGHT_FLASH_SCENE, global_position) as LightFlash
+	glow.color = FIRE_COLOR
+	glow.energy = 2.0
+	glow.texture_scale = 2.5
+	glow.duration = 0.35
 	var stain := Fx.spawn(get_tree(), STAIN_SCENE, global_position, Fx.DECALS_GROUP) as FloorStain
 	stain.color = Color(0.05, 0.04, 0.06)
 	stain.radius = 12.0

@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://entities/bullets/bullet.gd" id="1_bullet"]
 [ext_resource type="Script" path="res://fx/placeholder_shape.gd" id="2_shape"]
+[ext_resource type="Material" path="res://fx/unshaded.tres" id="3_unshaded"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_bullet"]
 radius = 3.0
@@ -14,7 +15,15 @@ script = ExtResource("1_bullet")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_bullet")
 
+[node name="Trail" type="Line2D" parent="."]
+top_level = true
+material = ExtResource("3_unshaded")
+width = 3.0
+begin_cap_mode = 2
+end_cap_mode = 2
+
 [node name="Visual" type="Node2D" parent="."]
+material = ExtResource("3_unshaded")
 script = ExtResource("2_shape")
 size = Vector2(6, 6)
 color = Color(1, 0.91, 0.63, 1)

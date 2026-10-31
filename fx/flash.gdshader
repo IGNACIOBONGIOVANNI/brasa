@@ -1,4 +1,6 @@
 shader_type canvas_item;
+// Sin sombra: el jugador y los enemigos se ven siempre con sus colores, aunque la sala esté en penumbra.
+render_mode unshaded;
 // Tiñe el dibujo hacia flash_color (golpes y telegraphs). flash_amount 0 = normal, 1 = color plano.
 
 uniform vec4 flash_color : source_color = vec4(1.0);

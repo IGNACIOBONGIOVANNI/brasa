@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://entities/pickups/item_pedestal.gd" id="1_pedestal"]
 [ext_resource type="Script" path="res://entities/pickups/item_pedestal_visual.gd" id="2_visual"]
+[ext_resource type="Material" path="res://fx/unshaded.tres" id="unshaded"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_pedestal"]
 radius = 7.0
@@ -15,4 +16,5 @@ script = ExtResource("1_pedestal")
 shape = SubResource("CircleShape2D_pedestal")
 
 [node name="Visual" type="Node2D" parent="."]
+material = ExtResource("unshaded")
 script = ExtResource("2_visual")

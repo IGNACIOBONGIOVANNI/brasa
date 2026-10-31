@@ -10,6 +10,9 @@ signal unlock_requested
 
 enum Mode { OPEN, CLOSED, HIDDEN, LOCKED }
 
+const DUST_SCENE: PackedScene = preload("res://fx/dust_puff.tscn")
+## Dónde se levanta el polvo, a cada lado del hueco de la puerta.
+const DUST_OFFSETS: Array[Vector2] = [Vector2(-10, 0), Vector2(10, 0)]
 ## Color del marco según la sala del otro lado.
 const FRAME_COLORS: Dictionary[RoomSlot.Kind, Color] = {
 	RoomSlot.Kind.BOSS: Color("b33a3a"),
@@ -57,9 +60,19 @@ func _ready() -> void:
 
 
 func set_mode(new_mode: Mode) -> void:
+	var was_open: bool = mode == Mode.OPEN
 	mode = new_mode
 	if is_node_ready():
 		_apply_mode()
+		if was_open != (mode == Mode.OPEN):
+			_puff()
+
+
+## Polvo al abrirse o cerrarse (solo visual).
+func _puff() -> void:
+	for offset: Vector2 in DUST_OFFSETS:
+		var dust := Fx.spawn(get_tree(), DUST_SCENE, to_global(offset)) as CPUParticles2D
+		dust.amount = 8
 
 
 func _apply_mode() -> void:

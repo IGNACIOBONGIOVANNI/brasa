@@ -32,6 +32,15 @@ extends Resource
 @export_range(0.0, 1.0) var enemy_coin_chance: float = 0.15
 @export var pickups: Array[PickupData] = []
 
+@export_group("Ambiente")
+## Penumbra del piso (CanvasModulate del mundo): piso, paredes y rocas se ven de este tono salvo donde
+## llega la luz del jugador. Los personajes, balas, items y efectos no se oscurecen.
+@export var ambient_light: Color = Color(0.55, 0.5, 0.62)
+## Partículas que flotan en el aire (polvo, gotas, esporas, brasas): color, velocidad (px/s) y cantidad.
+@export var mote_color: Color = Color(0.8, 0.76, 0.86, 0.4)
+@export var mote_velocity: Vector2 = Vector2(3, -4)
+@export var mote_amount: int = 22
+
 @export_group("Paleta")
 @export var floor_color: Color = Color(0.169, 0.137, 0.2)
 @export var floor_checker_color: Color = Color(0.188, 0.157, 0.227)

@@ -137,6 +137,8 @@ func test_minimap_follows_visited_rooms() -> void:
 			_floor.current_cell, _floor.discovered_secrets, false)
 	assert_eq(states[_layout.start], MinimapModel.CellState.VISITED)
 	assert_eq(states[_layout.start + side], MinimapModel.CellState.CURRENT)
+	# Las puertas que se cierran levantan polvo (efectos diferidos): que entren antes de terminar.
+	await wait_physics_frames(2)
 
 
 func _pedestals_in(room: Room) -> Array[ItemPedestal]:
@@ -247,3 +249,11 @@ func test_last_floor_exit_wins_the_run() -> void:
 	_game.player.global_position = exit.global_position
 	await wait_physics_frames(roundi(Trapdoor.ARM_TIME * 60.0) + 5)
 	assert_signal_emitted_with_parameters(EventBus, "run_ended", [true])
+
+
+func test_floor_mood_follows_the_floor() -> void:
+	var ambient := _game.world.get_node("Ambient") as CanvasModulate
+	assert_eq(ambient.color, _floor.run.floors[0].ambient_light, "penumbra del piso 1")
+	_floor.load_floor(1)
+	assert_eq(ambient.color, _floor.run.floors[1].ambient_light, "cambia con el piso")
+	await wait_physics_frames(2)

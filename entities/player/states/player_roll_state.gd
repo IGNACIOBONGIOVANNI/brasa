@@ -6,9 +6,13 @@ extends State
 ## Velocidad al final del rol respecto de la inicial: arranca rápido y frena.
 const END_SPEED_FACTOR: float = 0.55
 const DUST_SCENE: PackedScene = preload("res://fx/dust_puff.tscn")
+const AFTERIMAGE_SCENE: PackedScene = preload("res://fx/afterimage.tscn")
+## Cada cuánto queda un fantasma del jugador mientras rueda.
+const AFTERIMAGE_INTERVAL: float = 0.04
 
 var _direction: Vector2 = Vector2.RIGHT
 var _time_left: float = 0.0
+var _afterimage_left: float = 0.0
 
 @onready var player: Player = owner as Player
 
@@ -33,6 +37,11 @@ func exit() -> void:
 
 func physics_update(delta: float) -> void:
 	_time_left -= delta
+	_afterimage_left -= delta
+	if _afterimage_left <= 0.0:
+		_afterimage_left = AFTERIMAGE_INTERVAL
+		var ghost := Fx.spawn(get_tree(), AFTERIMAGE_SCENE, player.global_position, Fx.DECALS_GROUP) as Afterimage
+		ghost.color = player.visual.body_color
 	var progress: float = 1.0 - clampf(_time_left / player.roll_time, 0.0, 1.0)
 	player.move_velocity = _direction * player.roll_speed * lerpf(1.0, END_SPEED_FACTOR, progress)
 	player.apply_velocity()

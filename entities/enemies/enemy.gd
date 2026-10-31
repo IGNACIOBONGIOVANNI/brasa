@@ -17,6 +17,11 @@ const PHASE_TRAUMA: float = 0.6
 const COOLDOWN_JITTER: float = 0.25
 const BURST_SCENE: PackedScene = preload("res://fx/burst.tscn")
 const STAIN_SCENE: PackedScene = preload("res://fx/floor_stain.tscn")
+const SPARKS_SCENE: PackedScene = preload("res://fx/spark_swarm.tscn")
+const LIGHT_FLASH_SCENE: PackedScene = preload("res://fx/light_flash.tscn")
+## Chispas que suelta al morir (las de un jefe, muchas más).
+const DEATH_SPARKS: int = 3
+const BOSS_DEATH_SPARKS: int = 16
 
 @export var data: EnemyData
 
@@ -163,6 +168,12 @@ func _die() -> void:
 	var stain := Fx.spawn(get_tree(), STAIN_SCENE, global_position + Vector2(0, 3), Fx.DECALS_GROUP) as FloorStain
 	stain.color = data.body_color.darkened(0.55)
 	stain.radius = data.visual_radius
+	var sparks := Fx.spawn(get_tree(), SPARKS_SCENE, global_position + Vector2(0, -2)) as SparkSwarm
+	sparks.count = BOSS_DEATH_SPARKS if is_boss() else DEATH_SPARKS
+	var glow := Fx.spawn(get_tree(), LIGHT_FLASH_SCENE, global_position) as LightFlash
+	glow.color = data.body_color.lightened(0.3)
+	glow.texture_scale = 3.0 if is_boss() else 1.0
+	glow.duration = 0.6 if is_boss() else 0.25
 	if is_boss():
 		# Al morir el jefe se borran sus balas: la pelea terminó.
 		for node: Node in get_tree().get_nodes_in_group(Bullet.GROUP):

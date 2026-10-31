@@ -8,6 +8,7 @@ extends State
 
 func physics_update(delta: float) -> void:
 	player.move_toward_velocity(player.read_move_input() * RunState.stats.move_speed, delta)
+	player.leave_steps(delta)
 	player.update_aim()
 	# Si todavía no puede rodar, el botón queda en el buffer unos ticks.
 	if player.can_roll() and player.input_buffer.consume(&"dodge"):

@@ -15,6 +15,9 @@
 [ext_resource type="Script" path="res://components/laser_beam.gd" id="14_laser"]
 [ext_resource type="Script" path="res://components/orbit_ring.gd" id="15_orbit"]
 [ext_resource type="Script" path="res://components/item_hook_runner.gd" id="16_hooks"]
+[ext_resource type="Texture2D" path="res://fx/glow_texture.tres" id="17_glow"]
+[ext_resource type="Script" path="res://fx/flicker_light.gd" id="18_flicker"]
+[ext_resource type="Material" path="res://fx/unshaded.tres" id="unshaded"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_body"]
 radius = 4.0
@@ -35,6 +38,14 @@ shape = SubResource("CircleShape2D_body")
 [node name="Visual" type="Node2D" parent="."]
 script = ExtResource("2_visual")
 
+[node name="Light" type="PointLight2D" parent="."]
+position = Vector2(0, -2)
+color = Color(1, 0.78, 0.5, 1)
+energy = 1.1
+texture = ExtResource("17_glow")
+texture_scale = 2.2
+script = ExtResource("18_flicker")
+
 [node name="WeaponComponent" type="Node2D" parent="."]
 position = Vector2(0, -1)
 script = ExtResource("3_weapon")
@@ -43,9 +54,11 @@ bullet_layer = 8
 bullet_mask = 129
 
 [node name="LaserBeam" type="Node2D" parent="WeaponComponent"]
+material = ExtResource("unshaded")
 script = ExtResource("14_laser")
 
 [node name="OrbitRing" type="Node2D" parent="WeaponComponent"]
+material = ExtResource("unshaded")
 script = ExtResource("15_orbit")
 
 [node name="HealthComponent" type="Node" parent="."]

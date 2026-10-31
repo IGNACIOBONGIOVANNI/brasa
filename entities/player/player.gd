@@ -23,6 +23,13 @@ const PULSE_PUSH_FORCE: float = 180.0
 const BURST_SCENE: PackedScene = preload("res://fx/burst.tscn")
 const PULSE_WAVE_SCENE: PackedScene = preload("res://fx/pulse_wave.tscn")
 const BOMB_SCENE: PackedScene = preload("res://entities/bomb/bomb.tscn")
+const STEP_DUST_SCENE: PackedScene = preload("res://fx/step_dust.tscn")
+const LIGHT_FLASH_SCENE: PackedScene = preload("res://fx/light_flash.tscn")
+## Cada cuántos píxeles caminados se levanta polvo.
+const STEP_DISTANCE: float = 14.0
+## Cuánto se aviva la luz con cada disparo.
+const FIRE_LIGHT_PULSE: float = 0.35
+const PULSE_LIGHT_COLOR: Color = Color("bfe9ff")
 
 @export var acceleration: float = 1000.0
 @export var friction: float = 1200.0
@@ -39,6 +46,7 @@ var move_velocity: Vector2 = Vector2.ZERO
 var input_buffer: InputBuffer = InputBuffer.new()
 var _aim_with_mouse: bool = true
 var _roll_cooldown_left: float = 0.0
+var _step_left: float = STEP_DISTANCE
 
 @onready var visual: PlayerVisual = $Visual
 @onready var weapon: WeaponComponent = $WeaponComponent
@@ -48,6 +56,7 @@ var _roll_cooldown_left: float = 0.0
 @onready var flash: FlashComponent = $FlashComponent
 @onready var machine: StateMachine = $StateMachine
 @onready var hooks: ItemHookRunner = $ItemHookRunner
+@onready var light: FlickerLight = $Light
 
 
 func _ready() -> void:
@@ -83,6 +92,14 @@ func is_dead() -> bool:
 
 func read_move_input() -> Vector2:
 	return Input.get_vector(&"move_left", &"move_right", &"move_up", &"move_down")
+
+
+## Al caminar levanta polvo cada STEP_DISTANCE píxeles (solo visual).
+func leave_steps(delta: float) -> void:
+	_step_left -= move_velocity.length() * delta
+	if _step_left <= 0.0:
+		_step_left = STEP_DISTANCE
+		Fx.spawn(get_tree(), STEP_DUST_SCENE, global_position + Vector2(0, 5), Fx.DECALS_GROUP)
 
 
 ## Acelera hacia `target_velocity` (o frena si es cero) y mueve el cuerpo.
@@ -162,6 +179,10 @@ func try_pulse() -> void:
 		if offset.length() <= PULSE_PUSH_RADIUS:
 			enemy.knockback.apply(offset, PULSE_PUSH_FORCE)
 	Fx.spawn(get_tree(), PULSE_WAVE_SCENE, global_position)
+	var glow := Fx.spawn(get_tree(), LIGHT_FLASH_SCENE, global_position) as LightFlash
+	glow.color = PULSE_LIGHT_COLOR
+	glow.texture_scale = 3.0
+	glow.duration = 0.4
 	EventBus.shake_requested.emit(PULSE_TRAUMA)
 	AudioManager.play_sfx(&"pulse")
 
@@ -200,6 +221,7 @@ func _on_died() -> void:
 
 func _on_weapon_fired(direction: Vector2) -> void:
 	visual.play_fire()
+	light.pulse(FIRE_LIGHT_PULSE)
 	hooks.on_shoot(direction)
 
 

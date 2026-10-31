@@ -1,11 +1,13 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://entities/exit/trapdoor.gd" id="1_trapdoor"]
+[ext_resource type="Material" path="res://fx/unshaded.tres" id="unshaded"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_trapdoor"]
 size = Vector2(14, 10)
 
 [node name="Trapdoor" type="Area2D"]
+material = ExtResource("unshaded")
 collision_layer = 1024
 collision_mask = 2
 script = ExtResource("1_trapdoor")

@@ -5,9 +5,10 @@ estructura de los roguelites de salas + bullet hell, con contenido 100 % origina
 [docs/LORE.md](docs/LORE.md).
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 10 (calidades de objetos) terminado: C, B, A, S y S++, sorteo por calidad, letra en
-el pedestal, dos objetos S++ (Llama Madre y Segunda chispa) y pedestal en la sala secreta. Antes: hito 9
-(lore, título "Brasa"), hito 8 (texto, armas, Mochila). Cualquier trabajo nuevo, solo con OK del
+**Estado:** Hito 11 (pulido visual) terminado: penumbra por piso con la luz del jugador, partículas de
+ambiente, polvo al caminar, fantasma al rodar, estelas, chispas al matar y destellos. Antes: hito 10
+(calidades C a S++), hito 9 (lore, título "Brasa"), hito 8 (texto, armas, Mochila). El usuario va a
+mandar objetos propios con la ficha de [docs/OBJETOS.md](docs/OBJETOS.md). Cualquier trabajo nuevo, solo con OK del
 usuario. El `.exe` se exporta a `builds/Brasa.exe` (ignorado por git).
 
 ## Ejecutables (rutas exactas)
@@ -170,6 +171,11 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   está en el árbol, `get_viewport()` da null y en el editor el juego se frena con el error (pasó en
   la intro). Los tests de menús que usan teclas mandan input de verdad con
   `get_tree().root.push_input(InputEventAction)`.
+- **Luz y penumbra:** el `CanvasModulate` del mundo oscurece todo lo que no tenga material sin sombra.
+  Lo que tiene que verse siempre lleva `fx/unshaded.tres` (balas, pickups, pedestales, bomba,
+  trampilla, láser, orbes, partículas de impacto/estallido/onda) o, si usa `FlashComponent`, el
+  `render_mode unshaded` de `fx/flash.gdshader` (jugador y enemigos). Algo nuevo que tenga que
+  destacarse en la oscuridad necesita uno de los dos. El polvo y las manchas sí se oscurecen.
 - **No cambiar `application/config/name`** ("mi-roguelite"): define la carpeta de `user://` (el
   guardado). El título que se ve es `MenuBuilder.GAME_TITLE` (Main lo pone en la ventana al arrancar).
 - `--write-movie` en un `.exe` exportado necesita una ruta absoluta (`C:/.../f.png`).
@@ -272,8 +278,10 @@ entities/exit/              trapdoor.tscn/.gd (trampilla al piso siguiente o sal
 world/                      floor_controller, room.tscn/.gd, room_builder, door.tscn/.gd, door_visual,
                             rock.tscn/.gd, pit.tscn, test_room.tscn (sala fija de la arena de tests)
 fx/                         game_camera, hit_stop, fx (spawner), flash.gdshader, pixel_bitmap, pixel_icons,
-                            partículas (bullet_impact, burst, dust_puff), floor_stain, pulse_wave,
-                            placeholder_shape, screen_fade
+                            partículas (bullet_impact, burst, dust_puff, step_dust), floor_stain,
+                            pulse_wave, placeholder_shape, screen_fade, unshaded.tres, glow_texture.tres,
+                            flicker_light (luz del jugador), light_flash (destellos), afterimage (rodar),
+                            spark_swarm (chispas al matar), ambient_motes (partículas del piso)
 ui/theme/                   ui_theme.tres (tema de todos los Control; gui/theme/custom en project.godot)
 ui/menus/                   main_menu, intro_screen, character_select, workshop_menu (Taller),
                             achievements_menu, options_menu, pause_menu, inventory_menu (Mochila) +
@@ -295,6 +303,7 @@ tests/integration/          player_shooting, bullets, combat, main_flow, floor, 
 tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria
 docs/PLAN.md                plan, arquitectura e hitos
 docs/LORE.md                la historia y dónde está cada texto en el juego
+docs/OBJETOS.md             ficha para que el usuario mande objetos nuevos
 ```
 
 ## Arquitectura
@@ -416,6 +425,14 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
 - **Render:** `Game` tiene `WorldView` (SubViewportContainer de 320x180) → `World` (SubViewport) con
   salas, manchas, entidades, balas, efectos y la cámara. HUD, pausa, Mochila, fundido, menús y debug
   quedan afuera, en la ventana: el texto con pixelado fino (ver configuración) y el pixel art intacto.
+- **Luz y ambiente:** el SubViewport del mundo tiene un `CanvasModulate` (`Ambient`) con la penumbra
+  del piso (`FloorTheme.ambient_light`) y una `AmbientMotes` (hija de la cámara) con sus partículas
+  (`mote_color`, `mote_velocity`, `mote_amount`); `Game._apply_floor_mood` las cambia en cada piso.
+  El jugador lleva una `FlickerLight` (titila y se aviva al disparar). `LightFlash` (Fx) da destellos
+  que se apagan solos: bomba, Pulso, muertes (los jefes, grande). Al morir, cada enemigo suelta un
+  `SparkSwarm` (3 chispas, 16 un jefe) que vuela hasta el jugador (solo visual). También: polvo al
+  caminar (`Player.leave_steps`), fantasmas al rodar (`Afterimage`), estela en cada bala (`Line2D`
+  `Trail`, 4 posiciones) y polvo en las puertas al abrirse o cerrarse.
 - **Capas de dibujo:** pisos, paredes y manchas (`Decals`) en z 0; pickups de las salas, entidades,
   balas y efectos en z 1, así las manchas nunca tapan un pedestal o la trampilla.
 - **Menús:** `MainMenu`, `PauseMenu` y `RunSummary` arman su UI por código con `MenuBuilder` y el

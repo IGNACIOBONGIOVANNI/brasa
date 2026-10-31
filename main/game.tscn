@@ -10,6 +10,8 @@
 [ext_resource type="Script" path="res://fx/hit_stop.gd" id="5_hit_stop"]
 [ext_resource type="Script" path="res://fx/game_camera.gd" id="6_camera"]
 [ext_resource type="PackedScene" path="res://ui/hud/hud.tscn" id="7_hud"]
+[ext_resource type="Script" path="res://fx/ambient_motes.gd" id="11_motes"]
+[ext_resource type="Material" path="res://fx/unshaded.tres" id="12_unshaded"]
 
 [node name="Game" type="Node2D"]
 script = ExtResource("1_game")
@@ -23,6 +25,9 @@ stretch = true
 handle_input_locally = false
 size = Vector2i(320, 180)
 render_target_update_mode = 4
+
+[node name="Ambient" type="CanvasModulate" parent="WorldView/World"]
+color = Color(0.55, 0.5, 0.62, 1)
 
 [node name="Rooms" type="Node2D" parent="WorldView/World"]
 
@@ -42,6 +47,12 @@ z_index = 1
 
 [node name="GameCamera" type="Camera2D" parent="WorldView/World"]
 script = ExtResource("6_camera")
+
+[node name="Motes" type="CPUParticles2D" parent="WorldView/World/GameCamera"]
+material = ExtResource("12_unshaded")
+z_index = 2
+emitting = false
+script = ExtResource("11_motes")
 
 [node name="FloorController" type="Node" parent="." node_paths=PackedStringArray("rooms_root", "entities", "player", "camera", "fade")]
 script = ExtResource("3_floor")

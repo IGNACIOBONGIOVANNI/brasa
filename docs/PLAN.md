@@ -207,6 +207,10 @@ historia por piso, apodo de cada jefe, final al ganar y descripciones de persona
 S (muy pocos) y S++ (rarísimos); sorteo por calidad, precio según calidad, la letra a la vista y dos
 objetos S++ nuevos.
 
+**Hito 11 — Pulido visual** (pedido del usuario, mantiene el estilo dibujado por código): luz y
+penumbra por piso, partículas de ambiente, efectos de movimiento, estelas, chispas al matar y
+destellos.
+
 ## 6. Cosas a tener en cuenta desde ya
 
 - **Export templates.** Para el hito 7 hacen falta las plantillas de exportación de 4.7.2 instaladas

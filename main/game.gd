@@ -25,12 +25,16 @@ const DEV_PEDESTAL_OFFSET: Vector2 = Vector2(0, -28)
 @onready var _hud: Hud = $Hud
 @onready var _pause: PauseMenu = get_node_or_null(^"PauseMenu") as PauseMenu
 @onready var _inventory: InventoryMenu = get_node_or_null(^"Inventory") as InventoryMenu
+@onready var _ambient: CanvasModulate = get_node_or_null(^"WorldView/World/Ambient") as CanvasModulate
+@onready var _motes: AmbientMotes = get_node_or_null(^"WorldView/World/GameCamera/Motes") as AmbientMotes
 
 
 func _ready() -> void:
 	_hud.bind_player(player)
 	if floor_controller != null:
 		_hud.bind_floor(floor_controller)
+		EventBus.floor_changed.connect(_apply_floor_mood)
+		_apply_floor_mood(floor_controller.floor_index)
 	if _pause != null:
 		_pause.menu_requested.connect(menu_requested.emit)
 		_pause.quit_requested.connect(quit_requested.emit)
@@ -61,6 +65,15 @@ func spawn_enemy(data: EnemyData, at: Vector2) -> Enemy:
 	enemy.position = at
 	_entities.add_child(enemy)
 	return enemy
+
+
+## Penumbra y partículas de ambiente del piso.
+func _apply_floor_mood(index: int) -> void:
+	var theme: FloorTheme = floor_controller.run.floors[index]
+	if _ambient != null:
+		_ambient.color = theme.ambient_light
+	if _motes != null:
+		_motes.configure(theme)
 
 
 func _open_inventory_from_pause() -> void:

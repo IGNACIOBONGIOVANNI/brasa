@@ -1,12 +1,14 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://fx/one_shot_particles.gd" id="1_particles"]
+[ext_resource type="Material" path="res://fx/unshaded.tres" id="unshaded"]
 
 [sub_resource type="Gradient" id="Gradient_fade"]
 offsets = PackedFloat32Array(0, 0.65, 1)
 colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
 
 [node name="Burst" type="CPUParticles2D"]
+material = ExtResource("unshaded")
 emitting = false
 amount = 14
 lifetime = 0.45

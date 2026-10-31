@@ -427,3 +427,26 @@ Pedido del usuario: S++ (muy pocos y rarísimos), S (muy pocos), A (raros), B (i
   azul, S violeta, S++ dorado); S y S++ con un aro de su color que late, y S++ con chispitas. El cartel
   al agarrarlo dice "Nombre · calidad" en ese color, y en la Mochila el casillero se tiñe (salvo C) y
   el detalle dice la calidad. Las armas toman la calidad del item que las da; la pistola no tiene.
+
+## Hito 11 — pulido visual (2026-10-31)
+
+El usuario quiere mantener el estilo dibujado por código (le parece original) y sumarle efectos y
+partículas. Además va a crear objetos propios: la ficha para mandarlos está en `docs/OBJETOS.md`.
+
+- **Luz:** cada piso tiene su penumbra (`CanvasModulate`): Sótano violeta, Cloacas verde agua,
+  Raíces verde, Forja rojiza. El jugador es una chispa: lleva una luz cálida que titila y se aviva al
+  disparar. Para que la penumbra no complique leer el combate, solo se oscurecen piso, paredes, rocas,
+  puertas y manchas; jugador, enemigos, balas, pickups, pedestales y efectos se ven siempre con sus
+  colores (material sin sombra). La primera prueba con todo sombreado dejaba al jugador lavado por su
+  propia luz.
+- **Destellos de luz** (que se apagan solos) solo donde suman: bomba, Pulso y muertes. No en cada
+  disparo (serían decenas de luces); en su lugar la luz del jugador se aviva un instante.
+- **Partículas de ambiente** por piso, alrededor de la cámara: polvo (Sótano), gotas que caen
+  (Cloacas), esporas (Raíces) y brasas que suben (Forja). Un píxel cada una.
+- **Chispas al matar:** cada enemigo suelta 3 (un jefe 16) que salen disparadas y vuelan hasta el
+  jugador, como la historia de las chispas. Son solo visuales: las chispas del Taller se siguen
+  contando al terminar la run. Usan el stream COSMETIC.
+- **Movimiento:** polvo cada 14 px caminados, fantasmas del color del personaje al rodar, estela corta
+  en todas las balas (también las enemigas: ayuda a leer hacia dónde van) y polvo en las puertas cuando
+  se cierran o se abren.
+- No se agregó viñeta: la penumbra con la luz del jugador ya oscurece los bordes.
