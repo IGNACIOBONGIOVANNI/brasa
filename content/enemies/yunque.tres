@@ -67,6 +67,7 @@ behavior = SubResource("Behavior_2")
 script = ExtResource("1_enemy")
 id = &"yunque"
 display_name = "Yunque"
+epithet = "Guardián de la última llama"
 template_char = "Y"
 max_health = 260.0
 spawn_delay = 1.5

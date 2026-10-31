@@ -1,13 +1,13 @@
-# mi-roguelite
+# Brasa (proyecto mi-roguelite)
 
 Roguelite de acción top-down 2D (Godot 4.7.2, GDScript tipado) para Windows. Inspirado en la
-estructura de los roguelites de salas + bullet hell, con contenido 100 % original.
+estructura de los roguelites de salas + bullet hell, con contenido 100 % original. Historia en
+[docs/LORE.md](docs/LORE.md).
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 8 (ajustes del primer playtest) terminado: texto nítido, Haz y Órbita rehechos, Trabuco
-ajustado y Mochila (I). El lore está en borrador ([docs/LORE.md](docs/LORE.md)), sin integrar hasta que el
-usuario lo apruebe. Cualquier trabajo nuevo, solo con OK del usuario. El `.exe` se exporta a
-`builds/mi-roguelite.exe` (ignorado por git).
+**Estado:** Hito 9 (lore) terminado: título "Brasa", intro, una línea por piso, apodo de los jefes y
+final. Antes, hito 8: texto nítido, Haz y Órbita rehechos, Trabuco ajustado y Mochila (I). Cualquier
+trabajo nuevo, solo con OK del usuario. El `.exe` se exporta a `builds/Brasa.exe` (ignorado por git).
 
 ## Ejecutables (rutas exactas)
 
@@ -39,9 +39,9 @@ Todos los flags están confirmados con `--help` en 4.7.2. `sed 's/\x1b\[[0-9;]*m
 | Abrir una escena en el editor sin ventana (prueba los `@tool`) | `"$G" --headless --path . -e res://main/game.tscn --quit-after 200` |
 | Regenerar el Input Map | `"$G" --headless --path . -s res://tools/setup_input_map.gd` |
 | Abrir el editor | `"/c/Godot_v4.7.2-stable_win64.exe/Godot_v4.7.2-stable_win64.exe" --path . -e` |
-| Exportar el .exe | `"$G" --headless --path . --export-release "Windows Desktop" builds/mi-roguelite.exe` |
-| Exportar build debug (con consola) | `"$G" --headless --path . --export-debug "Windows Desktop" builds/debug/mi-roguelite.exe` |
-| Probar la build debug exportada | `builds/debug/mi-roguelite.console.exe -- --demo-input --seed=1234 --quit-frames=900` |
+| Exportar el .exe | `"$G" --headless --path . --export-release "Windows Desktop" builds/Brasa.exe` |
+| Exportar build debug (con consola) | `"$G" --headless --path . --export-debug "Windows Desktop" builds/debug/Brasa.exe` |
+| Probar la build debug exportada | `builds/debug/Brasa.console.exe -- --demo-input --seed=1234 --quit-frames=900` |
 | Medir el balance (bot) | `"$G" --headless --fixed-fps 60 --path . res://debug/balance_probe.tscn -- --seed=1234` |
 | Comparar un arma (bot) | `... balance_probe.tscn -- --seed=1234 --floors=2 --weapon=haz` |
 
@@ -162,6 +162,9 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   (ver `LaserBeam`, si no el láser no le pega a un enemigo pegado al jugador).
 - En el tool Bash, algunos heredocs largos con comillas fallan con "unexpected EOF": escribir el
   archivo con Write (o un `.py` en el scratchpad) y correrlo.
+- **No cambiar `application/config/name`** ("mi-roguelite"): define la carpeta de `user://` (el
+  guardado). El título que se ve es `MenuBuilder.GAME_TITLE` (Main lo pone en la ventana al arrancar).
+- `--write-movie` en un `.exe` exportado necesita una ruta absoluta (`C:/.../f.png`).
 - Hay una clase global `State` (máquina de estados): ningún enum interno puede llamarse `State`
   (por eso `Door.Mode` y `Room.Phase`).
 - Desde un callback de física (`body_entered`, `area_entered`) no se pueden agregar ni sacar cuerpos o
@@ -260,9 +263,9 @@ fx/                         game_camera, hit_stop, fx (spawner), flash.gdshader,
                             partículas (bullet_impact, burst, dust_puff), floor_stain, pulse_wave,
                             placeholder_shape, screen_fade
 ui/theme/                   ui_theme.tres (tema de todos los Control; gui/theme/custom en project.godot)
-ui/menus/                   main_menu, character_select, workshop_menu (Taller), achievements_menu,
-                            options_menu, pause_menu, inventory_menu (Mochila) + inventory_slot,
-                            run_summary, menu_builder (arman la UI por código)
+ui/menus/                   main_menu, intro_screen, character_select, workshop_menu (Taller),
+                            achievements_menu, options_menu, pause_menu, inventory_menu (Mochila) +
+                            inventory_slot, run_summary, menu_builder (arman la UI por código)
 ui/hud/                     hud.tscn/.gd, hearts_display, pulse_display, counters_display, active_display,
                             items_display, weapon_display, item_banner, boss_bar, danger_overlay
 ui/minimap/                 minimap.gd
@@ -279,7 +282,7 @@ tests/integration/          player_shooting, bullets, combat, main_flow, floor, 
                             bullet_behaviors, weapons, boss, meta_flow, feedback, inventory
 tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria
 docs/PLAN.md                plan, arquitectura e hitos
-docs/LORE.md                borrador de la historia (sin integrar al juego)
+docs/LORE.md                la historia y dónde está cada texto en el juego
 ```
 
 ## Arquitectura
@@ -290,7 +293,8 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   `hash(seed_run, nombre, piso)`. `GameRNG.set_floor(i)` re-deriva todos. Lo visual usa `COSMETIC`; el
   azar de la IA (cooldowns, hacia qué lado se mueve) usa `COMBAT`.
 - **Flujo:** `Main` abre el guardado (`SaveManager.open`) y maneja las pantallas (`screen`): menú
-  principal (Jugar, Taller, Logros) → elegir personaje → run (`start_run(personaje)`:
+  principal (Jugar, Taller, Logros, Opciones) → la primera vez, la intro (`IntroScreen`, queda marcada
+  en `MetaProfile.intro_seen`; también desde Opciones) → elegir personaje → run (`start_run(personaje)`:
   `GameRNG.start_run`, `RunState.start_run(personaje, perfil)`, instancia `game.tscn`) → resumen
   (`finish_run`, 1.5 s después de `EventBus.player_died` o al recibir `EventBus.run_ended(true)`:
   suma la run al perfil y muestra lo ganado) → otra run (mismo personaje) o menú. Abandonar desde la
@@ -305,6 +309,9 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   jugador del otro lado y desliza la cámara 0.3 s. `move_to(celda)` sirve para saltar de sala (debug y
   tests). Al vencer al jefe aparece una `Trapdoor`: `advance_floor()` (fundido con `ScreenFade`) o, en
   el último piso, `EventBus.run_ended(true)`.
+- **Historia (docs/LORE.md):** `FloorTheme.tagline` sale debajo del cartel "Piso N · Nombre",
+  `EnemyData.epithet` debajo del nombre del jefe al aparecer, y `RunSummary` cierra con una línea
+  (final al ganar, "vuelve al Taller" al morir).
 - **Dificultad por piso (FloorTheme):** `enemy_health_mult` y `enemy_bullet_speed_mult` (la sala los
   pasa a cada `Enemy`), `difficulty_bonus`, más salas y su propio pool de plantillas y enemigos. La run
   son 4 pisos: Sótano (×1), Cloacas (×1.4), Raíces (×1.8) y Forja (×2.0 de vida); cada piso reusa las

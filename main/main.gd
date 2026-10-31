@@ -1,8 +1,8 @@
 class_name Main
 extends Node
-## Raíz del juego y flujo de pantallas: menú principal → elegir personaje → run → resumen (al morir
-## o ganar, con lo ganado) → menú u otra run. Desde el menú también se va al Taller, a los logros y a
-## las opciones.
+## Raíz del juego y flujo de pantallas: menú principal → (la primera vez, la intro) → elegir
+## personaje → run → resumen (al morir o ganar, con lo ganado) → menú u otra run. Desde el menú
+## también se va al Taller, a los logros y a las opciones (que pueden volver a mostrar la intro).
 ## Abre el guardado al arrancar y cierra el juego prolijo (corta el audio antes de salir).
 ## Argumentos de usuario: --skip-menu o --demo-input arrancan directo en una run; --save=RUTA usa
 ## otro guardado; con --demo-input (y sin --save) el progreso queda solo en memoria.
@@ -12,6 +12,7 @@ const CHARACTER_SCENE: PackedScene = preload("res://ui/menus/character_select.ts
 const WORKSHOP_SCENE: PackedScene = preload("res://ui/menus/workshop_menu.tscn")
 const ACHIEVEMENTS_SCENE: PackedScene = preload("res://ui/menus/achievements_menu.tscn")
 const OPTIONS_SCENE: PackedScene = preload("res://ui/menus/options_menu.tscn")
+const INTRO_SCENE: PackedScene = preload("res://ui/menus/intro_screen.tscn")
 const GAME_SCENE: PackedScene = preload("res://main/game.tscn")
 const SUMMARY_SCENE: PackedScene = preload("res://ui/menus/run_summary.tscn")
 const SAVE_ARG: String = "--save="
@@ -34,6 +35,7 @@ var _quitting: bool = false
 
 func _ready() -> void:
 	get_tree().set_auto_accept_quit(false)
+	get_window().title = MenuBuilder.GAME_TITLE
 	EventBus.player_died.connect(_on_player_died)
 	EventBus.run_ended.connect(finish_run)
 	var args: PackedStringArray = OS.get_cmdline_user_args()
@@ -64,12 +66,21 @@ static func save_path_from_args(args: PackedStringArray, default_path: String) -
 
 func show_menu() -> void:
 	var menu := MENU_SCENE.instantiate() as MainMenu
-	menu.play_requested.connect(show_character_select)
+	menu.play_requested.connect(_on_play_requested)
 	menu.workshop_requested.connect(show_workshop)
 	menu.achievements_requested.connect(show_achievements)
 	menu.options_requested.connect(show_options)
 	menu.quit_requested.connect(quit_game)
 	_set_screen(menu)
+
+
+## Muestra la intro y después llama a `next` (la intro queda marcada como vista).
+func show_intro(next: Callable) -> void:
+	var intro := INTRO_SCENE.instantiate() as IntroScreen
+	intro.finished.connect(func() -> void:
+		SaveManager.mark_intro_seen()
+		next.call())
+	_set_screen(intro)
 
 
 func show_character_select() -> void:
@@ -94,6 +105,7 @@ func show_achievements() -> void:
 func show_options() -> void:
 	var options := OPTIONS_SCENE.instantiate() as OptionsMenu
 	options.back_requested.connect(show_menu)
+	options.story_requested.connect(show_intro.bind(show_options))
 	_set_screen(options)
 
 
@@ -144,6 +156,13 @@ func _set_screen(next: Node) -> void:
 	game = next as Game
 	screen = next
 	add_child(next)
+
+
+func _on_play_requested() -> void:
+	if SaveManager.profile.intro_seen:
+		show_character_select()
+	else:
+		show_intro(show_character_select)
 
 
 func _on_player_died() -> void:

@@ -97,6 +97,13 @@ func set_volume(volume: float) -> void:
 	_changed()
 
 
+func mark_intro_seen() -> void:
+	if profile.intro_seen:
+		return
+	profile.intro_seen = true
+	_changed()
+
+
 func set_fullscreen(fullscreen: bool) -> void:
 	profile.fullscreen = fullscreen
 	apply_options()

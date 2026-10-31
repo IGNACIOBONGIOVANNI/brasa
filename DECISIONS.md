@@ -354,3 +354,30 @@ para ver armas y objetos, el texto se veía demasiado pixelado y había que pens
   se abre encima de otra pausa. El texto chico va en tamaño 7: con el texto nítido se lee bien.
 - **Lore:** borrador en `docs/LORE.md` (historia, pisos, jefes, personajes y opciones de título). No
   está en el juego: espera el OK del usuario.
+
+## Hito 9 — lore (2026-10-31)
+
+El usuario aprobó el borrador de `docs/LORE.md` ("Sí, integralo").
+
+- **Título: Brasa.** El borrador daba cuatro opciones sin elegir; fui por la primera (la protagonista).
+  Se cambia en `MenuBuilder.GAME_TITLE` y en `export_presets.cfg`. `application/config/name` sigue
+  siendo "mi-roguelite" porque Godot arma con eso la carpeta del guardado: cambiarlo dejaba el
+  progreso del usuario atrás. Por eso el título de la ventana lo pone `Main` al arrancar (en el primer
+  instante se ve "mi-roguelite"). El `.exe` pasa a ser `builds/Brasa.exe` (se borraron los viejos
+  `mi-roguelite.exe`); sin rcedit sigue con el ícono de Godot.
+- **Intro:** cuatro líneas que aparecen de a una (o con Enter/click) sobre una brasa de píxeles;
+  Esc la saltea. Sale la primera vez que se aprieta Jugar (antes de elegir personaje, así no se mete
+  entre el personaje y la run) y queda marcada en el perfil (`intro_seen`, clave nueva del guardado:
+  si falta vale false, no hizo falta migración; quien ya tenía partidas la ve una vez). Se vuelve a
+  ver desde Opciones → "Ver la historia". Con `--skip-menu` o `--demo-input` no sale.
+- **Pisos:** el cartel pasa a "Piso N · Nombre" con una línea de historia abajo, y dura 3,6 s en vez
+  de 2,2 para que dé a leerla.
+- **Jefes:** al aparecer, el cartel muestra su apodo en vez de "Jefe".
+- **Resumen:** una línea debajo del título: el final al ganar y "Tu chispa vuelve flotando al Taller"
+  al morir (explica el loop).
+- **Personajes:** descripciones con su historia (la parte de "Arranca con..." la sigue agregando la
+  pantalla).
+- **Logro "Fragua apagada" → "Fragua encendida"** (al vencer al Yunque la fragua vuelve a prender).
+  Solo cambia el nombre que se ve; el id sigue siendo `fragua_apagada` para no tocar guardados.
+- Los textos de la intro y el final viven como constantes en sus pantallas; los de pisos y jefes, en
+  sus `.tres` (con un test que exige que no falten).

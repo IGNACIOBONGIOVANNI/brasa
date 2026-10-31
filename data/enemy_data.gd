@@ -9,6 +9,8 @@ enum VisualStyle { HORNED, EYE, LANTERN, SPORE, BLOCK }
 
 @export var id: StringName = &""
 @export var display_name: String = ""
+## Jefes: lo que dice el cartel debajo del nombre al aparecer (vacío = "Jefe").
+@export var epithet: String = ""
 ## Letra (mayúscula) que lo representa en las plantillas de sala. No puede ser la "O".
 @export var template_char: String = ""
 @export var max_health: float = 10.0

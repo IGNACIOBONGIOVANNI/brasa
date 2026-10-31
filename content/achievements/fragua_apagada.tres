@@ -9,7 +9,7 @@
 [resource]
 script = ExtResource("1_achievement")
 id = &"fragua_apagada"
-display_name = "Fragua apagada"
+display_name = "Fragua encendida"
 description = "Vencé al Yunque"
 condition = 0
 boss = ExtResource("4_boss")

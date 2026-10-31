@@ -71,6 +71,7 @@ behavior = SubResource("Behavior_2")
 script = ExtResource("1_enemy")
 id = &"campanario"
 display_name = "Campanario"
+epithet = "La campana caída, que sigue sonando"
 template_char = "A"
 max_health = 120.0
 spawn_delay = 1.5

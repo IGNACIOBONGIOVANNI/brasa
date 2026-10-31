@@ -43,6 +43,7 @@ func _screen_text() -> String:
 
 
 func test_play_goes_through_the_character_select() -> void:
+	SaveManager.profile.intro_seen = true
 	(_main.screen as MainMenu).play_requested.emit()
 	assert_true(_main.screen is CharacterSelect)
 	var select := _main.screen as CharacterSelect
@@ -188,6 +189,36 @@ func test_save_path_from_args() -> void:
 	assert_eq(Main.save_path_from_args(PackedStringArray(["--demo-input"]), "x"), "", "la demo no guarda")
 	assert_eq(Main.save_path_from_args(PackedStringArray(["--demo-input", "--save=user://d.json"]), "x"), "user://d.json")
 	assert_eq(Main.save_path_from_args(PackedStringArray(), "x"), "x")
+
+
+func test_first_play_shows_the_intro_once() -> void:
+	assert_false(SaveManager.profile.intro_seen, "perfil nuevo")
+	(_main.screen as MainMenu).play_requested.emit()
+	var intro := _main.screen as IntroScreen
+	assert_not_null(intro, "la primera vez sale la intro")
+	assert_eq(intro.lines_shown(), 1, "arranca con la primera línea")
+	for _i: int in IntroScreen.LINES.size() - 1:
+		intro.advance()
+	assert_eq(intro.lines_shown(), IntroScreen.LINES.size(), "aceptar muestra la que sigue")
+	intro.advance()
+	assert_true(_main.screen is CharacterSelect, "después, a elegir personaje")
+	assert_true(SaveManager.profile.intro_seen, "queda marcada")
+	_main.show_menu()
+	(_main.screen as MainMenu).play_requested.emit()
+	assert_true(_main.screen is CharacterSelect, "la segunda vez va directo")
+	await _settle()
+
+
+func test_intro_can_be_skipped_and_seen_again_from_options() -> void:
+	(_main.screen as MainMenu).play_requested.emit()
+	(_main.screen as IntroScreen).skip()
+	assert_true(_main.screen is CharacterSelect, "Esc la saltea")
+	assert_true(SaveManager.profile.intro_seen)
+	_main.show_options()
+	(_main.screen as OptionsMenu).story_requested.emit()
+	(_main.screen as IntroScreen).skip()
+	assert_true(_main.screen is OptionsMenu, "vuelve a Opciones")
+	await _settle()
 
 
 func test_options_change_the_volume_and_are_saved() -> void:

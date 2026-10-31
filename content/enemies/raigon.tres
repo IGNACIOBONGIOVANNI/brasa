@@ -67,6 +67,7 @@ behavior = SubResource("Behavior_2")
 script = ExtResource("1_enemy")
 id = &"raigon"
 display_name = "Raigón"
+epithet = "La raíz madre"
 template_char = "R"
 max_health = 200.0
 spawn_delay = 1.5

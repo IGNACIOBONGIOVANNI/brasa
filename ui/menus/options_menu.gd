@@ -1,9 +1,10 @@
 class_name OptionsMenu
 extends Control
 ## Opciones: volumen general (de a 10 %) y pantalla completa. Se guardan en el perfil y se aplican en
-## el acto (SaveManager.apply_options). Esc vuelve al menú.
+## el acto (SaveManager.apply_options). También deja volver a ver la intro. Esc vuelve al menú.
 
 signal back_requested
+signal story_requested
 
 const VOLUME_STEP: float = 0.1
 
@@ -28,6 +29,7 @@ func _ready() -> void:
 	box.add_child(volume_row)
 	_fullscreen = MenuBuilder.button("", toggle_fullscreen)
 	box.add_child(_fullscreen)
+	box.add_child(MenuBuilder.button("Ver la historia", story_requested.emit))
 	_back = MenuBuilder.button("Volver", back_requested.emit)
 	box.add_child(_back)
 	SaveManager.profile_changed.connect(_refresh)

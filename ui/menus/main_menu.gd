@@ -21,7 +21,7 @@ func _ready() -> void:
 	MenuBuilder.background(self)
 	var box: VBoxContainer = MenuBuilder.centered_box(self, false)
 	(box.get_parent() as Control).offset_bottom = -CONTROLS_HEIGHT
-	box.add_child(MenuBuilder.label(ProjectSettings.get_setting("application/config/name"), 16, MenuBuilder.TITLE_COLOR))
+	box.add_child(MenuBuilder.label(MenuBuilder.GAME_TITLE, 16, MenuBuilder.TITLE_COLOR))
 	_sparks = MenuBuilder.label("", 8, MenuBuilder.SPARK_COLOR)
 	box.add_child(_sparks)
 	_play = MenuBuilder.button("Jugar", play_requested.emit)

@@ -13,6 +13,11 @@ const ACHIEVEMENT_COLOR: Color = Color("7fb069")
 const MAX_ACHIEVEMENT_LINES: int = 2
 ## El aviso de logro suena después del de victoria o derrota.
 const ACHIEVEMENT_SFX_DELAY: float = 0.6
+## Una línea de historia debajo del título (ver docs/LORE.md).
+const VICTORY_TEXT: String = "La fragua vuelve a prender. Arriba, en Campana Honda, las casas se entibian."
+const DEFEAT_TEXT: String = "Tu chispa vuelve flotando al Taller."
+const STORY_WIDTH: float = 220.0
+const STORY_FONT: int = 7
 
 var _retry: Button
 
@@ -23,6 +28,10 @@ func show_summary(victory: bool, rewards: MetaProfile.RunRewards = null) -> void
 	AudioManager.play_sfx(&"victory" if victory else &"defeat")
 	var box: VBoxContainer = MenuBuilder.centered_box(self, true)
 	box.add_child(MenuBuilder.label("¡Ganaste!" if victory else "Fin de la run", 16, WIN_COLOR if victory else LOSE_COLOR))
+	var story: Label = MenuBuilder.paragraph(VICTORY_TEXT if victory else DEFEAT_TEXT, STORY_WIDTH, MenuBuilder.MUTED_COLOR)
+	story.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	story.add_theme_font_size_override(&"font_size", STORY_FONT)
+	box.add_child(story)
 	box.add_child(MenuBuilder.label("%s · Piso %d · %s" % [RunState.character.display_name, RunState.floor_index + 1, RunState.floor_name]))
 	box.add_child(MenuBuilder.label("Tiempo %s · Enemigos %d" % [format_time(RunState.run_time), RunState.kills]))
 	var items: Array[ItemData] = RunState.items.duplicate()

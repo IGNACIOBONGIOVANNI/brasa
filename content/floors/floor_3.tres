@@ -43,6 +43,7 @@
 script = ExtResource("1_theme")
 id = &"floor_3"
 display_name = "Raíces"
+tagline = "El bosque le chupa el calor a la fragua."
 room_count_min = 10
 room_count_max = 12
 min_boss_distance = 4

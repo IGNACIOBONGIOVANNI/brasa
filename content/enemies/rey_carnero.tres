@@ -66,6 +66,7 @@ behavior = SubResource("Behavior_2")
 script = ExtResource("1_enemy")
 id = &"rey_carnero"
 display_name = "Rey Carnero"
+epithet = "Corona de clavos de la fragua"
 template_char = "K"
 max_health = 160.0
 spawn_delay = 1.5

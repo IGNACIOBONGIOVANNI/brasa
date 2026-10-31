@@ -38,4 +38,5 @@ func test_boss_spawn_shows_its_name() -> void:
 	for node: Node in _game.get_node("Hud/Banner").find_children("*", "Label", true, false):
 		texts.append((node as Label).text)
 	assert_has(texts, CAMPANARIO.display_name)
+	assert_has(texts, CAMPANARIO.epithet, "con su apodo")
 	await wait_physics_frames(1)

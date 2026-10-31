@@ -48,6 +48,10 @@ func test_victory_shows_the_summary() -> void:
 	EventBus.run_ended.emit(true)
 	await wait_physics_frames(1)
 	assert_true(_main.screen is RunSummary)
+	var texts: PackedStringArray = []
+	for node: Node in _main.screen.find_children("*", "Label", true, false):
+		texts.append((node as Label).text)
+	assert_has(texts, RunSummary.VICTORY_TEXT, "con el final de la historia")
 	await _settle()
 
 

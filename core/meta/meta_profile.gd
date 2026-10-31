@@ -22,6 +22,8 @@ var total_kills: int = 0
 ## Volumen general, de 0 a 1.
 var volume: float = 1.0
 var fullscreen: bool = false
+## Ya vio la intro de la historia (se muestra la primera vez que se aprieta Jugar).
+var intro_seen: bool = false
 
 
 func is_item_available(item: ItemData) -> bool:
@@ -91,6 +93,7 @@ func to_dict() -> Dictionary:
 		"last_character": String(last_character),
 		"totals": {"runs": runs, "wins": wins, "kills": total_kills},
 		"options": {"volume": volume, "fullscreen": fullscreen},
+		"intro_seen": intro_seen,
 	}
 
 
@@ -115,6 +118,8 @@ static func from_dict(data: Dictionary) -> MetaProfile:
 			profile.volume = clampf(float(volume_value), 0.0, 1.0)
 		var fullscreen_value: Variant = (options as Dictionary).get("fullscreen")
 		profile.fullscreen = typeof(fullscreen_value) == TYPE_BOOL and fullscreen_value
+	var intro_value: Variant = data.get("intro_seen")
+	profile.intro_seen = typeof(intro_value) == TYPE_BOOL and intro_value
 	return profile
 
 

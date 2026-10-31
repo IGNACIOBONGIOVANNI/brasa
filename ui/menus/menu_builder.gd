@@ -2,6 +2,9 @@ class_name MenuBuilder
 extends RefCounted
 ## Atajos para armar los menús placeholder por código (todos usan ui/theme/ui_theme.tres).
 
+## Título del juego. `application/config/name` sigue siendo "mi-roguelite" porque define la carpeta
+## del guardado (cambiarlo dejaría atrás el progreso).
+const GAME_TITLE: String = "Brasa"
 const TITLE_COLOR: Color = Color("e8c170")
 const MUTED_COLOR: Color = Color("9a93a6")
 const OUTLINE_COLOR: Color = Color("120c16")

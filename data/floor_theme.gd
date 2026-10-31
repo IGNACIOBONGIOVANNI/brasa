@@ -5,6 +5,8 @@ extends Resource
 
 @export var id: StringName = &""
 @export var display_name: String = ""
+## Una línea de historia que sale debajo del cartel del piso (ver docs/LORE.md).
+@export var tagline: String = ""
 
 @export_group("Generación")
 ## Salas sin contar la secreta (incluye inicio, jefe, tesoro y tienda).

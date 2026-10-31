@@ -62,7 +62,7 @@ func _on_boss_spawned(boss: Node2D) -> void:
 	_boss_bar.track(boss)
 	var data := boss.get(&"data") as EnemyData
 	if data != null:
-		_banner.show_text(data.display_name, "Jefe")
+		_banner.show_text(data.display_name, data.epithet if data.epithet != "" else "Jefe")
 	AudioManager.play_sfx(&"boss_intro")
 	EventBus.shake_requested.emit(BOSS_INTRO_TRAUMA)
 
@@ -90,4 +90,5 @@ func _refresh_minimap() -> void:
 
 
 func _on_floor_changed(index: int) -> void:
-	_banner.show_text("Piso %d" % (index + 1), RunState.floor_name)
+	var theme: FloorTheme = _floor.run.floors[index]
+	_banner.show_text("Piso %d · %s" % [index + 1, theme.display_name], theme.tagline, ItemBanner.LONG_SHOW_TIME)

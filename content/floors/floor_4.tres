@@ -49,6 +49,7 @@
 script = ExtResource("1_theme")
 id = &"floor_4"
 display_name = "Forja"
+tagline = "El Yunque se quedó con la última llama."
 room_count_min = 10
 room_count_max = 12
 min_boss_distance = 5

@@ -180,6 +180,14 @@ func test_from_dict_tolerates_missing_and_bad_values() -> void:
 	assert_eq(MetaProfile.from_dict({}).sparks, 0, "vacío = perfil nuevo")
 
 
+func test_intro_seen_round_trip() -> void:
+	assert_false(MetaProfile.from_dict({}).intro_seen, "un guardado viejo no la vio")
+	_profile.intro_seen = true
+	var copy: MetaProfile = MetaProfile.from_dict(JSON.parse_string(JSON.stringify(_profile.to_dict())))
+	assert_true(copy.intro_seen)
+	assert_false(MetaProfile.from_dict({"intro_seen": "sí"}).intro_seen, "solo true cuenta")
+
+
 func test_options_round_trip_and_clamp() -> void:
 	_profile.volume = 0.4
 	_profile.fullscreen = true

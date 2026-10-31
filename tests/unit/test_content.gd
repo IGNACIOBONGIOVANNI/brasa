@@ -265,6 +265,7 @@ func test_bosses_have_valid_phases() -> void:
 		if enemy.phases.is_empty():
 			continue
 		bosses += 1
+		assert_ne(enemy.epithet, "", "%s: tiene apodo para el cartel" % enemy.id)
 		assert_eq(enemy.phases[0].health_fraction, 1.0, "%s: la primera fase arranca con la vida llena" % enemy.id)
 		for i: int in enemy.phases.size():
 			var boss_phase: BossPhase = enemy.phases[i]
@@ -303,6 +304,7 @@ func test_floor_names_are_unique() -> void:
 	var names: Dictionary[String, bool] = {}
 	for theme: FloorTheme in RUN.floors:
 		assert_false(names.has(theme.display_name), "nombre repetido: %s" % theme.display_name)
+		assert_ne(theme.tagline, "", "%s: tiene su línea de historia" % theme.id)
 		names[theme.display_name] = true
 
 

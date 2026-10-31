@@ -200,6 +200,9 @@ timer de debug); pisos 3 y 4 con sus enemigos y jefes; más items; preset de exp
 nítido sin perder el pixel art, Haz y Órbita rehechos para que valgan más que la Pistola, Trabuco
 ajustado, Mochila para ver armas y objetos, y un borrador de lore para revisar.
 
+**Hito 9 — Lore** (aprobado por el usuario): título "Brasa", intro de la primera partida, una línea de
+historia por piso, apodo de cada jefe, final al ganar y descripciones de personajes (docs/LORE.md).
+
 ## 6. Cosas a tener en cuenta desde ya
 
 - **Export templates.** Para el hito 7 hacen falta las plantillas de exportación de 4.7.2 instaladas
