@@ -1,7 +1,7 @@
 extends GutTest
 ## Balas: chocan paredes y rocas, golpean hurtboxes y atraviesan a quien es invulnerable.
 
-const GAME_SCENE: PackedScene = preload("res://main/game.tscn")
+const GAME_SCENE: PackedScene = preload("res://tests/fixtures/arena.tscn")
 const BULLET_SCENE: PackedScene = preload("res://entities/bullets/bullet.tscn")
 const ENEMY_SCENE: PackedScene = preload("res://entities/enemies/enemy.tscn")
 const PLAYER_BULLET_MASK: int = PhysicsLayers.WALL | PhysicsLayers.ENEMY_HURTBOX
@@ -14,10 +14,6 @@ var _player: Player
 func before_each() -> void:
 	RunState.start_run()
 	_game = GAME_SCENE.instantiate() as Game
-	# Sala vacía: sin los enemigos de la escena.
-	for child: Node in _game.get_node("Entities").get_children():
-		if child is Enemy:
-			child.free()
 	add_child_autofree(_game)
 	_player = _game.player
 

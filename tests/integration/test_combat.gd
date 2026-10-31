@@ -2,7 +2,7 @@ extends GutTest
 ## Hito 2: combate del jugador (i-frames, empujón, rodar, buffer, Pulso, muerte) y de los enemigos
 ## (daño por contacto, muerte, telegraph antes de cada ataque, embestida), más el hit-stop.
 
-const GAME_SCENE: PackedScene = preload("res://main/game.tscn")
+const GAME_SCENE: PackedScene = preload("res://tests/fixtures/arena.tscn")
 const BULLET_SCENE: PackedScene = preload("res://entities/bullets/bullet.tscn")
 const CARNERO: EnemyData = preload("res://content/enemies/carnero.tres")
 const VIGIA: EnemyData = preload("res://content/enemies/vigia.tres")
@@ -16,10 +16,6 @@ var _states: Array[StringName] = []
 func before_each() -> void:
 	RunState.start_run()
 	_game = GAME_SCENE.instantiate() as Game
-	# Sala vacía: cada test agrega los enemigos que necesita.
-	for child: Node in _game.get_node("Entities").get_children():
-		if child is Enemy:
-			child.free()
 	add_child_autofree(_game)
 	_player = _game.player
 	_states.clear()

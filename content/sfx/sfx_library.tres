@@ -94,9 +94,9 @@ attack = 0.01
 decay_power = 0.7
 volume = 0.5
 
-[sub_resource type="Resource" id="Sfx_pulse_empty"]
+[sub_resource type="Resource" id="Sfx_empty"]
 script = ExtResource("2_sfx")
-id = &"pulse_empty"
+id = &"empty"
 wave = 0
 freq_start = 160.0
 freq_end = 150.0
@@ -123,6 +123,103 @@ freq_end = 120.0
 duration = 0.3
 volume = 0.28
 
+[sub_resource type="Resource" id="Sfx_door_close"]
+script = ExtResource("2_sfx")
+id = &"door_close"
+wave = 0
+freq_start = 140.0
+freq_end = 90.0
+duration = 0.12
+volume = 0.3
+
+[sub_resource type="Resource" id="Sfx_door_open"]
+script = ExtResource("2_sfx")
+id = &"door_open"
+wave = 1
+freq_start = 300.0
+freq_end = 520.0
+duration = 0.12
+volume = 0.25
+
+[sub_resource type="Resource" id="Sfx_room_clear"]
+script = ExtResource("2_sfx")
+id = &"room_clear"
+wave = 2
+freq_start = 520.0
+freq_end = 1040.0
+duration = 0.25
+attack = 0.01
+decay_power = 0.6
+volume = 0.3
+
+[sub_resource type="Resource" id="Sfx_pickup_coin"]
+script = ExtResource("2_sfx")
+id = &"pickup_coin"
+wave = 0
+freq_start = 1300.0
+freq_end = 1800.0
+duration = 0.08
+square_duty = 0.25
+volume = 0.18
+
+[sub_resource type="Resource" id="Sfx_pickup"]
+script = ExtResource("2_sfx")
+id = &"pickup"
+wave = 1
+freq_start = 600.0
+freq_end = 900.0
+duration = 0.1
+volume = 0.25
+
+[sub_resource type="Resource" id="Sfx_pickup_heart"]
+script = ExtResource("2_sfx")
+id = &"pickup_heart"
+wave = 2
+freq_start = 400.0
+freq_end = 800.0
+duration = 0.18
+volume = 0.35
+
+[sub_resource type="Resource" id="Sfx_bomb_place"]
+script = ExtResource("2_sfx")
+id = &"bomb_place"
+wave = 0
+freq_start = 220.0
+freq_end = 200.0
+duration = 0.05
+volume = 0.2
+
+[sub_resource type="Resource" id="Sfx_explosion"]
+script = ExtResource("2_sfx")
+id = &"explosion"
+wave = 4
+freq_start = 600.0
+freq_end = 40.0
+duration = 0.5
+decay_power = 1.2
+volume = 0.55
+
+[sub_resource type="Resource" id="Sfx_rock_break"]
+script = ExtResource("2_sfx")
+id = &"rock_break"
+wave = 4
+freq_start = 900.0
+freq_end = 200.0
+duration = 0.15
+decay_power = 1.5
+volume = 0.3
+
+[sub_resource type="Resource" id="Sfx_secret_found"]
+script = ExtResource("2_sfx")
+id = &"secret_found"
+wave = 1
+freq_start = 400.0
+freq_end = 1200.0
+duration = 0.4
+attack = 0.02
+decay_power = 0.5
+volume = 0.35
+
 [resource]
 script = ExtResource("1_library")
-sounds = Array[ExtResource("2_sfx")]([SubResource("Sfx_shoot"), SubResource("Sfx_bullet_impact"), SubResource("Sfx_enemy_shoot"), SubResource("Sfx_enemy_hit"), SubResource("Sfx_enemy_die"), SubResource("Sfx_player_hurt"), SubResource("Sfx_player_die"), SubResource("Sfx_roll"), SubResource("Sfx_pulse"), SubResource("Sfx_pulse_empty"), SubResource("Sfx_telegraph"), SubResource("Sfx_charge")])
+sounds = Array[ExtResource("2_sfx")]([SubResource("Sfx_shoot"), SubResource("Sfx_bullet_impact"), SubResource("Sfx_enemy_shoot"), SubResource("Sfx_enemy_hit"), SubResource("Sfx_enemy_die"), SubResource("Sfx_player_hurt"), SubResource("Sfx_player_die"), SubResource("Sfx_roll"), SubResource("Sfx_pulse"), SubResource("Sfx_empty"), SubResource("Sfx_telegraph"), SubResource("Sfx_charge"), SubResource("Sfx_door_close"), SubResource("Sfx_door_open"), SubResource("Sfx_room_clear"), SubResource("Sfx_pickup_coin"), SubResource("Sfx_pickup"), SubResource("Sfx_pickup_heart"), SubResource("Sfx_bomb_place"), SubResource("Sfx_explosion"), SubResource("Sfx_rock_break"), SubResource("Sfx_secret_found")])

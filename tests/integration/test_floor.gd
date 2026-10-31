@@ -1,0 +1,139 @@
+extends GutTest
+## Hito 3: el piso generado. Sala inicial, cruzar puertas, combate que cierra y abre puertas,
+## salas sin enemigos, puerta secreta que se abre con una bomba y minimapa. Seed fija.
+
+const GAME_SCENE: PackedScene = preload("res://main/game.tscn")
+const BOMB_SCENE: PackedScene = preload("res://entities/bomb/bomb.tscn")
+const SEED: int = 1234
+const MOVE_ACTIONS: Dictionary[Vector2i, StringName] = {
+	Vector2i.UP: &"move_up",
+	Vector2i.DOWN: &"move_down",
+	Vector2i.LEFT: &"move_left",
+	Vector2i.RIGHT: &"move_right",
+}
+
+var _game: Game
+var _floor: FloorController
+var _layout: FloorLayout
+
+
+func before_each() -> void:
+	GameRNG.start_run(SEED)
+	RunState.start_run()
+	_game = GAME_SCENE.instantiate() as Game
+	add_child_autofree(_game)
+	_floor = _game.floor_controller
+	_layout = _floor.layout
+	_game.player.health.always_invulnerable = true
+
+
+func after_each() -> void:
+	for action: StringName in MOVE_ACTIONS.values():
+		Input.action_release(action)
+
+
+## Lado de la sala inicial que lleva a una sala que no es la secreta.
+func _open_side_from_start() -> Vector2i:
+	for next: Vector2i in _layout.neighbors(_layout.start, false):
+		return next - _layout.start
+	return Vector2i.ZERO
+
+
+func _is_inside_room(room: Room, global_point: Vector2) -> bool:
+	var local: Vector2 = room.to_local(global_point)
+	return absf(local.x) < RoomBuilder.HALF_INTERIOR.x and absf(local.y) < RoomBuilder.HALF_INTERIOR.y
+
+
+## Mata a todos los enemigos hasta que la sala quede limpia (puede tener dos oleadas).
+func _clear_current_room() -> void:
+	for _attempt: int in 4:
+		for node: Node in get_tree().get_nodes_in_group(Enemy.GROUP):
+			(node as Enemy).health.kill()
+		await wait_physics_frames(60)
+		if _floor.current_room().phase == Room.Phase.CLEARED:
+			return
+
+
+func test_start_room_has_a_door_per_neighbor() -> void:
+	var room: Room = _floor.current_room()
+	assert_eq(_floor.current_cell, _layout.start)
+	assert_eq(room.doors.size(), _layout.neighbors(_layout.start).size(), "una puerta por vecina")
+	for side: Vector2i in room.doors:
+		var is_secret: bool = _layout.get_slot(_layout.start + side).kind == RoomSlot.Kind.SECRET
+		var expected: Door.Mode = Door.Mode.HIDDEN if is_secret else Door.Mode.OPEN
+		assert_eq(room.doors[side].mode, expected, "puerta %s" % side)
+	assert_true(_is_inside_room(room, _game.player.global_position), "el jugador arranca adentro")
+	assert_eq(_game.get_node("GameCamera").global_position, room.global_position, "cámara en la sala")
+	assert_eq(room.phase, Room.Phase.CLEARED, "la sala inicial no tiene combate")
+
+
+func test_walking_through_a_door_moves_to_the_next_room() -> void:
+	var side: Vector2i = _open_side_from_start()
+	var start_room: Room = _floor.current_room()
+	_game.player.global_position = start_room.entry_point(side)
+	Input.action_press(MOVE_ACTIONS[side])
+	for _i: int in 60:
+		await wait_physics_frames(1)
+		if _floor.current_cell != _layout.start:
+			break
+	Input.action_release(MOVE_ACTIONS[side])
+	await wait_physics_frames(2)
+	assert_eq(_floor.current_cell, _layout.start + side, "pasó a la sala de al lado")
+	assert_false(_floor.is_transitioning(), "terminó la transición")
+	var room: Room = _floor.current_room()
+	assert_eq(_game.get_node("GameCamera").global_position, room.global_position, "la cámara llegó")
+	assert_true(_is_inside_room(room, _game.player.global_position), "el jugador está adentro de la nueva sala")
+	assert_true(_floor.visited.has(_layout.start + side))
+
+
+func test_combat_room_locks_doors_until_cleared() -> void:
+	var cell: Vector2i = _layout.cells_of_kind(RoomSlot.Kind.NORMAL)[0]
+	await _floor.move_to(cell)
+	await wait_physics_frames(2)
+	var room: Room = _floor.current_room()
+	assert_eq(room.phase, Room.Phase.FIGHTING)
+	assert_gt(get_tree().get_nodes_in_group(Enemy.GROUP).size(), 0, "aparecieron enemigos")
+	for door: Door in room.doors.values():
+		assert_ne(door.mode, Door.Mode.OPEN, "puertas cerradas durante el combate")
+	watch_signals(EventBus)
+	await _clear_current_room()
+	assert_eq(room.phase, Room.Phase.CLEARED)
+	assert_signal_emitted(EventBus, "room_cleared")
+	for door: Door in room.doors.values():
+		if door.mode != Door.Mode.HIDDEN:
+			assert_eq(door.mode, Door.Mode.OPEN, "puertas abiertas al limpiar")
+
+
+func test_special_rooms_do_not_lock() -> void:
+	await _floor.move_to(_layout.first_of_kind(RoomSlot.Kind.TREASURE))
+	await wait_physics_frames(2)
+	var room: Room = _floor.current_room()
+	assert_eq(room.phase, Room.Phase.CLEARED)
+	assert_eq(get_tree().get_nodes_in_group(Enemy.GROUP).size(), 0)
+	for door: Door in room.doors.values():
+		assert_eq(door.mode, Door.Mode.OPEN)
+
+
+func test_bomb_reveals_the_secret_door() -> void:
+	var secret: Vector2i = _layout.first_of_kind(RoomSlot.Kind.SECRET)
+	var neighbor: Vector2i = _layout.neighbors(secret, false)[0]
+	await _floor.move_to(neighbor)
+	await _clear_current_room()
+	var room: Room = _floor.current_room()
+	var side: Vector2i = secret - neighbor
+	assert_eq(room.doors[side].mode, Door.Mode.HIDDEN, "antes de la bomba no se ve")
+	var bomb := BOMB_SCENE.instantiate() as Bomb
+	bomb.position = room.entry_point(side)
+	_game.get_node("Entities").add_child(bomb)
+	await wait_physics_frames(roundi(Bomb.FUSE_TIME * 60.0) + 10)
+	assert_eq(room.doors[side].mode, Door.Mode.OPEN, "la explosión destapó la puerta")
+	assert_true(_floor.discovered_secrets.has(secret), "la secreta aparece en el minimapa")
+
+
+func test_minimap_follows_visited_rooms() -> void:
+	var side: Vector2i = _open_side_from_start()
+	await _floor.move_to(_layout.start + side, side)
+	var states: Dictionary[Vector2i, MinimapModel.CellState] = MinimapModel.compute(_layout, _floor.visited,
+			_floor.current_cell, _floor.discovered_secrets, false)
+	assert_eq(states[_layout.start], MinimapModel.CellState.VISITED)
+	assert_eq(states[_layout.start + side], MinimapModel.CellState.CURRENT)

@@ -3,6 +3,8 @@
 [ext_resource type="Script" path="res://ui/hud/hud.gd" id="1_hud"]
 [ext_resource type="Script" path="res://ui/hud/hearts_display.gd" id="2_hearts"]
 [ext_resource type="Script" path="res://ui/hud/pulse_display.gd" id="3_pulses"]
+[ext_resource type="Script" path="res://ui/hud/counters_display.gd" id="4_counters"]
+[ext_resource type="Script" path="res://ui/minimap/minimap.gd" id="5_minimap"]
 
 [node name="Hud" type="CanvasLayer"]
 layer = 10
@@ -27,3 +29,23 @@ offset_right = 56.0
 offset_bottom = 17.0
 mouse_filter = 2
 script = ExtResource("3_pulses")
+
+[node name="Counters" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 62.0
+offset_top = 4.0
+offset_right = 116.0
+offset_bottom = 9.0
+mouse_filter = 2
+script = ExtResource("4_counters")
+
+[node name="Minimap" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 238.0
+offset_top = 2.0
+offset_right = 318.0
+offset_bottom = 60.0
+mouse_filter = 2
+script = ExtResource("5_minimap")

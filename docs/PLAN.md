@@ -1,6 +1,6 @@
 # Plan: arquitectura, estructura e hitos
 
-> Estado: **aprobado** (2026-10-30). Hitos 1 y 2 terminados. Los cambios respecto de este plan se anotan en DECISIONS.md.
+> Estado: **aprobado** (2026-10-30). Hitos 1, 2 y 3 terminados. Los cambios respecto de este plan se anotan en DECISIONS.md.
 
 ## 1. Principios que guían la arquitectura
 

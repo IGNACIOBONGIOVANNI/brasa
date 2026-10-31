@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="PickupData" format=3]
+
+[ext_resource type="Script" path="res://data/pickup_data.gd" id="1_pickup"]
+
+[resource]
+script = ExtResource("1_pickup")
+id = &"coin"
+kind = 0
+amount = 1
+template_symbol = "$"
+reward_weight = 5.0
+sfx_id = &"pickup_coin"

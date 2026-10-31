@@ -9,6 +9,7 @@
 script = ExtResource("1_enemy")
 id = &"farol"
 display_name = "Farol"
+template_char = "F"
 max_health = 14.0
 move_style = 1
 move_speed = 18.0

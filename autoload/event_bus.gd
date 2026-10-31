@@ -12,5 +12,11 @@ signal enemy_killed(enemy: Node2D)
 ## El jugador perdió vida (en medios corazones).
 signal player_damaged(amount: float)
 signal player_died
+## El jugador entró a la sala de esa celda del piso.
+signal room_entered(cell: Vector2i)
+## Murió el último enemigo de la sala y se abrieron las puertas.
+signal room_cleared(cell: Vector2i)
+## Explotó una bomba (FloorController la usa para destapar puertas secretas).
+signal exploded(at: Vector2, radius: float)
 
 @warning_ignore_restore("unused_signal")

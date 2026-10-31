@@ -3,14 +3,6 @@ class_name HeartsDisplay
 extends Control
 ## Corazones del HUD dibujados por código (llenos, medios o vacíos). Tiembla al perder vida.
 
-const HEART: PackedStringArray = [
-	".##.##.",
-	"#######",
-	"#######",
-	".#####.",
-	"..###..",
-	"...#...",
-]
 ## Columnas que se pintan en un medio corazón (incluye la del centro).
 const HALF_COLUMNS: int = 4
 const SPACING: int = 9
@@ -55,8 +47,8 @@ func _draw() -> void:
 	var states: Array[HealthMath.Heart] = HealthMath.heart_states(half_hearts, max_half_hearts)
 	for i: int in states.size():
 		var origin := Vector2(i * SPACING, 0) + _shake_offset
-		PixelBitmap.paint_outlined(self, HEART, origin, empty_color, outline_color)
+		PixelBitmap.paint_outlined(self, PixelIcons.HEART, origin, empty_color, outline_color)
 		if states[i] == HealthMath.Heart.FULL:
-			PixelBitmap.paint(self, HEART, origin, full_color)
+			PixelBitmap.paint(self, PixelIcons.HEART, origin, full_color)
 		elif states[i] == HealthMath.Heart.HALF:
-			PixelBitmap.paint(self, HEART, origin, full_color, 0, HALF_COLUMNS)
+			PixelBitmap.paint(self, PixelIcons.HEART, origin, full_color, 0, HALF_COLUMNS)

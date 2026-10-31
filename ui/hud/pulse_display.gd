@@ -3,13 +3,6 @@ class_name PulseDisplay
 extends Control
 ## Cargas de Pulso del HUD: un rombo por carga.
 
-const ICON: PackedStringArray = [
-	"..#..",
-	".###.",
-	"#####",
-	".###.",
-	"..#..",
-]
 const SPACING: int = 7
 
 @export var color: Color = Color("a8e6ff")
@@ -26,4 +19,4 @@ func set_count(value: int) -> void:
 
 func _draw() -> void:
 	for i: int in count:
-		PixelBitmap.paint_outlined(self, ICON, Vector2(i * SPACING, 0), color, outline_color)
+		PixelBitmap.paint_outlined(self, PixelIcons.PULSE, Vector2(i * SPACING, 0), color, outline_color)

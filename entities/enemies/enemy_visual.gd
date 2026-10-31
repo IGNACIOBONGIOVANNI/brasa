@@ -6,7 +6,6 @@ extends Node2D
 ## Muestra la aparición, el aplastamiento al recibir un golpe y un "!" durante el telegraph.
 ## Se reemplaza por un sprite animado manteniendo la misma interfaz.
 
-const ALERT_ICON: PackedStringArray = ["#", "#", "#", ".", "#"]
 const ALERT_COLOR: Color = Color("ffd166")
 const OUTLINE_COLOR: Color = Color("1b1420")
 const HORN_COLOR: Color = Color("e8dcc0")
@@ -96,7 +95,7 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO)
 	if _alert:
 		var origin := Vector2(0, BODY_OFFSET.y - radius - 7.0)
-		PixelBitmap.paint_outlined(self, ALERT_ICON, origin, ALERT_COLOR, OUTLINE_COLOR)
+		PixelBitmap.paint_outlined(self, PixelIcons.ALERT, origin, ALERT_COLOR, OUTLINE_COLOR)
 
 
 func _draw_horned() -> void:

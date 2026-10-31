@@ -1,7 +1,7 @@
 extends GutTest
 ## Hito 1: en la sala de prueba el jugador se mueve, dispara y las balas desaparecen solas.
 
-const GAME_SCENE: PackedScene = preload("res://main/game.tscn")
+const GAME_SCENE: PackedScene = preload("res://tests/fixtures/arena.tscn")
 const USED_ACTIONS: Array[StringName] = [&"move_right", &"move_left", &"move_up", &"shoot", &"aim_right"]
 
 var _game: Node2D
@@ -12,10 +12,6 @@ var _weapon: WeaponComponent
 func before_each() -> void:
 	RunState.start_run()
 	_game = GAME_SCENE.instantiate() as Node2D
-	# Sin enemigos: estos tests miden movimiento y disparo sin que nadie empuje al jugador.
-	for child: Node in _game.get_node("Entities").get_children():
-		if child is Enemy:
-			child.free()
 	add_child_autofree(_game)
 	_player = _game.get_node("Entities/Player") as Player
 	_weapon = _player.weapon

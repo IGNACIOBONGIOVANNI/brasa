@@ -6,6 +6,8 @@ extends RefCounted
 const EFFECTS_GROUP: StringName = &"effects"
 ## Cosas pegadas al piso, por debajo de las entidades (manchas).
 const DECALS_GROUP: StringName = &"decals"
+## Contenedor con y-sort del jugador y los enemigos (ahí van también las bombas).
+const ENTITIES_GROUP: StringName = &"entities"
 
 
 ## Instancia `scene` en la posición global `at`, dentro del nodo del grupo `group` (o en la escena

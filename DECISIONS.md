@@ -116,3 +116,55 @@ Formato: fecha, decisión, por qué. Lo marcado **(propuesta)** espera el OK del
   `Fx.spawn`, que los agrega diferido (seguro desde callbacks de física) y los libera si la run terminó
   antes. Los enemigos dejan una mancha que dura 8 s.
 - **Capas de colisión en código con `PhysicsLayers`** en vez de números sueltos.
+
+## Hito 3 — piso (2026-10-30)
+
+- **Generación:** grilla de 9 x 8; se crece desde el centro con una cola y una celda solo se ocupa si
+  no toca otra sala, así el piso es un árbol (sin ciclos ni salas amontonadas). 8 a 10 salas más la
+  secreta. Jefe en el callejón sin salida más lejano (al menos a 3 pasos), tesoro y tienda en otros
+  callejones al azar, secreta en la celda vacía con más vecinas (2 o más) que no toque al jefe. Si algo
+  no se cumple se reintenta con el mismo RNG: con la misma seed siempre sale el mismo piso.
+- **Las salas quedan armadas en el mundo** una al lado de la otra (cada `ROOM_STRIDE` = 320 x 192, más
+  que una pantalla) y se construyen la primera vez que se entra. Así las rocas rotas, los pickups
+  tirados y las manchas quedan donde estaban sin guardar nada aparte. La sala inicial está en el origen.
+- **Transición:** al entrar al hueco de una puerta abierta se pausa el juego, el jugador aparece del
+  otro lado (14 px adentro de la puerta) y la cámara se desliza 0.3 s. Las balas en vuelo se borran.
+- **Puertas:** huecos de 32 px en el medio de cada pared. Se cierran (rejas) al entrar a una sala con
+  enemigos y se abren al limpiarla. El marco tiene el color de la sala de al lado (rojo jefe, dorado
+  tesoro, verde tienda), como pista.
+- **Plantillas como texto** en un `.tres` (`RoomTemplate.layout`), 9 filas de 15: `.` piso, `#` roca,
+  `o` foso, letra mayúscula = enemigo de la primera oleada y minúscula = de la segunda (la letra es
+  `EnemyData.template_char`), `$ + % &` = moneda, corazón, bomba, llave. Dos oleadas alcanzan por ahora.
+  Los tests validan todas: tamaño, símbolos, celdas frente a las puertas libres, puertas conectadas
+  entre sí, pickups alcanzables y enemigos a 3 celdas o más de cada puerta (para no aparecer encima
+  del jugador).
+- **16 plantillas del piso 1:** 11 normales (4 de dificultad 1, 4 de 2, 3 de 3), inicio, tesoro, tienda,
+  secreta y una de jefe provisoria. La dificultad buscada es `1 + floor(3 · distancia / (máx + 1))`;
+  no se repite una plantilla mientras haya otras de esa dificultad.
+- **Sala del jefe provisoria:** hasta el hito 5 (jefes) es una sala de combate difícil (dos Vigías y
+  un Farol, después dos Carneros). El piso todavía no tiene salida.
+- **Tesoro y tienda vacías** (como pedía el plan). **Las llaves se juntan pero todavía no sirven**: se
+  usan desde el hito 4 (tienda, tesoro).
+- **Secreta:** se conecta con todas sus vecinas por puertas ocultas, que se ven como pared con un par
+  de grietas apenas marcadas (una pista chica). Una explosión a menos de radio + 16 px de una puerta
+  oculta de la sala actual la destapa de los dos lados. Adentro hay 3 monedas, una bomba y un corazón.
+  El minimapa no la muestra hasta descubrirla.
+- **Fosos:** capa `pit`. Frenan al jugador y a los enemigos; las balas pasan por arriba.
+- **Pickups:** moneda (+1), corazón (cura 1 corazón entero y solo se agarra si falta vida; si no, queda
+  en el piso), bomba (+1), llave (+1). Premio por limpiar sala: 60 % de probabilidad, pesos 5/2/2/2
+  (moneda/corazón/bomba/llave), stream LOOT. El premio aparece con un saltito en el centro y no se
+  puede agarrar en el aire.
+- **Bombas:** se arranca con 1. E o X la deja a los pies; mecha de 1.6 s con chispa que parpadea cada
+  vez más rápido; radio 34 px; 10 de daño a enemigos (mata a Carnero y Vigía, no al Farol) y medio
+  corazón al jugador (rodando o con i-frames no lastima); rompe rocas; no rompe fosos ni paredes.
+- **HUD:** monedas, bombas y llaves con íconos y números de píxeles al lado de los corazones; minimapa
+  arriba a la derecha (sala actual blanca, visitadas gris claro, conocidas gris oscuro, puntos de color
+  en las especiales). El overlay de F1 pasó abajo a la derecha para no taparlo.
+- **Menú dev (F3):** ir al jefe, tesoro, tienda, secreta o inicio; revelar mapa; limpiar sala; +5
+  monedas, bombas y llaves. Saltar de una sala en pleno combate la deja como sin visitar (se sacan
+  sus enemigos) para no romperla.
+- **Escena de tests fija:** `game.tscn` ahora es un piso generado, así que los tests de combate pasan a
+  `tests/fixtures/arena.tscn` (la sala de prueba del hito 1, sin enemigos y sin piso).
+- **`Door.Mode` y `Room.Phase`** en vez de `State`: ya existe la clase global `State` de las máquinas
+  de estado y el nombre chocaba.
+- **El sonido `pulse_empty` pasó a llamarse `empty`**: lo usan también las bombas cuando no hay.

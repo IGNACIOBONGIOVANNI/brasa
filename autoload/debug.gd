@@ -1,6 +1,6 @@
 extends Node
 ## Herramientas de debug, solo en builds debug.
-## F1: overlay con FPS, seed y cantidad de balas.
+## F1: overlay (abajo a la derecha) con FPS, seed, sala actual y cantidad de balas.
 ## F2: muestra las formas de colisión (cuerpos, hurtboxes en verde, hitboxes en rojo).
 ## F3: menú de desarrollo con los comandos que registra la escena actual (pausa el juego).
 ## Argumentos de usuario (después de "--"): --debug-overlay muestra el overlay al arrancar,
@@ -27,6 +27,7 @@ var _menu_list: VBoxContainer
 var _commands: Array[DevCommand] = []
 ## Frame en el que se cierra el juego (--quit-frames). -1 = nunca.
 var _quit_at_frame: int = -1
+var _room_text: String = "-"
 
 
 func _ready() -> void:
@@ -37,6 +38,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build_overlay()
 	_build_menu()
+	EventBus.room_entered.connect(_on_room_entered)
 	var args: PackedStringArray = OS.get_cmdline_user_args()
 	_layer.visible = "--debug-overlay" in args
 	if "--demo-input" in args:
@@ -79,11 +81,16 @@ func _process(_delta: float) -> void:
 		_quit_game()
 	if not _layer.visible:
 		return
-	_label.text = "FPS %d\nseed %d\nbalas %d" % [
+	_label.text = "FPS %d\nseed %d\nsala %s\nbalas %d" % [
 		Engine.get_frames_per_second(),
 		GameRNG.get_run_seed(),
+		_room_text,
 		get_tree().get_node_count_in_group(Bullet.GROUP),
 	]
+
+
+func _on_room_entered(cell: Vector2i) -> void:
+	_room_text = "%d,%d" % [cell.x, cell.y]
 
 
 func _build_overlay() -> void:
@@ -93,9 +100,11 @@ func _build_overlay() -> void:
 	_label = Label.new()
 	_style_label(_label)
 	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	# Abajo a la derecha: arriba a la derecha está el minimapa.
+	_label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 3)
 	_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	_label.position = Vector2(-4, 2)
+	_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_layer.add_child(_label)
 
 

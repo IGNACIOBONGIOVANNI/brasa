@@ -9,6 +9,8 @@ enum VisualStyle { HORNED, EYE, LANTERN }
 
 @export var id: StringName = &""
 @export var display_name: String = ""
+## Letra (mayúscula) que lo representa en las plantillas de sala. No puede ser la "O".
+@export var template_char: String = ""
 @export var max_health: float = 10.0
 ## Daño al tocar al jugador, en medios corazones.
 @export var contact_damage: float = 1.0

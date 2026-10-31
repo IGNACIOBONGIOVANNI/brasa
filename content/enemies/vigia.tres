@@ -9,6 +9,7 @@
 script = ExtResource("1_enemy")
 id = &"vigia"
 display_name = "Vigía"
+template_char = "V"
 max_health = 8.0
 move_style = 1
 move_speed = 30.0

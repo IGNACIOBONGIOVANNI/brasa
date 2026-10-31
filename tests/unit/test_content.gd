@@ -1,13 +1,20 @@
 extends GutTest
-## Contenido (.tres): los enemigos, patrones y sonidos cargan bien y son coherentes entre sí.
+## Contenido (.tres): enemigos, patrones, sonidos, plantillas de sala, pickups y el tema del piso
+## cargan bien y son coherentes entre sí.
 
 const ENEMIES_DIR: String = "res://content/enemies/"
 const PATTERNS_DIR: String = "res://content/patterns/"
+const PICKUPS_DIR: String = "res://content/pickups/"
+const ROOMS_DIR: String = "res://content/rooms/floor_1/"
 const LIBRARY: SfxLibrary = preload("res://content/sfx/sfx_library.tres")
-## Sonidos que el código pide por id (además de los sfx_id de armas y patrones).
+const FLOOR_1: FloorTheme = preload("res://content/floors/floor_1.tres")
+## Distancia mínima (en celdas, contando diagonales) entre un enemigo y la entrada de una puerta.
+const ENEMY_DOOR_DISTANCE: int = 3
+## Sonidos que el código pide por id (además de los sfx_id de armas, patrones y pickups).
 const CODE_SFX: Array[StringName] = [
-	&"enemy_hit", &"enemy_die", &"player_hurt", &"player_die", &"roll", &"pulse", &"pulse_empty",
-	&"telegraph", &"charge",
+	&"enemy_hit", &"enemy_die", &"player_hurt", &"player_die", &"roll", &"pulse", &"empty",
+	&"telegraph", &"charge", &"door_close", &"door_open", &"room_clear", &"bomb_place",
+	&"explosion", &"rock_break", &"secret_found",
 ]
 
 
@@ -65,5 +72,63 @@ func test_every_sound_used_exists() -> void:
 	used.append(weapon.impact_sfx_id)
 	for resource: Resource in _load_all(PATTERNS_DIR):
 		used.append((resource as BulletPatternData).sfx_id)
+	for resource: Resource in _load_all(PICKUPS_DIR):
+		used.append((resource as PickupData).sfx_id)
 	for id: StringName in used:
 		assert_has(ids, id, "existe el sonido %s" % id)
+
+
+func test_room_templates_are_valid_and_resolvable() -> void:
+	for template: RoomTemplate in FLOOR_1.templates:
+		var grid: RoomGrid = RoomTemplateParser.parse(template.layout)
+		assert_true(grid.is_valid(), "%s: %s" % [template.id, ", ".join(grid.errors)])
+		for marker: RoomGrid.EnemyMarker in grid.enemies:
+			assert_not_null(FLOOR_1.enemy_for_symbol(marker.symbol), "%s: enemigo %s" % [template.id, marker.symbol])
+		for marker: RoomGrid.PickupMarker in grid.pickups:
+			assert_not_null(FLOOR_1.pickup_for_symbol(marker.symbol), "%s: pickup %s" % [template.id, marker.symbol])
+
+
+func test_enemies_spawn_away_from_doors() -> void:
+	for template: RoomTemplate in FLOOR_1.templates:
+		for marker: RoomGrid.EnemyMarker in RoomTemplateParser.parse(template.layout).enemies:
+			for side: Vector2i in FloorLayout.DIRECTIONS:
+				var entrance: Vector2i = RoomGrid.door_cells(side)[1]
+				var gap: Vector2i = (marker.cell - entrance).abs()
+				assert_gte(maxi(gap.x, gap.y), ENEMY_DOOR_DISTANCE,
+						"%s: enemigo en %s muy cerca de la puerta %s" % [template.id, marker.cell, side])
+
+
+func test_floor_has_templates_for_every_room() -> void:
+	var by_kind: Dictionary[RoomSlot.Kind, int] = {}
+	var difficulties: Dictionary[int, bool] = {}
+	for template: RoomTemplate in FLOOR_1.templates:
+		by_kind[template.kind] = by_kind.get(template.kind, 0) + 1
+		var grid: RoomGrid = RoomTemplateParser.parse(template.layout)
+		if template.kind == RoomSlot.Kind.NORMAL:
+			difficulties[template.difficulty] = true
+			assert_gt(grid.enemies.size(), 0, "%s: las salas normales tienen enemigos" % template.id)
+		elif template.kind != RoomSlot.Kind.BOSS:
+			assert_eq(grid.enemies.size(), 0, "%s: las salas especiales no tienen enemigos" % template.id)
+	for kind: int in RoomSlot.Kind.size():
+		assert_gt(by_kind.get(kind, 0), 0, "hay plantillas de tipo %d" % kind)
+	assert_gte(by_kind.get(RoomSlot.Kind.NORMAL, 0), 10, "al menos 10 salas normales")
+	assert_eq(difficulties.size(), TemplatePicker.MAX_DIFFICULTY, "salas normales de cada dificultad")
+
+
+func test_every_room_file_is_in_the_floor() -> void:
+	var in_theme: Dictionary[String, bool] = {}
+	for template: RoomTemplate in FLOOR_1.templates:
+		in_theme[template.resource_path] = true
+	for resource: Resource in _load_all(ROOMS_DIR):
+		assert_true(in_theme.has(resource.resource_path), "%s está en floor_1.tres" % resource.resource_path)
+
+
+func test_pickups_cover_every_kind_with_unique_symbols() -> void:
+	var kinds: Dictionary[PickupData.Kind, bool] = {}
+	var symbols: Dictionary[String, bool] = {}
+	for pickup: PickupData in FLOOR_1.pickups:
+		assert_false(symbols.has(pickup.template_symbol), "símbolo repetido %s" % pickup.template_symbol)
+		symbols[pickup.template_symbol] = true
+		kinds[pickup.kind] = true
+		assert_true(RoomTemplateParser.PICKUP_SYMBOLS.contains(pickup.template_symbol))
+	assert_eq(kinds.size(), PickupData.Kind.size(), "moneda, corazón, bomba y llave")

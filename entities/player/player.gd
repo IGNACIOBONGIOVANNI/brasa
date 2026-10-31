@@ -1,14 +1,14 @@
 class_name Player
 extends CharacterBody2D
 ## Jugador. Lee el input (con buffer) y delega en su StateMachine: Move (caminar, apuntar,
-## disparar, Pulso), Roll (rodar con i-frames) y Dead.
+## disparar, Pulso, bomba), Roll (rodar con i-frames) y Dead.
 ## Se apunta con el último dispositivo usado: mover el mouse vuelve a la mira por mouse,
 ## inclinar el stick derecho la pasa al stick.
 
 const GROUP: StringName = &"player"
 const STICK_AIM_DEADZONE: float = 0.35
 ## Acciones que pasan por el InputBuffer.
-const BUFFERED_ACTIONS: Array[StringName] = [&"shoot", &"dodge", &"blank"]
+const BUFFERED_ACTIONS: Array[StringName] = [&"shoot", &"dodge", &"blank", &"bomb"]
 const HURT_FLASH_TIME: float = 0.12
 const HURT_TRAUMA: float = 0.6
 const HURT_HITSTOP: float = 0.08
@@ -19,6 +19,7 @@ const PULSE_PUSH_RADIUS: float = 90.0
 const PULSE_PUSH_FORCE: float = 180.0
 const BURST_SCENE: PackedScene = preload("res://fx/burst.tscn")
 const PULSE_WAVE_SCENE: PackedScene = preload("res://fx/pulse_wave.tscn")
+const BOMB_SCENE: PackedScene = preload("res://entities/bomb/bomb.tscn")
 
 @export var acceleration: float = 1000.0
 @export var friction: float = 1200.0
@@ -88,6 +89,13 @@ func apply_velocity() -> void:
 	move_and_slide()
 
 
+## Frena en seco (al aparecer en otra sala).
+func stop_motion() -> void:
+	move_velocity = Vector2.ZERO
+	velocity = Vector2.ZERO
+	knockback.velocity = Vector2.ZERO
+
+
 func update_aim() -> void:
 	var stick: Vector2 = Input.get_vector(&"aim_left", &"aim_right", &"aim_up", &"aim_down")
 	if stick.length() > STICK_AIM_DEADZONE:
@@ -121,7 +129,7 @@ func try_pulse() -> void:
 	if not input_buffer.consume(&"blank"):
 		return
 	if not RunState.use_blank():
-		AudioManager.play_sfx(&"pulse_empty")
+		AudioManager.play_sfx(&"empty")
 		return
 	for node: Node in get_tree().get_nodes_in_group(Bullet.GROUP):
 		var bullet := node as Bullet
@@ -135,6 +143,17 @@ func try_pulse() -> void:
 	Fx.spawn(get_tree(), PULSE_WAVE_SCENE, global_position)
 	EventBus.shake_requested.emit(PULSE_TRAUMA)
 	AudioManager.play_sfx(&"pulse")
+
+
+## Si se apretó el botón y quedan bombas, deja una a los pies.
+func try_bomb() -> void:
+	if not input_buffer.consume(&"bomb"):
+		return
+	if not RunState.use_bomb():
+		AudioManager.play_sfx(&"empty")
+		return
+	Fx.spawn(get_tree(), BOMB_SCENE, global_position + Vector2(0, 2), Fx.ENTITIES_GROUP)
+	AudioManager.play_sfx(&"bomb_place")
 
 
 func _on_hurt(info: HitInfo) -> void:
