@@ -33,6 +33,12 @@ func on_pickup(_context: HookContext) -> void:
 	pass
 
 
+## Un golpe que mataría al jugador (llega en el acto, no diferido). Devuelve true si el item lo
+## salva: tiene que dejarlo con vida (HealthComponent.revive).
+func on_lethal(_context: HookContext) -> bool:
+	return false
+
+
 ## Activos: se llama al usarlo. Devuelve true si se usó (y se gasta la carga).
 func on_use(_context: HookContext) -> bool:
 	return false

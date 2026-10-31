@@ -208,3 +208,24 @@ func test_shards_burst_out_of_killed_enemies() -> void:
 	await wait_physics_frames(1)
 	assert_gte(_player_bullets(), 6)
 	await wait_physics_frames(1)
+
+
+func test_second_spark_revives_once_and_is_spent() -> void:
+	var spark: ItemData = _item("segunda_chispa")
+	RunState.add_item(spark)
+	await wait_physics_frames(1)
+	_player.health.take_damage(99.0)
+	assert_false(_player.is_dead(), "un golpe mortal no lo mata")
+	assert_eq(_player.health.current, _player.health.max_health, "vuelve con toda la vida")
+	assert_true(_player.health.is_invulnerable(), "y un rato invulnerable")
+	await wait_physics_frames(2)
+	assert_false(RunState.items.has(spark), "la chispa se gastó")
+	_player.health.kill()
+	assert_true(_player.is_dead(), "la segunda vez sí muere")
+	await wait_physics_frames(2)
+
+
+func test_s_plus_plus_flame_multiplies_the_stats() -> void:
+	var damage: float = RunState.stats.damage
+	RunState.add_item(_item("llama_madre"))
+	assert_almost_eq(RunState.stats.damage, damage * 1.5, 0.001)

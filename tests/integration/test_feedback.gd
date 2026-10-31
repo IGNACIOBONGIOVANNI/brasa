@@ -29,6 +29,16 @@ func test_low_health_starts_the_heartbeat() -> void:
 	assert_false(_danger.is_low_health(), "al curarse se apaga")
 
 
+func test_picked_item_banner_shows_its_quality() -> void:
+	var laser := load("res://content/items/arma_haz.tres") as ItemData
+	EventBus.item_picked.emit(laser)
+	var titles: Array[Label] = []
+	for node: Node in _game.get_node("Hud/Banner").find_children("*", "Label", true, false):
+		titles.append(node as Label)
+	assert_eq(titles[0].text, "Haz · S")
+	assert_eq(titles[0].get_theme_color(&"font_color"), laser.quality_color(), "del color de su calidad")
+
+
 func test_boss_spawn_shows_its_name() -> void:
 	watch_signals(EventBus)
 	_game.spawn_enemy(CAMPANARIO, Vector2(0, -40))

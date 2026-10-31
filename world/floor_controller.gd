@@ -190,7 +190,8 @@ func _ensure_room(cell: Vector2i) -> Room:
 	return room
 
 
-## Un pedestal en el tesoro, tres en la tienda y el premio del jefe, sorteados al generar el piso.
+## Un pedestal en el tesoro, tres en la tienda, uno en la secreta y el premio del jefe, sorteados al
+## generar el piso.
 func _roll_offers() -> void:
 	var loot: RandomNumberGenerator = GameRNG.stream(RngStreams.LOOT)
 	for cell: Vector2i in layout.cells_of_kind(RoomSlot.Kind.TREASURE):
@@ -198,6 +199,8 @@ func _roll_offers() -> void:
 	for cell: Vector2i in layout.cells_of_kind(RoomSlot.Kind.SHOP):
 		for _i: int in SHOP_OFFERS:
 			layout.get_slot(cell).offers.append(RunState.item_pool.draw(ItemData.POOL_SHOP, loot))
+	for cell: Vector2i in layout.cells_of_kind(RoomSlot.Kind.SECRET):
+		layout.get_slot(cell).offers.append(RunState.item_pool.draw(ItemData.POOL_SECRET, loot))
 	for cell: Vector2i in layout.cells_of_kind(RoomSlot.Kind.BOSS):
 		layout.get_slot(cell).offers.append(RunState.item_pool.draw(ItemData.POOL_BOSS, loot))
 

@@ -1,12 +1,12 @@
 extends GutTest
-## ItemPool: respeta los pools, no repite, devuelve relleno al vaciarse y pesa las rarezas.
+## ItemPool: respeta los pools, no repite, devuelve relleno al vaciarse y pesa las calidades.
 
 
-func _item(id: StringName, pools: int, rarity: ItemData.Rarity = ItemData.Rarity.COMMON) -> ItemData:
+func _item(id: StringName, pools: int, quality: ItemData.Quality = ItemData.Quality.C) -> ItemData:
 	var item := ItemData.new()
 	item.id = id
 	item.pools = pools
-	item.rarity = rarity
+	item.quality = quality
 	return item
 
 
@@ -52,7 +52,7 @@ func test_mark_taken_removes_an_item() -> void:
 func test_same_seed_same_draws() -> void:
 	var items: Array[ItemData] = []
 	for i: int in 10:
-		items.append(_item(StringName("i%d" % i), ItemData.POOL_TREASURE, i % 3 as ItemData.Rarity))
+		items.append(_item(StringName("i%d" % i), ItemData.POOL_TREASURE, i % ItemData.Quality.size() as ItemData.Quality))
 	var first := ItemPool.new(items, null)
 	var second := ItemPool.new(items, null)
 	var rng_a := _rng(77)
@@ -61,13 +61,13 @@ func test_same_seed_same_draws() -> void:
 		assert_eq(first.draw(ItemData.POOL_TREASURE, rng_a).id, second.draw(ItemData.POOL_TREASURE, rng_b).id)
 
 
-func test_rarity_weights_favor_common_in_shop() -> void:
+func test_quality_weights_favor_c_in_shop() -> void:
 	var common_wins: int = 0
 	var rare_wins: int = 0
 	for seed_value: int in 400:
 		var items: Array[ItemData] = [
-			_item(&"comun", ItemData.POOL_SHOP, ItemData.Rarity.COMMON),
-			_item(&"rara", ItemData.POOL_SHOP, ItemData.Rarity.RARE),
+			_item(&"comun", ItemData.POOL_SHOP, ItemData.Quality.C),
+			_item(&"rara", ItemData.POOL_SHOP, ItemData.Quality.A),
 		]
 		var drawn: ItemData = ItemPool.new(items, null).draw(ItemData.POOL_SHOP, _rng(seed_value))
 		if drawn.id == &"comun":
@@ -77,3 +77,23 @@ func test_rarity_weights_favor_common_in_shop() -> void:
 	# Pesos 1.0 contra 0.15: la común sale ~87 % de las veces.
 	assert_between(common_wins / 400.0, 0.8, 0.94)
 	assert_gt(rare_wins, 0, "la rara también puede salir")
+
+
+func test_every_pool_weighs_every_quality_and_better_is_rarer() -> void:
+	for pool: int in ItemPool.QUALITY_WEIGHTS:
+		var weights: Array = ItemPool.QUALITY_WEIGHTS[pool]
+		assert_eq(weights.size(), ItemData.Quality.size(), "pool %d: un peso por calidad" % pool)
+		assert_gt(weights[ItemData.Quality.A], weights[ItemData.Quality.S], "pool %d: S más raro que A" % pool)
+		assert_gte(weights[ItemData.Quality.S], weights[ItemData.Quality.S_PLUS_PLUS], "pool %d: S++ el más raro" % pool)
+
+
+func test_the_shop_never_sells_s_plus_plus() -> void:
+	var items: Array[ItemData] = [_item(&"spp", ItemData.POOL_SHOP, ItemData.Quality.S_PLUS_PLUS)]
+	assert_eq(ItemPool.new(items, _item(&"relleno", 0)).draw(ItemData.POOL_SHOP, _rng(3)).id, &"relleno")
+
+
+func test_secret_gives_the_best_chance_of_s_plus_plus() -> void:
+	var weights: Dictionary[int, Array] = ItemPool.QUALITY_WEIGHTS
+	var secret: float = weights[ItemData.POOL_SECRET][ItemData.Quality.S_PLUS_PLUS]
+	for pool: int in [ItemData.POOL_TREASURE, ItemData.POOL_BOSS, ItemData.POOL_SHOP]:
+		assert_gt(secret, weights[pool][ItemData.Quality.S_PLUS_PLUS])

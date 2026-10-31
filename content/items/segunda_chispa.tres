@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://data/item_data.gd" id="1_item"]
+[ext_resource type="Script" path="res://items/hooks/second_spark_hook.gd" id="2_hook"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"segunda_chispa"
+display_name = "Segunda chispa"
+description = "Si te matan, volvés con toda la vida (una sola vez)"
+kind = 0
+quality = 4
+pools = 13
+price = 15
+hook_script = ExtResource("2_hook")
+icon = PackedStringArray("...#...", "..#.#..", ".##.##.", "#######", ".#####.", "..###..", "...#...")
+icon_color = Color(1, 0.824, 0.29, 1)

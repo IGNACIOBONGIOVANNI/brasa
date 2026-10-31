@@ -1,10 +1,19 @@
 class_name ItemData
 extends Resource
 ## Un item: pasivo (cambia stats y/o tiene un hook), activo (se usa con Q y se recarga limpiando
-## salas) o arma (da un WeaponData). Aparece en los pools marcados, con la rareza que pese cada pool.
+## salas) o arma (da un WeaponData). Aparece en los pools marcados, con el peso que cada pool le da a
+## su calidad (ItemPool): C (comunes), B (infrecuentes), A (raros), S (muy pocos) y S++ (rarísimos).
 
 enum Kind { PASSIVE, ACTIVE, WEAPON }
-enum Rarity { COMMON, UNCOMMON, RARE }
+enum Quality { C, B, A, S, S_PLUS_PLUS }
+
+const QUALITY_NAMES: PackedStringArray = ["C", "B", "A", "S", "S++"]
+## Gris, verde, azul, violeta y dorado.
+const QUALITY_COLORS: Array[Color] = [
+	Color("b8b0c8"), Color("6cc46c"), Color("4fa3ff"), Color("c77dff"), Color("ffd24a"),
+]
+## Monedas que se suman al precio en la tienda según la calidad.
+const QUALITY_PRICE_BONUS: PackedInt32Array = [0, 2, 4, 8, 15]
 
 ## Pools (flags de `pools`).
 const POOL_TREASURE: int = 1
@@ -17,9 +26,9 @@ const POOL_SECRET: int = 8
 ## Una línea; se muestra al agarrarlo.
 @export var description: String = ""
 @export var kind: Kind = Kind.PASSIVE
-@export var rarity: Rarity = Rarity.COMMON
+@export var quality: Quality = Quality.C
 @export_flags("Tesoro", "Tienda", "Jefe", "Secreta") var pools: int = POOL_TREASURE
-## Precio en la tienda, en monedas.
+## Precio base en la tienda, en monedas (la calidad le suma: ver shop_price).
 @export var price: int = 5
 @export var modifiers: Array[StatModifier] = []
 ## Script que extiende ItemHook (opcional): comportamiento especial y uso de los activos.
@@ -55,3 +64,16 @@ func get_icon_color() -> Color:
 	if icon.is_empty() and weapon != null:
 		return weapon.icon_color
 	return icon_color
+
+
+func quality_name() -> String:
+	return QUALITY_NAMES[quality]
+
+
+func quality_color() -> Color:
+	return QUALITY_COLORS[quality]
+
+
+## Lo que cuesta en la tienda: el precio base más el recargo de su calidad.
+func shop_price() -> int:
+	return price + QUALITY_PRICE_BONUS[quality]

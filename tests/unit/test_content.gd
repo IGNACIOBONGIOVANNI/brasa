@@ -24,7 +24,7 @@ const CODE_SFX: Array[StringName] = [
 	&"explosion", &"rock_break", &"secret_found", &"item_pickup", &"buy", &"unlock", &"reload",
 	&"weapon_swap", &"active_use", &"active_ready", &"pickup_heart", &"boss_phase", &"boss_die",
 	&"exit_open", &"ui_select", &"pause", &"achievement", &"lightning", &"heartbeat", &"boss_intro",
-	&"victory", &"defeat", &"medkit",
+	&"victory", &"defeat", &"medkit", &"revive",
 ]
 
 
@@ -177,6 +177,26 @@ func test_items_are_valid() -> void:
 	assert_eq(CATALOG.filler.pools, 0, "el relleno no está en ningún pool")
 
 
+func test_qualities_are_complete_and_the_best_are_few() -> void:
+	assert_eq(ItemData.QUALITY_NAMES.size(), ItemData.Quality.size(), "un nombre por calidad")
+	assert_eq(ItemData.QUALITY_COLORS.size(), ItemData.Quality.size(), "un color por calidad")
+	assert_eq(ItemData.QUALITY_PRICE_BONUS.size(), ItemData.Quality.size(), "un recargo por calidad")
+	for quality_name: String in ItemData.QUALITY_NAMES:
+		for letter: String in quality_name:
+			assert_has(PixelIcons.QUALITY_GLYPHS, letter, "hay letra de píxeles para %s" % quality_name)
+	var counts: Array[int] = []
+	counts.resize(ItemData.Quality.size())
+	for item: ItemData in CATALOG.items:
+		counts[item.quality] += 1
+		if item.quality == ItemData.Quality.S_PLUS_PLUS:
+			assert_false(item.is_in_pool(ItemData.POOL_SHOP), "%s: S++ no se vende" % item.id)
+	for quality: int in ItemData.Quality.size():
+		assert_gt(counts[quality], 0, "hay items %s" % ItemData.QUALITY_NAMES[quality])
+	assert_between(counts[ItemData.Quality.S], 1, 4, "muy pocos S")
+	assert_between(counts[ItemData.Quality.S_PLUS_PLUS], 1, 3, "muy pocos S++")
+	assert_lt(counts[ItemData.Quality.S_PLUS_PLUS], counts[ItemData.Quality.A], "menos S++ que A")
+
+
 func test_catalog_has_the_milestone_items() -> void:
 	var passive_or_active: int = 0
 	var actives: int = 0
@@ -226,7 +246,7 @@ func test_weapons_are_valid_and_cover_every_mode() -> void:
 func test_treasure_and_shop_have_pedestal_spots() -> void:
 	for template: RoomTemplate in FLOOR_1.templates:
 		var spots: int = RoomTemplateParser.parse(template.layout).item_spots.size()
-		if template.kind == RoomSlot.Kind.TREASURE or template.kind == RoomSlot.Kind.BOSS:
+		if template.kind in [RoomSlot.Kind.TREASURE, RoomSlot.Kind.BOSS, RoomSlot.Kind.SECRET]:
 			assert_eq(spots, 1, "%s: un pedestal (en el jefe aparece al vencerlo)" % template.id)
 		elif template.kind == RoomSlot.Kind.SHOP:
 			assert_eq(spots, FloorController.SHOP_OFFERS, "%s: un pedestal por oferta" % template.id)

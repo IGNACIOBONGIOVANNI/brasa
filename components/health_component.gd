@@ -77,6 +77,12 @@ func grant_invulnerability(seconds: float) -> void:
 	_invulnerable_left = maxf(_invulnerable_left, seconds)
 
 
+## Vuelve a la vida con `amount` (un item que salva de la muerte).
+func revive(amount: float) -> void:
+	current = HealthMath.healed(0.0, amount, max_health)
+	health_changed.emit(current, max_health)
+
+
 ## Muerte inmediata, aunque sea invulnerable (menú de debug).
 func kill() -> void:
 	if is_dead():

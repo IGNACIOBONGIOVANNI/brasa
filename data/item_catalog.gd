@@ -7,6 +7,14 @@ extends Resource
 @export var filler: ItemData
 
 
+## El item que da `weapon` (null para la pistola, que no sale de ningún item).
+func item_for_weapon(weapon: WeaponData) -> ItemData:
+	for item: ItemData in items:
+		if item.weapon == weapon:
+			return item
+	return null
+
+
 ## Los que se compran en el Taller, en el orden del catálogo.
 func workshop_items() -> Array[ItemData]:
 	var result: Array[ItemData] = []

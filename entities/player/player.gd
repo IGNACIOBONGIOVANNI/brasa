@@ -192,6 +192,9 @@ func _on_hurt(info: HitInfo) -> void:
 
 
 func _on_died() -> void:
+	# Un item (Segunda chispa) puede salvarlo justo antes de morir.
+	if hooks.try_cheat_death():
+		return
 	machine.transition_to(&"Dead")
 
 

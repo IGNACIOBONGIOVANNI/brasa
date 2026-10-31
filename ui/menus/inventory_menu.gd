@@ -20,7 +20,6 @@ const STAT_LABELS: Dictionary[StringName, String] = {
 	&"max_health": "Vida", &"bounces": "Rebotes", &"pierce": "Perforación",
 	&"homing": "Teledirigido", &"shot_size": "Tamaño de bala",
 }
-const RARITY_NAMES: PackedStringArray = ["común", "poco común", "rara"]
 
 var _stats_label: Label
 var _weapons_row: HBoxContainer
@@ -31,11 +30,13 @@ var _detail_kind: Label
 var _detail_text: Label
 var _detail_extra: Label
 var _first_slot: Control
+var _catalog: ItemCatalog
 
 
 func _ready() -> void:
 	layer = 45
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_catalog = load(RunState.CATALOG_PATH) as ItemCatalog
 	var root := Control.new()
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(root)
@@ -130,20 +131,22 @@ func _fill() -> void:
 	for i: int in RunState.weapons.size():
 		var weapon_slot: WeaponSlot = RunState.weapons[i]
 		var equipped: bool = i == RunState.current_weapon
-		var cell := InventorySlot.new(weapon_slot.weapon.icon, weapon_slot.weapon.icon_color, equipped)
-		cell.focus_entered.connect(_show_weapon.bind(weapon_slot, equipped))
+		var source: ItemData = _catalog.item_for_weapon(weapon_slot.weapon)
+		var cell := InventorySlot.new(weapon_slot.weapon.icon, weapon_slot.weapon.icon_color, equipped,
+				quality_tint(source))
+		cell.focus_entered.connect(_show_weapon.bind(weapon_slot, equipped, source))
 		_weapons_row.add_child(cell)
 		if equipped:
 			_first_slot = cell
 	if RunState.active_item != null:
 		var active: ItemData = RunState.active_item
-		var cell := InventorySlot.new(active.get_icon(), active.get_icon_color())
+		var cell := InventorySlot.new(active.get_icon(), active.get_icon_color(), false, quality_tint(active))
 		cell.focus_entered.connect(_show_item.bind(active))
 		_active_row.add_child(cell)
 	else:
 		_active_row.add_child(MenuBuilder.label("Ninguno", 8, MenuBuilder.MUTED_COLOR))
 	for item: ItemData in RunState.items:
-		var cell := InventorySlot.new(item.get_icon(), item.get_icon_color())
+		var cell := InventorySlot.new(item.get_icon(), item.get_icon_color(), false, quality_tint(item))
 		cell.focus_entered.connect(_show_item.bind(item))
 		_items_row.add_child(cell)
 	if RunState.items.is_empty():
@@ -151,6 +154,13 @@ func _fill() -> void:
 	if _first_slot == null:
 		_first_slot = _weapons_row.get_child(0) as Control
 	_show_texts("", "", "", "")
+
+
+## Color del fondo del casillero: el de la calidad, salvo C (y la pistola, que no es un item).
+static func quality_tint(item: ItemData) -> Color:
+	if item == null or item.quality == ItemData.Quality.C:
+		return Color.TRANSPARENT
+	return item.quality_color()
 
 
 ## Casilleros que hay ahora (para los tests).
@@ -165,6 +175,10 @@ func slot_count() -> int:
 
 func detail_title() -> String:
 	return _detail_title.text
+
+
+func detail_kind() -> String:
+	return _detail_kind.text
 
 
 ## Una línea con los stats que importan (los raros solo si tienen algo).
@@ -244,22 +258,30 @@ static func _num(value: float) -> String:
 	return String.num(snappedf(value, 0.01))
 
 
-func _show_weapon(slot: WeaponSlot, equipped: bool) -> void:
-	_show_texts(slot.weapon.display_name, "Arma" + (" · en la mano" if equipped else ""),
-			weapon_mode_text(slot.weapon),
-			"%s\n%s" % [weapon_stats_text(slot.weapon, RunState.stats), ammo_text(slot)])
+## `source`: el item que dio el arma (null para la pistola).
+func _show_weapon(slot: WeaponSlot, equipped: bool, source: ItemData) -> void:
+	var kind: String = "Arma"
+	if source != null:
+		kind += " · calidad " + source.quality_name()
+	if equipped:
+		kind += " · en la mano"
+	_show_texts(slot.weapon.display_name, kind, weapon_mode_text(slot.weapon),
+			"%s\n%s" % [weapon_stats_text(slot.weapon, RunState.stats), ammo_text(slot)],
+			source.quality_color() if source != null else MenuBuilder.TITLE_COLOR)
 
 
 func _show_item(item: ItemData) -> void:
 	var kind: String = "Objeto activo" if item.kind == ItemData.Kind.ACTIVE else "Objeto pasivo"
-	kind += " · " + RARITY_NAMES[item.rarity]
+	kind += " · calidad " + item.quality_name()
 	if item.kind == ItemData.Kind.ACTIVE:
 		kind += " · carga %d/%d" % [mini(RunState.active_charge, item.max_charge), item.max_charge]
-	_show_texts(item.display_name, kind, item.description, modifiers_text(item))
+	_show_texts(item.display_name, kind, item.description, modifiers_text(item), item.quality_color())
 
 
-func _show_texts(title: String, kind: String, text: String, extra: String) -> void:
+func _show_texts(title: String, kind: String, text: String, extra: String,
+		title_color: Color = MenuBuilder.TITLE_COLOR) -> void:
 	_detail_title.text = title
+	_detail_title.add_theme_color_override(&"font_color", title_color)
 	_detail_kind.text = kind
 	_detail_text.text = text
 	_detail_extra.text = extra

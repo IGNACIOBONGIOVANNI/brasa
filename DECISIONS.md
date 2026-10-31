@@ -396,3 +396,34 @@ El usuario aprobó el borrador de `docs/LORE.md` ("Sí, integralo").
   probaron cuatro combinaciones de hinting y subpíxel: sin posición de subpíxel el espaciado quedaba
   desparejo ("Tal ler"); con subpíxel automático y hinting normal queda parejo y con trazos sólidos.
   Sigue siendo la fuente de Godot (no una fuente pixel propia): no hizo falta dibujar una.
+
+## Hito 10 — calidades de objetos (2026-10-31)
+
+Pedido del usuario: S++ (muy pocos y rarísimos), S (muy pocos), A (raros), B (infrecuentes), C (comunes).
+
+- **Las 5 calidades reemplazan a las 3 rarezas** (`ItemData.quality`): común → C, poco común → B,
+  rara → A. Quedaron C 12 (contando la Galleta de relleno), B 7, A 5, S 3, S++ 2.
+- **S:** Haz, Esquirlas e Imán de pólvora (los más fuertes). **A:** además del Cuarzo, la Ballesta,
+  la Órbita, el Relámpago y el Rencor, para que A no quede con un solo item.
+- **S++ nuevos:** *Llama Madre* (daño ×1,5, cadencia ×1,2, balas ×1,25) y *Segunda chispa* (si un golpe
+  te mataría, volvés con toda la vida, 2 s invulnerable y sin balas enemigas; se gasta). Para la
+  chispa, los hooks tienen `on_lethal`, que llega en el acto (no diferido) antes de pasar a Dead.
+  Ninguno de los dos se vende ni está bloqueado: su rareza es la traba.
+- **El sorteo cambió:** antes cada item pesaba según su rareza, y como los items no se repiten en la
+  run y son pocos, al acabarse los comunes salían los raros sí o sí (con un sorteo de 2000 runs, un S++
+  aparecía en el 70 % de las runs y en el 100 % si se entraba a las secretas). Ahora primero se tira
+  la calidad (chances fijas por sala) y después el item; si esa calidad se vació se baja, y si abajo
+  no queda nada se sube hasta A como mucho: S y S++ solo salen si los pide la tirada. Contra eso, con
+  pocos items desbloqueados sale más seguido la Galleta de relleno al final de la run (unas 4–5 por
+  run en vez de 2–3): con más items comunes se arregla.
+- **Chances por sala** (C / B / A / S / S++, en %): tesoro 50 / 31,5 / 15 / 3 / 0,5; tienda
+  55 / 30 / 13 / 2 / 0; jefe 20 / 42,5 / 29 / 7 / 1,5; secreta 15 / 36 / 35 / 10 / 4. Simulado con 2000
+  runs y perfil nuevo: un S++ se ofrece en el 7 % de las runs (22 % si se encuentran todas las
+  secretas) y un S en el 34 % (55 %). A, B y C, en todas.
+- **La sala secreta ahora tiene un pedestal gratis** con un item del pool secreto (antes ese pool no
+  se usaba y la secreta solo daba monedas, bomba y corazón). Es la que más chances da de S y S++.
+- **Precio en la tienda:** precio base del item + recargo por calidad (C +0, B +2, A +4, S +8).
+- **Cómo se ve:** letra de píxeles con su color arriba del item en el pedestal (C gris, B verde, A
+  azul, S violeta, S++ dorado); S y S++ con un aro de su color que late, y S++ con chispitas. El cartel
+  al agarrarlo dice "Nombre · calidad" en ese color, y en la Mochila el casillero se tiñe (salvo C) y
+  el detalle dice la calidad. Las armas toman la calidad del item que las da; la pistola no tiene.

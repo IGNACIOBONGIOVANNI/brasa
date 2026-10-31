@@ -1,7 +1,8 @@
 class_name PixelIcons
 extends RefCounted
 ## Íconos de píxeles escritos como texto ("#" = píxel) para dibujar con PixelBitmap: HUD, pickups y
-## avisos. Todos miden 5 filas salvo el corazón (6) y el aviso (5 x 1).
+## avisos. Todos miden 5 filas salvo el corazón (6) y el aviso (5 x 1). También las letras de las
+## calidades de los items (word("S++")).
 
 const HEART: PackedStringArray = [
 	".##.##.",
@@ -57,6 +58,14 @@ const DIGITS: PackedStringArray = [
 	"###" + "###" + "###" + "###" + "..#" + "###" + "###" + ".#." + "###" + "###",
 ]
 const DIGIT_WIDTH: int = 3
+## Letras de 3 x 5 para las calidades (C, B, A, S, S++).
+const QUALITY_GLYPHS: Dictionary[String, Array] = {
+	"C": ["###", "#..", "#..", "#..", "###"],
+	"B": ["##.", "#.#", "##.", "#.#", "##."],
+	"A": [".#.", "#.#", "###", "#.#", "#.#"],
+	"S": ["###", "#..", "###", "..#", "###"],
+	"+": ["...", ".#.", "###", ".#.", "..."],
+}
 
 
 ## Tamaño en píxeles de un ícono.
@@ -75,3 +84,13 @@ static func paint_number(canvas: CanvasItem, value: int, digits: int, origin: Ve
 		var at := origin + Vector2(i * (DIGIT_WIDTH + 1) - column, 0)
 		PixelBitmap.paint_outlined(canvas, DIGITS, at, color, outline, column, column + DIGIT_WIDTH)
 	return text.length() * (DIGIT_WIDTH + 1) - 1
+
+
+## Une letras de QUALITY_GLYPHS en un solo ícono, con una columna libre entre cada una.
+static func word(text: String) -> PackedStringArray:
+	var rows: PackedStringArray = ["", "", "", "", ""]
+	for i: int in text.length():
+		var glyph: Array = QUALITY_GLYPHS[text[i]]
+		for y: int in rows.size():
+			rows[y] += ("." if i > 0 else "") + glyph[y]
+	return rows

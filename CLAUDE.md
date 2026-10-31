@@ -5,9 +5,10 @@ estructura de los roguelites de salas + bullet hell, con contenido 100 % origina
 [docs/LORE.md](docs/LORE.md).
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 9 (lore) terminado: título "Brasa", intro, una línea por piso, apodo de los jefes y
-final; después, arreglo del cuelgue de la intro y texto con pixelado fino. Antes, hito 8: texto nítido, Haz y Órbita rehechos, Trabuco ajustado y Mochila (I). Cualquier
-trabajo nuevo, solo con OK del usuario. El `.exe` se exporta a `builds/Brasa.exe` (ignorado por git).
+**Estado:** Hito 10 (calidades de objetos) terminado: C, B, A, S y S++, sorteo por calidad, letra en
+el pedestal, dos objetos S++ (Llama Madre y Segunda chispa) y pedestal en la sala secreta. Antes: hito 9
+(lore, título "Brasa"), hito 8 (texto, armas, Mochila). Cualquier trabajo nuevo, solo con OK del
+usuario. El `.exe` se exporta a `builds/Brasa.exe` (ignorado por git).
 
 ## Ejecutables (rutas exactas)
 
@@ -143,6 +144,8 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
 - El JSON devuelve todos los números como `float`: al leer el guardado convertir con `int()` (ver
   `MetaProfile.from_dict`). `JSON.new().parse()` no imprime nada si el texto está roto (sirve para
   detectar un guardado corrupto sin ensuciar la consola).
+- Una constante de diccionario tipado no acepta constructores (`PackedFloat32Array([...])` "isn't a
+  constant expression"): usar `Dictionary[K, Array]` con literales (ver `ItemPool.QUALITY_WEIGHTS`).
 - `DirAccess.rename_absolute()` en Windows reemplaza el destino si existe (borra y renombra): por eso
   `SaveStore.read()` también busca el `.tmp` por si un corte quedó justo entre los dos pasos.
 - Un `SaveManager.profile_changed` emitido mientras un menú está en pantalla lo rearma (los menús se
@@ -202,7 +205,8 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   `main/game.tscn` con `GameRNG.start_run(seed)` antes de instanciarla.
 - Plantillas de sala: texto de 9 x 15 con la leyenda de `RoomTemplateParser`; cada `.tres` nuevo va
   en `content/rooms/floor_N/` y en la lista `templates` del `FloorTheme` (lo exige un test).
-- Items: un `.tres` por item en `content/items/` y en `catalog.tres` (lo exige un test). Un item
+- Items: un `.tres` por item en `content/items/` y en `catalog.tres` (lo exige un test), con su
+  `quality` (C, B, A, S o S++; un test exige muy pocos S y S++ y que la tienda no venda S++). Un item
   `locked` tiene que tener `unlock_cost` (se vende en el Taller) o salir de un logro. Los efectos
   son `StatModifier` (stats de `StatBlock.STAT_NAMES`) y, si hace falta algo especial, un script en
   `items/hooks/` que extiende `ItemHook`. Los activos necesitan hook con `on_use` y `max_charge`.
@@ -248,7 +252,7 @@ core/meta/                  MetaProfile (progreso entre runs), MetaRules (chispa
 data/                       StatBlock, StatModifier, WeaponData, ItemData, ItemCatalog, EnemyData, BossPhase,
                             BulletPatternData, SfxData, SfxLibrary, RoomTemplate, FloorTheme, PickupData,
                             RunConfig, CharacterData, AchievementData, MetaConfig
-content/                    weapons/ (pistola, trabuco, metralla, haz, órbita, ballesta), items/ (27 +
+content/                    weapons/ (pistola, trabuco, metralla, haz, órbita, ballesta), items/ (29 +
                             catalog), enemies/ (carnero, vigia, farol, centinela, espora, fundidor; jefes
                             campanario, rey_carnero, raigon y yunque), patterns/ (24), sfx/sfx_library,
                             rooms/floor_1/ (16), floor_2/ (5), floor_3/ (5), floor_4/ (6),
@@ -256,7 +260,7 @@ content/                    weapons/ (pistola, trabuco, metralla, haz, órbita, 
                             pickups/ (coin, heart, bomb, key), characters/ (brasa, musgo, ceniza),
                             achievements/ (7), meta/meta_config
 items/                      ItemHook (base), HookContext, hooks/ (diente de leche, rencor, estallido,
-                            caparazón, relámpago, botiquín, eco, esquirlas)
+                            caparazón, relámpago, botiquín, eco, esquirlas, segunda chispa)
 components/                 Weapon, LaserBeam, OrbitRing, Health, Hurtbox, Hitbox, Knockback, Flash,
                             BulletEmitter, ItemHookRunner, state_machine/
 entities/player/            player.tscn/.gd, player_visual.gd, states/ (move, roll, dead)
@@ -348,11 +352,18 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   el jugador toma el color con `PlayerVisual.set_body_color` y la vida de `stats.max_health`.
 - **Items:** `RunState.add_item()` reparte por tipo: pasivo (a `items`, recalcula `stats` con
   `StatCalculator`), activo (reemplaza al anterior y lo devuelve para dejarlo en el pedestal), arma
-  (`add_weapon`). `RunState.item_pool` (`ItemPool`) sortea sin repetir en la run; `FloorController`
-  sortea al generar el piso un item para el tesoro y tres para la tienda (`RoomSlot.offers`), que
-  `Room` pone en `ItemPedestal` (con precio en la tienda). `ItemHookRunner` (en el jugador) despacha
-  los eventos a los `ItemHook` (los que vienen de la física, diferidos). El activo se usa con Q y se
-  carga una vez por sala limpia (`RunState._on_room_cleared`).
+  (`add_weapon`). `RunState.item_pool` (`ItemPool`) sortea sin repetir en la run: primero tira la
+  calidad con las chances del pool (`ItemPool.QUALITY_WEIGHTS`, en %) y después un item al azar de
+  esa calidad; si está vacía baja, y si abajo no queda nada sube hasta A como mucho (S y S++ nunca
+  salen por descarte). `FloorController` sortea al generar el piso un item para el tesoro, tres para
+  la tienda, uno para la secreta y el del jefe (`RoomSlot.offers`), que `Room` pone en `ItemPedestal`
+  (en la tienda con `ItemData.shop_price()`: precio base + recargo de la calidad). El pedestal
+  muestra la letra de la calidad con su color (`PixelIcons.word`), S y S++ con un aro y S++ con
+  chispitas; el cartel al agarrarlo y la Mochila también la muestran. `ItemHookRunner` (en el
+  jugador) despacha los eventos a los `ItemHook` (los que vienen de la física, diferidos);
+  `on_lethal` llega en el acto, antes de morir (Segunda chispa revive con
+  `HealthComponent.revive` y se saca con `RunState.remove_item`). El activo se usa con Q y se carga
+  una vez por sala limpia (`RunState._on_room_cleared`).
 - **Stats y armas:** `RunState.stats` (StatBlock) × `WeaponData` → `ShotSpec.build()` (incluye rebote,
   perforación, teledirigido y tamaño); cadencia con `ShotSpec.fire_interval()`. Las armas son
   `WeaponSlot` en `RunState.weapons` (munición, cargador, recarga). `WeaponComponent.trigger()` cada

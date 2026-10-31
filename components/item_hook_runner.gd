@@ -32,6 +32,15 @@ func use_active() -> bool:
 	return hook != null and hook.on_use(_context(_player.global_position))
 
 
+## Un golpe mortal: si algún item lo evita (y ya revivió al jugador), devuelve true.
+func try_cheat_death() -> bool:
+	var context: HookContext = _context(_player.global_position)
+	for hook: ItemHook in _hooks.values():
+		if hook.on_lethal(context):
+			return true
+	return false
+
+
 ## Crea los hooks de los items nuevos y suelta los de los que ya no están (un activo reemplazado).
 ## Los que siguen conservan su estado (por ejemplo, contadores).
 func _sync() -> void:

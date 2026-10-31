@@ -120,6 +120,15 @@ func add_item(item: ItemData) -> ItemData:
 	return null
 
 
+## Saca un pasivo (un item que se gasta, como Segunda chispa).
+func remove_item(item: ItemData) -> void:
+	if not items.has(item):
+		return
+	items.erase(item)
+	_recompute_stats()
+	items_changed.emit()
+
+
 ## Agrega un arma y la equipa. Si ya la tenía, le llena la munición.
 func add_weapon(data: WeaponData) -> void:
 	for i: int in weapons.size():

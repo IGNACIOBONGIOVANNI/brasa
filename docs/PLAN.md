@@ -203,6 +203,10 @@ ajustado, Mochila para ver armas y objetos, y un borrador de lore para revisar.
 **Hito 9 — Lore** (aprobado por el usuario): título "Brasa", intro de la primera partida, una línea de
 historia por piso, apodo de cada jefe, final al ganar y descripciones de personajes (docs/LORE.md).
 
+**Hito 10 — Calidades de objetos** (pedido del usuario): C (comunes), B (infrecuentes), A (raros),
+S (muy pocos) y S++ (rarísimos); sorteo por calidad, precio según calidad, la letra a la vista y dos
+objetos S++ nuevos.
+
 ## 6. Cosas a tener en cuenta desde ya
 
 - **Export templates.** Para el hito 7 hacen falta las plantillas de exportación de 4.7.2 instaladas

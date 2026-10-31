@@ -52,6 +52,7 @@ func test_shows_weapons_active_and_items() -> void:
 	assert_eq(_inventory.slot_count(), 5, "2 armas + 1 activo + 2 pasivos")
 	await wait_process_frames(2)
 	assert_eq(_inventory.detail_title(), "Haz", "arranca mostrando el arma en la mano")
+	assert_string_contains(_inventory.detail_kind(), "calidad S", "con su calidad")
 	_inventory.close()
 	await wait_physics_frames(1)
 

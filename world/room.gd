@@ -70,7 +70,7 @@ func _spawn_offers() -> void:
 	for i: int in mini(grid.item_spots.size(), slot.offers.size()):
 		var pedestal := PEDESTAL_SCENE.instantiate() as ItemPedestal
 		var item: ItemData = slot.offers[i]
-		pedestal.set_item(item, item.price if for_sale else 0)
+		pedestal.set_item(item, item.shop_price() if for_sale else 0)
 		pedestal.position = RoomGrid.cell_center(grid.item_spots[i])
 		($Pickups as Node2D).add_child(pedestal)
 

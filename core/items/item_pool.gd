@@ -1,16 +1,22 @@
 class_name ItemPool
 extends RefCounted
-## Sorteo de items de una run. Cada pool (tesoro, tienda, jefe, secreta) pesa las rarezas distinto y
-## un item nunca sale dos veces en la misma run. Si un pool se queda sin items devuelve el de relleno,
-## que sí puede repetirse. Usar el stream LOOT.
+## Sorteo de items de una run. Primero se tira la calidad con las chances del pool (tesoro, tienda,
+## jefe, secreta) y después sale un item al azar de esa calidad. Un item nunca sale dos veces en la
+## misma run: si la calidad que tocó ya no tiene items se baja a la de abajo y, si no queda nada
+## abajo, se sube hasta A como mucho (S y S++ solo salen si los pide la tirada: si no, al vaciarse los
+## comunes saldrían sí o sí). Si no queda nada devuelve el de relleno, que sí puede repetirse. Usar el
+## stream LOOT.
 
-## Peso de cada rareza (común, poco común, rara) según el pool.
-const RARITY_WEIGHTS: Dictionary[int, Vector3] = {
-	ItemData.POOL_TREASURE: Vector3(1.0, 0.6, 0.3),
-	ItemData.POOL_SHOP: Vector3(1.0, 0.5, 0.15),
-	ItemData.POOL_BOSS: Vector3(0.4, 1.0, 0.6),
-	ItemData.POOL_SECRET: Vector3(0.6, 1.0, 0.5),
+## Chance de cada calidad (C, B, A, S, S++) en cada pool, en %. La tienda nunca vende S++; la secreta
+## es la que más chances da de lo mejor.
+const QUALITY_WEIGHTS: Dictionary[int, Array] = {
+	ItemData.POOL_TREASURE: [50.0, 31.5, 15.0, 3.0, 0.5],
+	ItemData.POOL_SHOP: [55.0, 30.0, 13.0, 2.0, 0.0],
+	ItemData.POOL_BOSS: [20.0, 42.5, 29.0, 7.0, 1.5],
+	ItemData.POOL_SECRET: [15.0, 36.0, 35.0, 10.0, 4.0],
 }
+## La calidad más alta a la que se puede subir cuando la que tocó está vacía.
+const MAX_FALLBACK_QUALITY: int = ItemData.Quality.A
 
 var _items: Array[ItemData] = []
 var _filler: ItemData
@@ -23,26 +29,45 @@ func _init(items: Array[ItemData], filler: ItemData) -> void:
 
 
 func draw(pool: int, rng: RandomNumberGenerator) -> ItemData:
-	var candidates: Array[ItemData] = []
-	var weights: Array[float] = []
+	for quality: int in _fallback_order(roll_quality(pool, rng)):
+		var candidates: Array[ItemData] = _candidates(pool, quality)
+		if not candidates.is_empty():
+			var chosen: ItemData = candidates[rng.randi_range(0, candidates.size() - 1)]
+			_taken[chosen.id] = true
+			return chosen
+	return _filler
+
+
+## Tira la calidad según las chances del pool.
+static func roll_quality(pool: int, rng: RandomNumberGenerator) -> int:
+	var weights: Array = QUALITY_WEIGHTS[pool]
 	var total: float = 0.0
-	for item: ItemData in _items:
-		if item.is_in_pool(pool) and not _taken.has(item.id):
-			var weight: float = RARITY_WEIGHTS[pool][item.rarity]
-			candidates.append(item)
-			weights.append(weight)
-			total += weight
-	if candidates.is_empty() or total <= 0.0:
-		return _filler
+	for weight: float in weights:
+		total += weight
 	var pick: float = rng.randf() * total
-	var chosen: ItemData = candidates[candidates.size() - 1]
-	for i: int in candidates.size():
-		pick -= weights[i]
+	for quality: int in weights.size():
+		pick -= weights[quality]
 		if pick < 0.0:
-			chosen = candidates[i]
-			break
-	_taken[chosen.id] = true
-	return chosen
+			return quality
+	return ItemData.Quality.C
+
+
+## La calidad que tocó, después las de abajo y por último las de arriba hasta A.
+static func _fallback_order(quality: int) -> Array[int]:
+	var order: Array[int] = []
+	for lower: int in range(quality, -1, -1):
+		order.append(lower)
+	for higher: int in range(quality + 1, MAX_FALLBACK_QUALITY + 1):
+		order.append(higher)
+	return order
+
+
+func _candidates(pool: int, quality: int) -> Array[ItemData]:
+	var result: Array[ItemData] = []
+	for item: ItemData in _items:
+		if item.quality == quality and item.is_in_pool(pool) and not _taken.has(item.id):
+			result.append(item)
+	return result
 
 
 ## Lo saca del sorteo (por ejemplo, si se consiguió por debug).

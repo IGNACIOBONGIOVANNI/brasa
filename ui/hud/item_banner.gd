@@ -28,13 +28,17 @@ func _ready() -> void:
 	modulate.a = 0.0
 
 
+## El nombre lleva la calidad y sale de su color.
 func show_item(item: ItemData) -> void:
-	show_text(item.display_name, item.description)
+	show_text("%s · %s" % [item.display_name, item.quality_name()], item.description, SHOW_TIME,
+			item.quality_color())
 
 
 ## También sirve para el título de cada piso y el de los jefes.
-func show_text(title: String, subtitle: String, seconds: float = SHOW_TIME) -> void:
+func show_text(title: String, subtitle: String, seconds: float = SHOW_TIME,
+		title_color: Color = TITLE_COLOR) -> void:
 	_title.text = title
+	_title.add_theme_color_override(&"font_color", title_color)
 	_description.text = subtitle
 	_left = seconds + FADE_TIME
 	modulate.a = 1.0
