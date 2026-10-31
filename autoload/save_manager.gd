@@ -9,6 +9,10 @@ signal profile_changed
 
 const DEFAULT_PATH: String = "user://save.json"
 const MASTER_BUS: int = 0
+## Lo que ocupan la barra de título y los bordes de la ventana (no entra en el lugar libre del monitor).
+const WINDOW_DECORATION: Vector2i = Vector2i(16, 40)
+## Pantalla que se supone sin monitor (tests y corridas headless).
+const HEADLESS_SCREEN: Vector2i = Vector2i(1920, 1040)
 
 var profile: MetaProfile = MetaProfile.new()
 var config: MetaConfig
@@ -110,6 +114,25 @@ func set_fullscreen(fullscreen: bool) -> void:
 	_changed()
 
 
+func set_window_scale(scale: int) -> void:
+	profile.window_scale = scale
+	apply_options()
+	_changed()
+
+
+## Las escalas de ventana que entran en el monitor (sin pantalla, como en un monitor de 1080p).
+func available_window_scales() -> Array[int]:
+	if DisplayServer.get_name() == "headless":
+		return WindowScales.available(HEADLESS_SCREEN)
+	var usable: Rect2i = DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen())
+	return WindowScales.available(usable.size - WINDOW_DECORATION)
+
+
+## El tamaño de ventana que se usa de verdad: el elegido, o el más grande que entre si no entra.
+func window_size() -> Vector2i:
+	return WindowScales.size_of(WindowScales.fit(profile.window_scale, available_window_scales()))
+
+
 ## Lleva las opciones del perfil al audio y a la ventana.
 func apply_options() -> void:
 	AudioServer.set_bus_mute(MASTER_BUS, profile.volume <= 0.0)
@@ -121,6 +144,14 @@ func apply_options() -> void:
 			or current == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
 	if is_fullscreen != profile.fullscreen:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if profile.fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
+	if profile.fullscreen:
+		return
+	# En ventana: el tamaño elegido, centrada en el monitor.
+	var size: Vector2i = window_size()
+	if DisplayServer.window_get_size() != size:
+		DisplayServer.window_set_size(size)
+		var usable: Rect2i = DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen())
+		DisplayServer.window_set_position(usable.position + Vector2i(Vector2(usable.size - size) * 0.5))
 
 
 ## Menú de debug.
@@ -147,6 +178,7 @@ func reset_progress() -> void:
 	profile = MetaProfile.new()
 	profile.volume = previous.volume
 	profile.fullscreen = previous.fullscreen
+	profile.window_scale = previous.window_scale
 	_changed()
 
 

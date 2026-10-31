@@ -1,7 +1,9 @@
 class_name OptionsMenu
 extends Control
-## Opciones: volumen general (de a 10 %) y pantalla completa. Se guardan en el perfil y se aplican en
-## el acto (SaveManager.apply_options). También deja volver a ver la intro. Esc vuelve al menú.
+## Opciones: volumen general (de a 10 %), pantalla completa y resolución de la ventana (múltiplos de
+## 320x180 que entran en el monitor; cada toque pasa a la siguiente). Se guardan en el perfil y se
+## aplican en el acto (SaveManager.apply_options). También deja volver a ver la intro. Esc vuelve al
+## menú.
 
 signal back_requested
 signal story_requested
@@ -10,6 +12,7 @@ const VOLUME_STEP: float = 0.1
 
 var _volume: Label
 var _fullscreen: Button
+var _resolution: Button
 var _back: Button
 
 
@@ -29,6 +32,8 @@ func _ready() -> void:
 	box.add_child(volume_row)
 	_fullscreen = MenuBuilder.button("", toggle_fullscreen)
 	box.add_child(_fullscreen)
+	_resolution = MenuBuilder.button("", next_resolution)
+	box.add_child(_resolution)
 	box.add_child(MenuBuilder.button("Ver la historia", story_requested.emit))
 	_back = MenuBuilder.button("Volver", back_requested.emit)
 	box.add_child(_back)
@@ -52,6 +57,18 @@ func toggle_fullscreen() -> void:
 	SaveManager.set_fullscreen(not SaveManager.profile.fullscreen)
 
 
+## Pasa a la resolución siguiente (después de la más grande vuelve a la más chica).
+func next_resolution() -> void:
+	SaveManager.set_window_scale(WindowScales.next(SaveManager.profile.window_scale, SaveManager.available_window_scales()))
+
+
+func resolution_text() -> String:
+	return _resolution.text
+
+
 func _refresh() -> void:
 	_volume.text = "Volumen %d %%" % roundi(SaveManager.profile.volume * 100.0)
 	_fullscreen.text = "Pantalla completa: %s" % ("sí" if SaveManager.profile.fullscreen else "no")
+	var window: Vector2i = SaveManager.window_size()
+	# En pantalla completa se usa la del monitor: la elegida queda para cuando vuelva a ventana.
+	_resolution.text = "Resolución: %dx%d%s" % [window.x, window.y, " (en ventana)" if SaveManager.profile.fullscreen else ""]

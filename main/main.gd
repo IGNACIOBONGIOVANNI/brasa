@@ -36,8 +36,8 @@ var _quitting: bool = false
 func _ready() -> void:
 	get_tree().set_auto_accept_quit(false)
 	get_window().title = MenuBuilder.GAME_TITLE
-	# Las letras se rasterizan a 640x360 y se agrandan sin suavizar (filtro nearest, sin antialiasing).
-	get_window().oversampling_override = MenuBuilder.TEXT_OVERSAMPLING
+	get_window().size_changed.connect(_fit_text_to_window)
+	_fit_text_to_window()
 	EventBus.player_died.connect(_on_player_died)
 	EventBus.run_ended.connect(finish_run)
 	var args: PackedStringArray = OS.get_cmdline_user_args()
@@ -158,6 +158,13 @@ func _set_screen(next: Node) -> void:
 	game = next as Game
 	screen = next
 	add_child(next)
+
+
+## Las letras se rasterizan a una resolución que depende del tamaño de la ventana y se agrandan sin
+## suavizar (filtro nearest, sin antialiasing): pixeladas, más finas que el mundo y siempre parejas.
+func _fit_text_to_window() -> void:
+	var window: Window = get_window()
+	window.oversampling_override = WindowScales.text_oversampling(WindowScales.scale_for(window.size))
 
 
 func _on_play_requested() -> void:

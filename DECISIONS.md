@@ -450,3 +450,17 @@ partículas. Además va a crear objetos propios: la ficha para mandarlos está e
   en todas las balas (también las enemigas: ayuda a leer hacia dónde van) y polvo en las puertas cuando
   se cierran o se abren.
 - No se agregó viñeta: la penumbra con la luz del jugador ya oscurece los bordes.
+
+## Resolución en Opciones (2026-10-31)
+
+- Botón "Resolución" en Opciones: cada toque pasa a la siguiente y después de la más grande vuelve a
+  la más chica. Solo múltiplos enteros de 320x180 (640x360, 960x540, 1280x720, 1600x900...) para que
+  los píxeles queden todos iguales, y solo los que entran en el monitor (descontando barra de tareas
+  y bordes de la ventana): en un monitor de 1080p llega a 1600x900, porque una ventana de 1920x1080
+  no entra; para eso está la pantalla completa. Se guarda en el perfil (`options.window_scale`, sin
+  migración: si falta vale 1280x720) y al cambiarla la ventana se centra. En pantalla completa se usa
+  la del monitor y el botón dice "(en ventana)".
+- La nitidez del texto ya no es fija: con escalas impares (960x540, 1600x900) los píxeles de letra
+  quedaban de 1,5 o 2,5 píxeles de pantalla, desparejos. Ahora se calcula según el tamaño de la
+  ventana (`WindowScales.text_oversampling`) para que siempre ocupen píxeles enteros; en 1280x720
+  queda igual que antes (medio píxel del mundo).

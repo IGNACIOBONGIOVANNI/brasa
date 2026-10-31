@@ -1,7 +1,7 @@
 class_name MetaProfile
 extends RefCounted
 ## El progreso entre runs (lo que se guarda): chispas, items y personajes desbloqueados, logros, el
-## último personaje elegido, los totales de todas las runs y las opciones (volumen, pantalla completa). Pasa a y desde el diccionario del
+## último personaje elegido, los totales de todas las runs y las opciones (volumen, pantalla completa, resolución). Pasa a y desde el diccionario del
 ## guardado; al leer tolera claves que falten y tipos raros (quedan en su valor por defecto).
 
 
@@ -22,6 +22,8 @@ var total_kills: int = 0
 ## Volumen general, de 0 a 1.
 var volume: float = 1.0
 var fullscreen: bool = false
+## Tamaño de la ventana en múltiplos de 320x180 (ver WindowScales).
+var window_scale: int = WindowScales.DEFAULT_SCALE
 ## Ya vio la intro de la historia (se muestra la primera vez que se aprieta Jugar).
 var intro_seen: bool = false
 
@@ -92,7 +94,7 @@ func to_dict() -> Dictionary:
 		"achievements": _ids(achievements),
 		"last_character": String(last_character),
 		"totals": {"runs": runs, "wins": wins, "kills": total_kills},
-		"options": {"volume": volume, "fullscreen": fullscreen},
+		"options": {"volume": volume, "fullscreen": fullscreen, "window_scale": window_scale},
 		"intro_seen": intro_seen,
 	}
 
@@ -118,6 +120,9 @@ static func from_dict(data: Dictionary) -> MetaProfile:
 			profile.volume = clampf(float(volume_value), 0.0, 1.0)
 		var fullscreen_value: Variant = (options as Dictionary).get("fullscreen")
 		profile.fullscreen = typeof(fullscreen_value) == TYPE_BOOL and fullscreen_value
+		var scale_value: Variant = (options as Dictionary).get("window_scale")
+		if typeof(scale_value) == TYPE_FLOAT or typeof(scale_value) == TYPE_INT:
+			profile.window_scale = clampi(int(scale_value), WindowScales.MIN_SCALE, WindowScales.MAX_SCALE)
 	var intro_value: Variant = data.get("intro_seen")
 	profile.intro_seen = typeof(intro_value) == TYPE_BOOL and intro_value
 	return profile

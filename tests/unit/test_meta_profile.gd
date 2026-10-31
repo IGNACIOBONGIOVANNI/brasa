@@ -188,6 +188,15 @@ func test_intro_seen_round_trip() -> void:
 	assert_false(MetaProfile.from_dict({"intro_seen": "sí"}).intro_seen, "solo true cuenta")
 
 
+func test_window_scale_round_trip_and_clamp() -> void:
+	assert_eq(MetaProfile.from_dict({}).window_scale, WindowScales.DEFAULT_SCALE, "sin dato: 1280x720")
+	_profile.window_scale = 5
+	var copy: MetaProfile = MetaProfile.from_dict(JSON.parse_string(JSON.stringify(_profile.to_dict())))
+	assert_eq(copy.window_scale, 5)
+	assert_eq(MetaProfile.from_dict({"options": {"window_scale": 99}}).window_scale, WindowScales.MAX_SCALE, "recortada")
+	assert_eq(MetaProfile.from_dict({"options": {"window_scale": "grande"}}).window_scale, WindowScales.DEFAULT_SCALE)
+
+
 func test_options_round_trip_and_clamp() -> void:
 	_profile.volume = 0.4
 	_profile.fullscreen = true

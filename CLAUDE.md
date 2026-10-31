@@ -226,10 +226,14 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   RunState, SaveManager, Debug.
 - Viewport 320x180, ventana 1280x720, stretch `canvas_items` + aspect `keep` + escala **entera**. El
   mundo se dibuja aparte a 320x180 (SubViewport en `game.tscn`), así que sigue pixelado; la UI se
-  dibuja a la resolución de la ventana. Las letras se rasterizan al doble de la resolución del juego
-  (`MenuBuilder.TEXT_OVERSAMPLING` → `oversampling_override` de la ventana, en `Main._ready`) sin
-  antialiasing y con hinting normal (`gui/theme/default_font_*`): pixeladas, pero más finas que el
-  mundo. `Label` sin `line_spacing` extra.
+  dibuja a la resolución de la ventana. Las letras se rasterizan sin antialiasing y con hinting
+  normal (`gui/theme/default_font_*`) a una resolución que depende de la ventana
+  (`WindowScales.text_oversampling` → `oversampling_override`, en `Main._fit_text_to_window`, también
+  al cambiar el tamaño): en 1280x720 cada píxel de letra mide medio píxel del mundo y en las escalas
+  impares (960x540, 1600x900) igual quedan parejos. `Label` sin `line_spacing` extra.
+- Resolución elegible en Opciones: múltiplos de 320x180 que entran en el monitor (`WindowScales`),
+  guardada en el perfil (`options.window_scale`); `SaveManager.apply_options` cambia el tamaño de la
+  ventana y la centra (en pantalla completa se usa la del monitor).
 - Filtro de texturas nearest, snap de transforms y vértices a píxel. Renderer Compatibility.
 - Física 60 ticks, gravedad 2D en 0 (top-down).
 - Capas de colisión 2D: 1 wall, 2 player, 3 enemy, 4 player_bullet, 5 enemy_bullet, 6 pickup,
@@ -254,6 +258,7 @@ core/loot/                  RoomReward (premio por limpiar sala)
 core/stats/                 StatCalculator (base + ADD, × MULT, límites)
 core/items/                 ItemPool (sorteo por pool y rareza, sin repetir)
 core/save/                  SaveSchema (versión y migraciones), SaveStore (JSON con escritura atómica)
+core/display/               WindowScales (resoluciones de ventana y nitidez del texto)
 core/meta/                  MetaProfile (progreso entre runs), MetaRules (chispas y logros), RunRecord
 data/                       StatBlock, StatModifier, WeaponData, ItemData, ItemCatalog, EnemyData, BossPhase,
                             BulletPatternData, SfxData, SfxLibrary, RoomTemplate, FloorTheme, PickupData,
@@ -297,7 +302,7 @@ tests/fixtures/             arena.tscn (sala fija con jugador, para tests de com
 tests/unit/                 rng_streams, shot_spec, health_math, pattern_math, input_buffer, sfx_synth, content,
                             floor_generator (500 seeds), room_template_parser, template_picker, minimap_model,
                             room_reward, stat_calculator, item_pool, weapon_slot, phase_math,
-                            save_schema, save_store, meta_profile, inventory_text
+                            save_schema, save_store, meta_profile, inventory_text, window_scales
 tests/integration/          player_shooting, bullets, combat, main_flow, floor, rooms, items,
                             bullet_behaviors, weapons, boss, meta_flow, feedback, inventory
 tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria
@@ -415,7 +420,7 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
 - **Avisos:** `DangerOverlay` (en el HUD) pone bordes rojos al recibir daño y, con un corazón o menos,
   late con un sonido de corazón. Al aparecer un jefe: cartel con su nombre, sonido y sacudida. El
   resumen suena distinto al ganar o perder.
-- **Opciones:** volumen general y pantalla completa, en el perfil (clave `options` del guardado);
+- **Opciones:** volumen general, pantalla completa y resolución, en el perfil (clave `options` del guardado);
   `SaveManager.apply_options()` las aplica al abrir el guardado y al cambiarlas.
 - **HUD:** `ui/hud` (CanvasLayer), dibujado con `PixelBitmap` + `PixelIcons`. Arriba (sobre la pared):
   corazones, Pulsos, contadores y el activo con su carga; minimapa (`MinimapModel` → `Minimap`) arriba
