@@ -4,8 +4,10 @@ Roguelite de acción top-down 2D (Godot 4.7.2, GDScript tipado) para Windows. In
 estructura de los roguelites de salas + bullet hell, con contenido 100 % original.
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 7 (pulido y release) terminado: están los 7 hitos del plan. Cualquier trabajo nuevo,
-solo con OK del usuario. El `.exe` se exporta a `builds/mi-roguelite.exe` (ignorado por git).
+**Estado:** Hito 8 (ajustes del primer playtest) terminado: texto nítido, Haz y Órbita rehechos, Trabuco
+ajustado y Mochila (I). El lore está en borrador ([docs/LORE.md](docs/LORE.md)), sin integrar hasta que el
+usuario lo apruebe. Cualquier trabajo nuevo, solo con OK del usuario. El `.exe` se exporta a
+`builds/mi-roguelite.exe` (ignorado por git).
 
 ## Ejecutables (rutas exactas)
 
@@ -41,6 +43,7 @@ Todos los flags están confirmados con `--help` en 4.7.2. `sed 's/\x1b\[[0-9;]*m
 | Exportar build debug (con consola) | `"$G" --headless --path . --export-debug "Windows Desktop" builds/debug/mi-roguelite.exe` |
 | Probar la build debug exportada | `builds/debug/mi-roguelite.console.exe -- --demo-input --seed=1234 --quit-frames=900` |
 | Medir el balance (bot) | `"$G" --headless --fixed-fps 60 --path . res://debug/balance_probe.tscn -- --seed=1234` |
+| Comparar un arma (bot) | `... balance_probe.tscn -- --seed=1234 --floors=2 --weapon=haz` |
 
 Argumentos de usuario del juego (van después de `--`): `--seed=N` fija la seed de todas las runs,
 `--skip-menu` arranca directo en una run, `--demo-input` simula input (moverse en ocho, girar la mira,
@@ -55,11 +58,12 @@ disparar, rodar, Pulso, bomba y "aceptar" en los menús cada 3 s; también salta
 progreso queda solo en memoria, así las corridas automáticas no lo tocan. Los tests tampoco: el
 `pre_run_script` de `.gutconfig.json` (`tests/pre_run_hook.gd`) deja el `SaveManager` en memoria.
 
-**Movie Maker funciona** (abre una ventana unos segundos): graba PNG a 320x180 en `captures/`
-(`frame00000000.png`, ...) y además `frame.wav` (estéreo, 48 kHz, 32 bits) con el audio del juego.
-Para mirar los PNG, escalarlos con nearest-neighbor (System.Drawing desde PowerShell) y abrirlos con
-Read; para el audio, leer los picos del WAV (datos desde el byte 44). En Movie Maker el "FPS" del
-overlay no significa nada.
+**Movie Maker funciona** (abre una ventana unos segundos): graba PNG a 1280x720 (el tamaño de la
+ventana) en `captures/` (`frame00000000.png`, ...) y además `frame.wav` (estéreo, 48 kHz, 32 bits)
+con el audio del juego. Los PNG se abren directo con Read (para mosaicos, achicarlos con
+System.Drawing desde PowerShell); para el audio, leer los picos del WAV (datos desde el byte 44). En
+Movie Maker el "FPS" del overlay no significa nada. Sin `--demo-input` el juego abre el guardado
+real: para capturas de menús pasar `--save=` (vacío = solo en memoria).
 
 **Exportación:** las plantillas de 4.7.2 están instaladas en
 `%APPDATA%\Godot\export_templates\4.7.2.stable\` (solo las de Windows x86_64). El preset "Windows Desktop"
@@ -70,7 +74,9 @@ Sin rcedit, el `.exe` lleva el ícono de Godot.
 
 **Balance:** `debug/balance_probe.tscn` juega una run con un bot invulnerable (con items típicos) y
 estima cuánto dura para una persona (combate del bot × 2 + 8 s por sala). Con `--fixed-fps 60` corre
-sin esperar al reloj real (un par de minutos). El tiempo real de una run se ve en F1 ("tiempo").
+sin esperar al reloj real (un par de minutos). `--weapon=ID` le da esa arma con la munición siempre
+llena (para comparar armas) y `--floors=N` corta en el piso N. El tiempo real de una run se ve en F1
+("tiempo").
 
 Códigos de salida: `check_scripts.gd`, `--check-only` y GUT devuelven **1** si algo falla, 0 si todo OK.
 Para comandos que podrían colgarse, envolverlos en `timeout 120 ...`.
@@ -147,6 +153,15 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   tests no se nota: hay que probar el juego exportado.
 - Un enemigo que sale de la escena sin morir (cambio de piso por debug) no emite `boss_defeated`: la
   barra del jefe se apaga también con `tree_exiting`.
+- **El mundo vive en un SubViewport** (`Game.world`, con su propio World2D): todo lo que tenga física
+  (pickups, salas, enemigos, balas) tiene que ir adentro. Agregarlo a la raíz de `Game` lo deja en
+  otro mundo y no choca con nada (en los tests: `_game.world.add_child(...)`).
+- Un `Control` hijo de un `Node2D` no tiene rectángulo padre para las anclas (queda de tamaño 0): darle
+  offsets fijos (ver `WorldView` en `game.tscn`).
+- Un rayo (`intersect_ray`) que empieza adentro de una forma no la detecta: `hit_from_inside = true`
+  (ver `LaserBeam`, si no el láser no le pega a un enemigo pegado al jugador).
+- En el tool Bash, algunos heredocs largos con comillas fallan con "unexpected EOF": escribir el
+  archivo con Write (o un `.py` en el scratchpad) y correrlo.
 - Hay una clase global `State` (máquina de estados): ningún enum interno puede llamarse `State`
   (por eso `Door.Mode` y `Room.Phase`).
 - Desde un callback de física (`body_entered`, `area_entered`) no se pueden agregar ni sacar cuerpos o
@@ -174,7 +189,8 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   `EventBus.hitstop_requested`.
 - Tests en `tests/unit/` (lógica pura y contenido) y `tests/integration/` (escenas). Archivos
   `test_*.gd`, `extends GutTest`. Los tests de combate usan `tests/fixtures/arena.tscn` (sala fija,
-  sin enemigos, sin piso) y agregan los enemigos con `Game.spawn_enemy()`. Los del piso usan
+  sin enemigos, sin piso) y agregan los enemigos con `Game.spawn_enemy()`; lo que tenga física va en
+  `_game.world`. Los del piso usan
   `main/game.tscn` con `GameRNG.start_run(seed)` antes de instanciarla.
 - Plantillas de sala: texto de 9 x 15 con la leyenda de `RoomTemplateParser`; cada `.tres` nuevo va
   en `content/rooms/floor_N/` y en la lista `templates` del `FloorTheme` (lo exige un test).
@@ -190,7 +206,9 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
 
 - Escena principal `res://main/main.tscn`. Autoloads (en este orden): GameRNG, EventBus, AudioManager,
   RunState, SaveManager, Debug.
-- Viewport 320x180, ventana 1280x720, stretch `viewport` + aspect `keep` + escala **entera**.
+- Viewport 320x180, ventana 1280x720, stretch `canvas_items` + aspect `keep` + escala **entera**. El
+  mundo se dibuja aparte a 320x180 (SubViewport en `game.tscn`), así que sigue pixelado; la UI y el
+  texto se dibujan a la resolución de la ventana (con antialiasing). `Label` sin `line_spacing` extra.
 - Filtro de texturas nearest, snap de transforms y vértices a píxel. Renderer Compatibility.
 - Física 60 ticks, gravedad 2D en 0 (top-down).
 - Capas de colisión 2D: 1 wall, 2 player, 3 enemy, 4 player_bullet, 5 enemy_bullet, 6 pickup,
@@ -243,7 +261,8 @@ fx/                         game_camera, hit_stop, fx (spawner), flash.gdshader,
                             placeholder_shape, screen_fade
 ui/theme/                   ui_theme.tres (tema de todos los Control; gui/theme/custom en project.godot)
 ui/menus/                   main_menu, character_select, workshop_menu (Taller), achievements_menu,
-                            options_menu, pause_menu, run_summary, menu_builder (arman la UI por código)
+                            options_menu, pause_menu, inventory_menu (Mochila) + inventory_slot,
+                            run_summary, menu_builder (arman la UI por código)
 ui/hud/                     hud.tscn/.gd, hearts_display, pulse_display, counters_display, active_display,
                             items_display, weapon_display, item_banner, boss_bar, danger_overlay
 ui/minimap/                 minimap.gd
@@ -255,11 +274,12 @@ tests/fixtures/             arena.tscn (sala fija con jugador, para tests de com
 tests/unit/                 rng_streams, shot_spec, health_math, pattern_math, input_buffer, sfx_synth, content,
                             floor_generator (500 seeds), room_template_parser, template_picker, minimap_model,
                             room_reward, stat_calculator, item_pool, weapon_slot, phase_math,
-                            save_schema, save_store, meta_profile
+                            save_schema, save_store, meta_profile, inventory_text
 tests/integration/          player_shooting, bullets, combat, main_flow, floor, rooms, items,
-                            bullet_behaviors, weapons, boss, meta_flow, feedback
+                            bullet_behaviors, weapons, boss, meta_flow, feedback, inventory
 tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria
 docs/PLAN.md                plan, arquitectura e hitos
+docs/LORE.md                borrador de la historia (sin integrar al juego)
 ```
 
 ## Arquitectura
@@ -321,8 +341,10 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
 - **Stats y armas:** `RunState.stats` (StatBlock) × `WeaponData` → `ShotSpec.build()` (incluye rebote,
   perforación, teledirigido y tamaño); cadencia con `ShotSpec.fire_interval()`. Las armas son
   `WeaponSlot` en `RunState.weapons` (munición, cargador, recarga). `WeaponComponent.trigger()` cada
-  tick mientras se mantiene el gatillo: SINGLE/SPREAD/BURST disparan balas, LASER usa `LaserBeam` y
-  ORBITAL usa `OrbitRing`. Recarga sola al vaciar el cargador; limpiar una sala devuelve 25 % de
+  tick mientras se mantiene el gatillo e `idle()` si no: SINGLE/SPREAD/BURST disparan balas; LASER usa
+  `LaserBeam` (atraviesa a todos los enemigos, lo cortan paredes y rocas, gasta 1 de munición cada
+  0,25 s); en ORBITAL los orbes de `OrbitRing` giran solos mientras el arma está equipada (frenan
+  balas, el roce pega la mitad) y el gatillo lanza uno como bala, que vuelve a crecer en 1,5 s. Recarga sola al vaciar el cargador; limpiar una sala devuelve 25 % de
   munición. Balas enemigas: `ShotSpec.from_pattern(BulletPatternData)`.
 - **Balas:** `Bullet.spawn()` las pone en el nodo del grupo `projectiles`. Capa/máscara de quien
   dispara. Mueren por alcance, al chocar paredes/rocas (`body_entered`) o al golpear un
@@ -364,11 +386,17 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   corazones, Pulsos, contadores y el activo con su carga; minimapa (`MinimapModel` → `Minimap`) arriba
   a la derecha. Abajo: items pasivos a la izquierda, arma y munición a la derecha, y la barra del jefe
   (`BossBar`). `ItemBanner` muestra el item agarrado o el piso que empieza (texto con la fuente por
-  defecto, sin antialiasing: `gui/theme/default_font_antialiasing=0` en project.godot).
+  defecto, nítido porque el HUD está fuera del SubViewport del mundo).
+- **Render:** `Game` tiene `WorldView` (SubViewportContainer de 320x180) → `World` (SubViewport) con
+  salas, manchas, entidades, balas, efectos y la cámara. HUD, pausa, Mochila, fundido, menús y debug
+  quedan afuera, en la ventana: texto nítido y pixel art intacto.
 - **Capas de dibujo:** pisos, paredes y manchas (`Decals`) en z 0; pickups de las salas, entidades,
   balas y efectos en z 1, así las manchas nunca tapan un pedestal o la trampilla.
 - **Menús:** `MainMenu`, `PauseMenu` y `RunSummary` arman su UI por código con `MenuBuilder` y el
   tema `ui/theme/ui_theme.tres`. La pausa no se abre si el juego ya está pausado por otra cosa.
+- **Mochila:** `InventoryMenu` (nodo `Inventory` de `game.tscn`, acción `inventory`: I / Select; también
+  desde la pausa). Pausa y muestra stats, armas (con el daño según los stats actuales y la munición),
+  activo e items; el casillero enfocado (`InventorySlot`) muestra su detalle a la derecha.
 - **Arte placeholder:** cada entidad tiene un hijo `Visual` (script `@tool` que dibuja). Reemplazable
   por sprites manteniendo su interfaz (`set_aim`, `play_hit`, `set_alert`, etc.).
 - **Debug:** autoload `Debug` (solo builds debug): F1 overlay abajo a la derecha (FPS, seed, sala,

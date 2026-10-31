@@ -47,7 +47,7 @@ func _pickup(id: String, at: Vector2) -> Pickup:
 	var pickup := PICKUP_SCENE.instantiate() as Pickup
 	pickup.data = load("res://content/pickups/%s.tres" % id)
 	pickup.position = at
-	_game.add_child(pickup)
+	_game.world.add_child(pickup)
 	return pickup
 
 
@@ -61,8 +61,8 @@ func _build_room(text: String, at: Vector2) -> Room:
 	room.position = at
 	var no_neighbors: Dictionary[Vector2i, RoomSlot.Kind] = {}
 	var no_barriers: Dictionary[Vector2i, Door.Mode] = {}
-	room.setup(slot, FLOOR_1, no_neighbors, no_barriers, _game.get_node("Entities") as Node2D)
-	_game.add_child(room)
+	room.setup(slot, FLOOR_1, no_neighbors, no_barriers, _game.world.get_node("Entities") as Node2D)
+	_game.world.add_child(room)
 	return room
 
 
@@ -89,7 +89,7 @@ func test_bomb_breaks_rocks_and_hurts_everyone_near() -> void:
 	var still := VIGIA.duplicate() as EnemyData
 	still.spawn_delay = 10.0
 	var enemy: Enemy = _game.spawn_enemy(still, Vector2(-45, 12))
-	var rock: Node = _game.get_node("Room/Rocks/Rock3")
+	var rock: Node = _game.world.get_node("Room/Rocks/Rock3")
 	assert_eq(RunState.bombs, RunState.START_BOMBS)
 	await _tap(&"bomb")
 	await wait_physics_frames(2)

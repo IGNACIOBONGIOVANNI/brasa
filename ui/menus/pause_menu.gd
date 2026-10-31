@@ -1,8 +1,9 @@
 class_name PauseMenu
 extends CanvasLayer
-## Pausa (Esc / Start): congela el juego y ofrece seguir, volver al menú o salir. No se abre si el
-## juego ya está pausado por otra cosa (transición de sala, menú de debug).
+## Pausa (Esc / Start): congela el juego y ofrece seguir, ver la Mochila, volver al menú o salir.
+## No se abre si el juego ya está pausado por otra cosa (transición de sala, menú de debug).
 
+signal inventory_requested
 signal menu_requested
 signal quit_requested
 
@@ -25,6 +26,7 @@ func _ready() -> void:
 	box.add_child(MenuBuilder.label("Pausa", 16, MenuBuilder.TITLE_COLOR))
 	_continue = MenuBuilder.button("Continuar", close)
 	box.add_child(_continue)
+	box.add_child(MenuBuilder.button("Mochila", inventory_requested.emit))
 	box.add_child(MenuBuilder.button("Volver al menú", menu_requested.emit))
 	box.add_child(MenuBuilder.button("Salir del juego", quit_requested.emit))
 	visible = false

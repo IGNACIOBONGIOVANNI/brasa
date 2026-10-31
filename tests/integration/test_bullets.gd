@@ -69,7 +69,7 @@ func test_player_bullet_damages_enemy() -> void:
 	var enemy := ENEMY_SCENE.instantiate() as Enemy
 	enemy.data = load("res://content/enemies/farol.tres")
 	enemy.position = Vector2(-60, -56)
-	_game.get_node("Entities").add_child(enemy)
+	_game.world.get_node("Entities").add_child(enemy)
 	_player_bullet(Vector2(-100, -58), Vector2.RIGHT)
 	await wait_physics_frames(20)
 	assert_eq(enemy.health.current, enemy.data.max_health - RunState.stats.damage, "le sacó el daño del jugador")

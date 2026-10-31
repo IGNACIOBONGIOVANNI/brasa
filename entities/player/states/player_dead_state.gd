@@ -11,7 +11,7 @@ const BURST_SCENE: PackedScene = preload("res://fx/burst.tscn")
 
 func enter(_previous: StringName) -> void:
 	player.input_buffer.clear()
-	player.weapon.release()
+	player.weapon.holster()
 	player.flash.blink(0.0)
 	player.visual.set_dead(true)
 	EventBus.shake_requested.emit(DEATH_TRAUMA)

@@ -317,3 +317,40 @@ Formato: fecha, decisión, por qué. Lo marcado **(propuesta)** espera el OK del
   de versión. El título sigue siendo "mi-roguelite" (provisorio).
 - **Debug:** F1 muestra el tiempo de la run; la barra del jefe se apaga si el jefe sale de la escena
   sin morir (cambio de piso por debug).
+
+## Hito 8 — ajustes del primer playtest (2026-10-31)
+
+Pedido después de jugar dos runs: la Pistola se sentía mucho mejor que Órbita y Haz, faltaba un botón
+para ver armas y objetos, el texto se veía demasiado pixelado y había que pensar el lore.
+
+- **Texto nítido:** el stretch pasa de `viewport` a `canvas_items` y el mundo (salas, entidades, balas,
+  efectos y cámara) se dibuja en un SubViewport de 320x180 dentro de `game.tscn`, agrandado con
+  píxeles enteros: el pixel art queda igual. HUD, menús, pausa, Mochila y debug se dibujan a la
+  resolución de la ventana con la fuente de Godot con antialiasing. No se usó una fuente pixel propia
+  porque el pedido era menos pixelado; no se pasó todo a `canvas_items` sin SubViewport porque los
+  dibujos placeholder (círculos, rayos) se verían lisos en vez de pixelados. Los números del HUD y los
+  precios siguen siendo de píxeles (son dibujos, no texto). `Label` sin espacio extra entre líneas.
+- **Haz (láser):** atraviesa a todos los enemigos y lo cortan paredes y rocas; ahora también le pega a
+  un enemigo pegado al jugador (antes el rayo nacía adentro del enemigo y no lo detectaba: contra el
+  Rey Carnero no hacía nada). Daño ×1,6 (9,6 por segundo con stats base; la Pistola hace 6). Gasta 1
+  de munición cada 0,25 s (antes 1 cada 0,1 s: se vaciaba en 2 s): cargador 16 (4 s de rayo), reserva
+  160, recarga 1 s. Chispas donde pega y una sacudida chiquita.
+- **Órbita:** los 3 orbes giran solos mientras el arma está en la mano (antes había que mantener el
+  gatillo y solo pegaban cuerpo a cuerpo): frenan balas y el roce pega la mitad del daño, sin gastar
+  munición. El gatillo lanza el orbe que esté más del lado de la mira (sale de la boca del arma, daño
+  ×2, atraviesa un enemigo más) y ese orbe vuelve a crecer en 1,5 s. Munición: 80 lanzamientos.
+  Atacar deja sin escudo un rato: es el precio.
+- **Trabuco:** también quedaba muy por debajo (3,2 de daño por segundo a media distancia contra 6 de
+  la Pistola). Daño ×0,8 (antes 0,6), abanico de 30° (antes 40), alcance ×0,75 (antes 0,6), cargador 6
+  y reserva 42.
+- **Cómo se midió:** el bot de balance acepta `--weapon=ID` (con la munición siempre llena, para medir
+  cuánto pega y no cuánto dura) y `--floors=N`. Combate de los pisos 1 y 2, seed 1234 (antes → ahora):
+  Pistola 3:45; Haz 6:29 → 2:03; Órbita 19:30 sin terminar salas → 3:30; Trabuco 11:50 → 3:06;
+  Metralla 2:28 y Ballesta 2:41 (sin cambios). La Órbita queda cerca de la Pistola en daño pero además
+  frena balas, cosa que el bot (invulnerable) no mide.
+- **Mochila:** tecla I (Select en el mando) o el botón "Mochila" de la pausa. Pausa el juego y muestra
+  los stats, las armas (con el daño según los stats actuales y la munición), el activo y los pasivos;
+  el casillero elegido muestra a la derecha su nombre, tipo, rareza, descripción y lo que cambia. No
+  se abre encima de otra pausa. El texto chico va en tamaño 7: con el texto nítido se lee bien.
+- **Lore:** borrador en `docs/LORE.md` (historia, pisos, jefes, personajes y opciones de título). No
+  está en el juego: espera el OK del usuario.

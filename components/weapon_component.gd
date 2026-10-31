@@ -1,9 +1,10 @@
 class_name WeaponComponent
 extends Node2D
 ## Dispara el arma actual (un WeaponSlot, con su munición) con los stats que le pasa su dueño.
-## El dueño llama trigger() en cada tick mientras se mantiene el gatillo y release() al soltarlo.
-## SINGLE, SPREAD y BURST disparan balas respetando la cadencia; LASER y ORBITAL son continuos y los
-## manejan LaserBeam y OrbitRing.
+## El dueño llama trigger() en cada tick mientras se mantiene el gatillo e idle() en los demás;
+## release() corta el disparo (al rodar) y holster() además guarda los orbes (al morir).
+## SINGLE, SPREAD y BURST disparan balas respetando la cadencia; LASER es continuo (LaserBeam) y en
+## ORBITAL los orbes giran solos mientras el arma está equipada y el gatillo los lanza (OrbitRing).
 
 signal fired(direction: Vector2)
 
@@ -31,6 +32,9 @@ var _burst_left: int = 0
 var _burst_timer: float = 0.0
 var _burst_spec: ShotSpec
 var _aim: Vector2 = Vector2.RIGHT
+## Últimos stats que pasó el dueño (los orbes los usan aunque no se apriete el gatillo).
+var _stats: StatBlock
+var _holstered: bool = false
 
 @onready var _laser: LaserBeam = $LaserBeam
 @onready var _orbit: OrbitRing = $OrbitRing
@@ -45,6 +49,8 @@ func _physics_process(delta: float) -> void:
 	if slot != null and slot.update(delta):
 		AudioManager.play_sfx(&"reload", 0.1)
 	_update_burst(delta)
+	if not _holstered and _stats != null and _is_orbital():
+		_orbit.tick(ShotSpec.build(_stats, slot.weapon), delta)
 
 
 func weapon() -> WeaponData:
@@ -54,6 +60,7 @@ func weapon() -> WeaponData:
 ## Llamar en cada tick mientras se mantiene el gatillo. Devuelve true si el arma disparó (o, en
 ## los modos continuos, si está funcionando).
 func trigger(stats: StatBlock, direction: Vector2, delta: float) -> bool:
+	_stats = stats
 	if slot == null:
 		return false
 	_aim = direction
@@ -62,16 +69,28 @@ func trigger(stats: StatBlock, direction: Vector2, delta: float) -> bool:
 			_laser_tick(stats, direction, delta)
 			return _laser.is_active()
 		WeaponData.FireMode.ORBITAL:
-			_orbit_tick(stats, delta)
-			return _orbit.is_active()
+			return _launch_orb(stats, direction)
 	return try_fire(stats, direction)
 
 
-## Llamar cuando se suelta el gatillo (o al rodar o morir).
+## Llamar en cada tick en que no se aprieta el gatillo.
+func idle(stats: StatBlock) -> void:
+	_stats = stats
+	release()
+
+
+## Corta el disparo (al soltar el gatillo o al rodar). Los orbes siguen girando.
 func release() -> void:
 	if is_node_ready():
 		_laser.stop()
-		_orbit.stop()
+
+
+## Corta todo y guarda los orbes (al morir).
+func holster() -> void:
+	_holstered = true
+	release()
+	if is_node_ready():
+		_orbit.set_active(false)
 
 
 func reload() -> void:
@@ -134,17 +153,26 @@ func _laser_tick(stats: StatBlock, direction: Vector2, delta: float) -> void:
 	if _laser.update_beam(global_position + direction * muzzle_distance, direction, spec,
 			ShotSpec.fire_interval(stats, data), delta):
 		slot.consume()
-		AudioManager.play_sfx(data.sfx_id, 0.05)
-		fired.emit(direction)
+		_reload_if_empty()
+		_feedback(direction)
 
 
-func _orbit_tick(stats: StatBlock, delta: float) -> void:
+## Lanza un orbe hacia la mira si la cadencia, la munición y los orbes listos lo permiten. La bala
+## atraviesa un enemigo más.
+func _launch_orb(stats: StatBlock, direction: Vector2) -> bool:
+	if _cooldown > COOLDOWN_EPSILON or _orbit.ready_count() == 0:
+		return false
 	if not slot.can_fire():
-		_orbit.stop()
 		_on_empty()
-		return
-	if _orbit.tick(ShotSpec.build(stats, slot.weapon), delta):
-		slot.consume()
+		return false
+	_cooldown = ShotSpec.fire_interval(stats, slot.weapon)
+	var spec := ShotSpec.build(stats, slot.weapon)
+	spec.pierce += 1
+	_orbit.launch(direction)
+	_spawn_bullet(spec, direction)
+	slot.consume()
+	_feedback(direction)
+	return true
 
 
 ## Sin balas: si se puede, recarga; si no, "clic".
@@ -175,11 +203,16 @@ func _feedback(direction: Vector2) -> void:
 	fired.emit(direction)
 
 
+func _is_orbital() -> bool:
+	return slot != null and slot.weapon.fire_mode == WeaponData.FireMode.ORBITAL
+
+
 func _on_slot_changed() -> void:
 	_burst_left = 0
 	if not is_node_ready():
 		return
 	release()
+	_orbit.set_active(false)
 	var data: WeaponData = weapon()
 	if data != null and data.fire_mode == WeaponData.FireMode.ORBITAL:
 		_orbit.setup(data.projectiles, data.orbit_radius)

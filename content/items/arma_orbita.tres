@@ -7,7 +7,7 @@
 script = ExtResource("1_item")
 id = &"arma_orbita"
 display_name = "Órbita"
-description = "Orbes que giran alrededor y frenan balas"
+description = "Orbes que te rodean y frenan balas; disparalos"
 kind = 2
 rarity = 1
 pools = 11

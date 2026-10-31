@@ -123,7 +123,7 @@ func try_shoot(delta: float) -> void:
 		if weapon.trigger(RunState.stats, aim_direction, delta):
 			input_buffer.consume(&"shoot")
 	else:
-		weapon.release()
+		weapon.idle(RunState.stats)
 
 
 ## Recargar, cambiar de arma y usar el activo.

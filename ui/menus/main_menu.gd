@@ -9,7 +9,7 @@ signal achievements_requested
 signal options_requested
 signal quit_requested
 
-const CONTROLS: String = "WASD mover · mouse apuntar · click disparar · espacio rodar\nE bomba · F Pulso · Q activo · R recargar · Tab cambiar arma · Esc pausa"
+const CONTROLS: String = "WASD mover · mouse apuntar · click disparar · espacio rodar · E bomba\nF Pulso · Q activo · R recargar · Tab cambiar arma · I mochila · Esc pausa"
 ## Alto que ocupa la ayuda de controles abajo: los botones se centran en lo que queda arriba.
 const CONTROLS_HEIGHT: float = 28.0
 

@@ -3,6 +3,9 @@ extends Node2D
 ## Una run: conecta el HUD con el jugador (y con el piso, si hay FloorController), cuenta el tiempo
 ## jugado, maneja la pausa y registra los comandos generales del menú de debug (F3). La escena de
 ## tests `tests/fixtures/arena.tscn` usa este mismo script con una sala fija, sin piso ni pausa.
+## El mundo (salas, entidades, balas, efectos y cámara) vive en el SubViewport `world`, que se dibuja
+## a 320x180 y se agranda con píxeles enteros; el HUD y los menús van afuera, a la resolución de la
+## ventana, así el texto se ve nítido.
 
 ## Desde la pausa: volver al menú o salir del juego (los atiende Main).
 signal menu_requested
@@ -15,11 +18,13 @@ const DEV_RESOURCES: int = 5
 ## Dónde aparece el pedestal de debug respecto del jugador.
 const DEV_PEDESTAL_OFFSET: Vector2 = Vector2(0, -28)
 
-@onready var player: Player = $Entities/Player
+@onready var world: SubViewport = $WorldView/World
+@onready var player: Player = $WorldView/World/Entities/Player
 @onready var floor_controller: FloorController = get_node_or_null(^"FloorController") as FloorController
-@onready var _entities: Node2D = $Entities
+@onready var _entities: Node2D = $WorldView/World/Entities
 @onready var _hud: Hud = $Hud
 @onready var _pause: PauseMenu = get_node_or_null(^"PauseMenu") as PauseMenu
+@onready var _inventory: InventoryMenu = get_node_or_null(^"Inventory") as InventoryMenu
 
 
 func _ready() -> void:
@@ -29,6 +34,7 @@ func _ready() -> void:
 	if _pause != null:
 		_pause.menu_requested.connect(menu_requested.emit)
 		_pause.quit_requested.connect(quit_requested.emit)
+		_pause.inventory_requested.connect(_open_inventory_from_pause)
 	Debug.add_command(self, "Curar al jugador", _heal_player)
 	Debug.add_command(self, "Invulnerable si/no", _toggle_invulnerable)
 	Debug.add_command(self, "Recargar Pulsos", _refill_pulses)
@@ -55,6 +61,11 @@ func spawn_enemy(data: EnemyData, at: Vector2) -> Enemy:
 	enemy.position = at
 	_entities.add_child(enemy)
 	return enemy
+
+
+func _open_inventory_from_pause() -> void:
+	_pause.close()
+	_inventory.open()
 
 
 func _heal_player() -> void:

@@ -21,7 +21,7 @@ func _spawn_boss(health_multiplier: float = 1.0) -> Enemy:
 	boss.data = CAMPANARIO
 	boss.health_multiplier = health_multiplier
 	boss.position = Vector2(0, -40)
-	_game.get_node("Entities").add_child(boss)
+	_game.world.get_node("Entities").add_child(boss)
 	return boss
 
 

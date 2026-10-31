@@ -27,6 +27,7 @@ func _initialize() -> void:
 	_action(&"reload", [_key(KEY_R), _button(JOY_BUTTON_B)])
 	_action(&"swap_weapon", [_key(KEY_TAB), _mouse(MOUSE_BUTTON_WHEEL_UP), _mouse(MOUSE_BUTTON_WHEEL_DOWN), _button(JOY_BUTTON_LEFT_SHOULDER)])
 	_action(&"pause", [_key(KEY_ESCAPE), _button(JOY_BUTTON_START)])
+	_action(&"inventory", [_key(KEY_I), _button(JOY_BUTTON_BACK)])
 
 	_action(&"debug_overlay", [_key(KEY_F1)])
 	_action(&"debug_hitboxes", [_key(KEY_F2)])

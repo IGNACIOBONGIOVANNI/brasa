@@ -4,16 +4,16 @@ extends GutTest
 const GAME_SCENE: PackedScene = preload("res://tests/fixtures/arena.tscn")
 const USED_ACTIONS: Array[StringName] = [&"move_right", &"move_left", &"move_up", &"shoot", &"aim_right"]
 
-var _game: Node2D
+var _game: Game
 var _player: Player
 var _weapon: WeaponComponent
 
 
 func before_each() -> void:
 	RunState.start_run()
-	_game = GAME_SCENE.instantiate() as Node2D
+	_game = GAME_SCENE.instantiate() as Game
 	add_child_autofree(_game)
-	_player = _game.get_node("Entities/Player") as Player
+	_player = _game.world.get_node("Entities/Player") as Player
 	_weapon = _player.weapon
 
 

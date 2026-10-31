@@ -170,7 +170,7 @@ func test_enemy_dies_leaves_stain_and_is_announced() -> void:
 	await wait_physics_frames(2)
 	assert_false(is_instance_valid(enemy), "el enemigo desapareció")
 	assert_signal_emitted(EventBus, "enemy_killed")
-	var decals: Node = _game.get_node("Decals")
+	var decals: Node = _game.world.get_node("Decals")
 	assert_eq(decals.get_child_count(), 1, "dejó una mancha en el piso")
 
 

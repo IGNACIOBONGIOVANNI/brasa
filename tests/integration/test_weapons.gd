@@ -1,6 +1,8 @@
 extends GutTest
 ## Hito 4: armas data-driven en la arena de pruebas. Escopeta, ráfaga, recarga, cambio de arma,
 ## láser (corta en las paredes), orbital (lastima y borra balas) y munición al limpiar salas.
+## Hito 8: el láser atraviesa a todos y pega aunque el enemigo esté encima; los orbes giran sin
+## apretar el gatillo y el gatillo los lanza.
 
 const GAME_SCENE: PackedScene = preload("res://tests/fixtures/arena.tscn")
 const BULLET_SCENE: PackedScene = preload("res://entities/bullets/bullet.tscn")
@@ -57,7 +59,7 @@ func test_shotgun_fires_a_spread_and_uses_one_shell() -> void:
 	await _tap(&"shoot")
 	await wait_physics_frames(1)
 	assert_eq(_player_bullets(), 5, "5 perdigones")
-	assert_eq(RunState.current_weapon_slot().in_magazine, 3, "gastó un cartucho")
+	assert_eq(RunState.current_weapon_slot().in_magazine, _weapon("trabuco").magazine - 1, "gastó un cartucho")
 
 
 func test_burst_fires_three_bullets_over_time() -> void:
@@ -114,18 +116,58 @@ func test_laser_damages_in_line_and_stops_at_rocks() -> void:
 	assert_eq(behind_rock.health.current, 100.0, "la roca corta el rayo")
 
 
-func test_orbital_hurts_enemies_and_clears_bullets() -> void:
+func test_laser_goes_through_every_enemy_in_line() -> void:
+	RunState.add_weapon(_weapon("haz"))
+	_player.global_position = Vector2(0, 32)
+	var first: Enemy = _dummy(Vector2(30, 32))
+	var second: Enemy = _dummy(Vector2(56, 32))
+	await wait_physics_frames(1)
+	Input.action_press(&"aim_right")
+	Input.action_press(&"shoot")
+	await wait_physics_frames(20)
+	assert_lt(first.health.current, 100.0, "pega al primero")
+	assert_lt(second.health.current, 100.0, "y atraviesa al segundo")
+
+
+func test_laser_hits_an_enemy_glued_to_the_player() -> void:
+	RunState.add_weapon(_weapon("haz"))
+	_player.global_position = Vector2(0, 32)
+	# La boca del arma queda adentro del enemigo.
+	var glued: Enemy = _dummy(Vector2(9, 32))
+	await wait_physics_frames(1)
+	Input.action_press(&"aim_right")
+	Input.action_press(&"shoot")
+	await wait_physics_frames(20)
+	assert_lt(glued.health.current, 100.0)
+
+
+func test_orbs_spin_and_protect_without_the_trigger() -> void:
 	RunState.add_weapon(_weapon("orbita"))
 	_player.global_position = Vector2(0, 20)
-	var close: Enemy = _dummy(_player.global_position + Vector2(24, -1))
+	var close: Enemy = _dummy(_player.global_position + Vector2(22, -1))
 	await wait_physics_frames(1)
 	var hostile := Bullet.spawn(get_tree(), BULLET_SCENE, ShotSpec.from_pattern(BulletPatternData.new()),
-			_player.global_position + Vector2(0, -23), Vector2.UP, PhysicsLayers.ENEMY_BULLET, PhysicsLayers.WALL)
+			_player.global_position + Vector2(0, -21), Vector2.UP, PhysicsLayers.ENEMY_BULLET, PhysicsLayers.WALL)
 	hostile.spec.speed = 0.0
-	Input.action_press(&"shoot")
 	await wait_physics_frames(60)
-	assert_lt(close.health.current, 100.0, "los orbes lastiman")
+	assert_lt(close.health.current, 100.0, "los orbes lastiman al tocar")
 	assert_false(is_instance_valid(hostile), "y borran balas enemigas")
+
+
+func test_trigger_launches_orbs_that_grow_back() -> void:
+	RunState.add_weapon(_weapon("orbita"))
+	var orbit := _player.weapon.get_node("OrbitRing") as OrbitRing
+	var slot: WeaponSlot = RunState.current_weapon_slot()
+	var ammo: int = slot.reserve
+	await wait_physics_frames(2)
+	assert_eq(orbit.ready_count(), 3, "arranca con los tres orbes")
+	await _tap(&"shoot")
+	await wait_physics_frames(1)
+	assert_eq(_player_bullets(), 1, "sale un orbe")
+	assert_eq(orbit.ready_count(), 2, "falta uno en la ronda")
+	assert_eq(slot.reserve, ammo - 1, "gasta una de munición")
+	await wait_seconds(OrbitRing.REGEN_TIME + 0.1)
+	assert_eq(orbit.ready_count(), 3, "vuelve a crecer")
 
 
 func test_clearing_a_room_gives_back_ammo() -> void:

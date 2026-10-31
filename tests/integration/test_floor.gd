@@ -63,7 +63,7 @@ func test_start_room_has_a_door_per_neighbor() -> void:
 		var expected: Door.Mode = Door.Mode.HIDDEN if is_secret else Door.Mode.OPEN
 		assert_eq(room.doors[side].mode, expected, "puerta %s" % side)
 	assert_true(_is_inside_room(room, _game.player.global_position), "el jugador arranca adentro")
-	assert_eq(_game.get_node("GameCamera").global_position, room.global_position, "cámara en la sala")
+	assert_eq(_game.world.get_node("GameCamera").global_position, room.global_position, "cámara en la sala")
 	assert_eq(room.phase, Room.Phase.CLEARED, "la sala inicial no tiene combate")
 
 
@@ -81,7 +81,7 @@ func test_walking_through_a_door_moves_to_the_next_room() -> void:
 	assert_eq(_floor.current_cell, _layout.start + side, "pasó a la sala de al lado")
 	assert_false(_floor.is_transitioning(), "terminó la transición")
 	var room: Room = _floor.current_room()
-	assert_eq(_game.get_node("GameCamera").global_position, room.global_position, "la cámara llegó")
+	assert_eq(_game.world.get_node("GameCamera").global_position, room.global_position, "la cámara llegó")
 	assert_true(_is_inside_room(room, _game.player.global_position), "el jugador está adentro de la nueva sala")
 	assert_true(_floor.visited.has(_layout.start + side))
 
@@ -124,7 +124,7 @@ func test_bomb_reveals_the_secret_door() -> void:
 	assert_eq(room.doors[side].mode, Door.Mode.HIDDEN, "antes de la bomba no se ve")
 	var bomb := BOMB_SCENE.instantiate() as Bomb
 	bomb.position = room.entry_point(side)
-	_game.get_node("Entities").add_child(bomb)
+	_game.world.get_node("Entities").add_child(bomb)
 	await wait_physics_frames(roundi(Bomb.FUSE_TIME * 60.0) + 10)
 	assert_eq(room.doors[side].mode, Door.Mode.OPEN, "la explosión destapó la puerta")
 	assert_true(_floor.discovered_secrets.has(secret), "la secreta aparece en el minimapa")
@@ -232,7 +232,7 @@ func test_trapdoor_takes_the_player_to_floor_two() -> void:
 	assert_eq(RunState.floor_index, 1)
 	assert_eq(RunState.floor_name, "Cloacas")
 	assert_eq(_floor.current_cell, _floor.layout.start, "arranca en la sala inicial")
-	assert_eq(_game.get_node("Rooms").get_child_count(), 1, "las salas del piso 1 se borraron")
+	assert_eq(_game.world.get_node("Rooms").get_child_count(), 1, "las salas del piso 1 se borraron")
 	assert_eq(RunState.blanks, RunState.START_BLANKS, "Pulsos recargados")
 	assert_false(get_tree().paused)
 

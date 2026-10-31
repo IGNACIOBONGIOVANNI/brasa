@@ -6,6 +6,7 @@
 [ext_resource type="Resource" path="res://content/run/run_config.tres" id="4_run"]
 [ext_resource type="PackedScene" path="res://fx/screen_fade.tscn" id="8_fade"]
 [ext_resource type="PackedScene" path="res://ui/menus/pause_menu.tscn" id="9_pause"]
+[ext_resource type="Script" path="res://ui/menus/inventory_menu.gd" id="10_inventory"]
 [ext_resource type="Script" path="res://fx/hit_stop.gd" id="5_hit_stop"]
 [ext_resource type="Script" path="res://fx/game_camera.gd" id="6_camera"]
 [ext_resource type="PackedScene" path="res://ui/hud/hud.tscn" id="7_hud"]
@@ -13,39 +14,52 @@
 [node name="Game" type="Node2D"]
 script = ExtResource("1_game")
 
-[node name="Rooms" type="Node2D" parent="."]
+[node name="WorldView" type="SubViewportContainer" parent="."]
+offset_right = 320.0
+offset_bottom = 180.0
+stretch = true
 
-[node name="Decals" type="Node2D" parent="." groups=["decals"]]
+[node name="World" type="SubViewport" parent="WorldView"]
+handle_input_locally = false
+size = Vector2i(320, 180)
+render_target_update_mode = 4
 
-[node name="Entities" type="Node2D" parent="." groups=["entities"]]
+[node name="Rooms" type="Node2D" parent="WorldView/World"]
+
+[node name="Decals" type="Node2D" parent="WorldView/World" groups=["decals"]]
+
+[node name="Entities" type="Node2D" parent="WorldView/World" groups=["entities"]]
 z_index = 1
 y_sort_enabled = true
 
-[node name="Player" parent="Entities" instance=ExtResource("2_player")]
+[node name="Player" parent="WorldView/World/Entities" instance=ExtResource("2_player")]
 
-[node name="Projectiles" type="Node2D" parent="." groups=["projectiles"]]
+[node name="Projectiles" type="Node2D" parent="WorldView/World" groups=["projectiles"]]
 z_index = 1
 
-[node name="Effects" type="Node2D" parent="." groups=["effects"]]
+[node name="Effects" type="Node2D" parent="WorldView/World" groups=["effects"]]
 z_index = 1
+
+[node name="GameCamera" type="Camera2D" parent="WorldView/World"]
+script = ExtResource("6_camera")
 
 [node name="FloorController" type="Node" parent="." node_paths=PackedStringArray("rooms_root", "entities", "player", "camera", "fade")]
 script = ExtResource("3_floor")
 run = ExtResource("4_run")
-rooms_root = NodePath("../Rooms")
-entities = NodePath("../Entities")
-player = NodePath("../Entities/Player")
-camera = NodePath("../GameCamera")
+rooms_root = NodePath("../WorldView/World/Rooms")
+entities = NodePath("../WorldView/World/Entities")
+player = NodePath("../WorldView/World/Entities/Player")
+camera = NodePath("../WorldView/World/GameCamera")
 fade = NodePath("../ScreenFade")
 
 [node name="HitStop" type="Node" parent="."]
 script = ExtResource("5_hit_stop")
-
-[node name="GameCamera" type="Camera2D" parent="."]
-script = ExtResource("6_camera")
 
 [node name="Hud" parent="." instance=ExtResource("7_hud")]
 
 [node name="ScreenFade" parent="." instance=ExtResource("8_fade")]
 
 [node name="PauseMenu" parent="." instance=ExtResource("9_pause")]
+
+[node name="Inventory" type="CanvasLayer" parent="."]
+script = ExtResource("10_inventory")

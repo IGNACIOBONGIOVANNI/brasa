@@ -196,6 +196,10 @@ logros que desbloquean items y personajes; selección de personaje; resumen de r
 timer de debug); pisos 3 y 4 con sus enemigos y jefes; más items; preset de exportación Windows y un
 `.exe` probado fuera del editor.
 
+**Hito 8 — Ajustes del primer playtest** (fuera del plan original, pedido después de jugar): texto
+nítido sin perder el pixel art, Haz y Órbita rehechos para que valgan más que la Pistola, Trabuco
+ajustado, Mochila para ver armas y objetos, y un borrador de lore para revisar.
+
 ## 6. Cosas a tener en cuenta desde ya
 
 - **Export templates.** Para el hito 7 hacen falta las plantillas de exportación de 4.7.2 instaladas
