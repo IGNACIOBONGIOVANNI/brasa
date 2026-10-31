@@ -508,3 +508,36 @@ Pedido del usuario: que manteniendo el botón de bomba se tire en vez de quedar 
   cae 6 px antes.
 - Rodar o morir mientras se apunta cancela sin gastar la bomba. La ayuda de controles del menú
   principal ahora tiene tres líneas (más chicas) para explicarlo.
+
+## Hito 13 — armas y estados (2026-10-31)
+
+Pedido del usuario: lanzagranadas, bazuca, franco tirador, caño de riel y estados fuego, veneno,
+corrupción y "apagado" (ya que el juego trata de brasas).
+
+- **Lanzagranadas (B):** granadas que vuelan por arriba (enemigos, fosos) hasta donde se apunta (con
+  el mouse, el cursor; con el stick, su alcance) y explotan en un radio de 24 al caer, con 50 % de
+  fuego. Cargador de 4. **Bazuca (A):** cohetes que explotan al chocar o al llegar a su alcance (radio
+  30, daño ×4), un tiro por cargador. **Franco tirador (A):** daño ×4,5, bala muy rápida y de
+  largo alcance que atraviesa 2 enemigos, con mira láser. **Caño de riel (S):** se carga manteniendo
+  el gatillo 0,9 s y dispara al soltarlo (soltarlo antes no gasta nada; rodar lo descarga): un rayo
+  que atraviesa a todos los enemigos en línea (daño ×5); los escudos lo frenan.
+- **Las explosiones de armas no lastiman al jugador ni rompen rocas:** las bombas siguen siendo las que
+  abren la sala secreta y castigan quedarse cerca. Los escudos no frenan explosiones; a los enemigos
+  bajo tierra o fantasma no les llegan.
+- **Estados** (`StatusComponent`; el daño sale del golpe que lo aplicó): fuego quema 6 veces en 3 s
+  (25 % del golpe cada vez); veneno se acumula hasta 4 capas por 5 s (15 % del golpe por segundo cada
+  capa); corrupción 4 s con 35 % más de daño recibido y, si muere así, revienta en 6 balas del
+  jugador; apagado 2,5 s a mitad de velocidad (moverse, avisar, atacar). Tiñen al enemigo y le dibujan
+  marcas (llamitas, burbujas, chispas violetas, humo).
+- **Las chances son stats** (`burn_chance`, `poison_chance`, `corrupt_chance`, `douse_chance`), así se
+  combinan solas con cualquier arma, como el rebote o la perforación. Cuatro items nuevos: Brasa viva
+  (B, 25 % fuego), Hiel (B, 25 % veneno), Grieta (A, 20 % corrupción) y Agua de pozo (B, 25 % apagado).
+  Las armas también pueden traer chances propias (el lanzagranadas, fuego).
+- La Mochila muestra cómo funciona cada arma nueva y sus estados, y las chances en %.
+- **Granadas con el stick:** sin un punto al que apuntar, iban siempre a su alcance y caían detrás de
+  los enemigos (con el bot, 13:20 de combate en los pisos 1 y 2 contra 3:45 de la Pistola). Ahora con
+  el stick caen en el enemigo más cercano dentro de 25° de la mira; con el mouse, donde está el cursor.
+- **Balance (bot, seed 1234, pisos 1 y 2, munición siempre llena):** Pistola 3:45, Bazuca 2:55,
+  Ballesta 2:41, Franco tirador 2:29 (estaba en 1:39: bajó de daño ×4,5 a ×3,8 y de cadencia ×0,4 a
+  ×0,38), Metralla 2:28, Lanzagranadas 2:18, Haz 2:03. El riel no se puede medir con el bot (nunca
+  suelta el gatillo).

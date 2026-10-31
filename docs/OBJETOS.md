@@ -18,7 +18,9 @@ Se desbloquea: no / Taller (cuántas chispas) / logro (cuál)
 ## Qué se puede hacer fácil (sin código nuevo)
 
 Cambiar stats, sumando o multiplicando: daño, cadencia, alcance, velocidad de bala, velocidad,
-suerte, vida (en medios corazones), rebotes, perforación, teledirigido y tamaño de bala.
+suerte, vida (en medios corazones), rebotes, perforación, teledirigido y tamaño de bala. También la
+chance de cada estado al pegar: fuego (quema), veneno (se acumula), corrupción (más daño y revientan
+al morir) y apagado (los frena).
 
 ## Qué necesita un poco de código (también se puede)
 
@@ -33,7 +35,8 @@ Efectos especiales cuando:
 
 También:
 - **Activos:** se usan con Q y se recargan limpiando salas.
-- **Armas nuevas:** un tiro, abanico, ráfaga, láser u orbes, cada una con su munición.
+- **Armas nuevas:** un tiro, abanico, ráfaga, láser, orbes, granadas, cohetes que explotan o riel que
+  se carga, cada una con su munición; pueden traer estados y mira láser.
 
 Ejemplos que ya existen:
 - *Rencor:* al recibir daño soltás un anillo de balas.

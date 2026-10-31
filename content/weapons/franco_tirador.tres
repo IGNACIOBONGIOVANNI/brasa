@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://data/weapon_data.gd" id="1_weapon"]
+
+[resource]
+script = ExtResource("1_weapon")
+id = &"franco_tirador"
+display_name = "Franco tirador"
+damage_mult = 3.8
+fire_rate_mult = 0.38
+range_mult = 2.2
+shot_speed_mult = 3.0
+pierce_bonus = 2
+sight = true
+ammo = 30
+magazine = 5
+reload_time = 1.5
+knockback = 160.0
+shake_trauma = 0.3
+sfx_id = &"sniper"
+bullet_radius = 2.0
+bullet_color = Color(0.91, 0.941, 1, 1)
+gun_color = Color(0.227, 0.227, 0.29, 1)
+gun_length = 11.0
+icon = PackedStringArray("......##.", "#########", "####.....", "##.......", "#........")
+icon_color = Color(0.722, 0.753, 0.839, 1)

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://data/item_data.gd" id="1_item"]
+[ext_resource type="Script" path="res://data/stat_modifier.gd" id="2_modifier"]
+
+[sub_resource type="Resource" id="Modifier_0"]
+script = ExtResource("2_modifier")
+stat = &"corrupt_chance"
+op = 0
+value = 0.2
+
+[resource]
+script = ExtResource("1_item")
+id = &"grieta"
+display_name = "Grieta"
+description = "Tus balas a veces corrompen: más daño y revientan al morir"
+kind = 0
+quality = 2
+pools = 13
+price = 12
+modifiers = Array[ExtResource("2_modifier")]([SubResource("Modifier_0")])
+icon = PackedStringArray("#.....#", ".#...#.", "..#.#..", "...#...", "..#.#..", ".#...#.", "#.....#")
+icon_color = Color(0.69, 0.361, 0.91, 1)

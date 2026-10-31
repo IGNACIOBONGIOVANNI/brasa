@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://data/item_data.gd" id="1_item"]
+[ext_resource type="Resource" path="res://content/weapons/franco_tirador.tres" id="4_weapon"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"arma_franco_tirador"
+display_name = "Franco tirador"
+description = "Tiros fortísimos que atraviesan, con mira láser"
+kind = 2
+quality = 2
+pools = 3
+price = 13
+weapon = ExtResource("4_weapon")

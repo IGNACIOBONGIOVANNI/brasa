@@ -19,7 +19,11 @@ const STAT_LABELS: Dictionary[StringName, String] = {
 	&"shot_speed": "Velocidad de bala", &"move_speed": "Velocidad", &"luck": "Suerte",
 	&"max_health": "Vida", &"bounces": "Rebotes", &"pierce": "Perforación",
 	&"homing": "Teledirigido", &"shot_size": "Tamaño de bala",
+	&"burn_chance": "Fuego", &"poison_chance": "Veneno", &"corrupt_chance": "Corrupción",
+	&"douse_chance": "Apagado",
 }
+## Stats que son una chance (se muestran en %).
+const CHANCE_STATS: Array[StringName] = [&"burn_chance", &"poison_chance", &"corrupt_chance", &"douse_chance"]
 
 var _stats_label: Label
 var _weapons_row: HBoxContainer
@@ -193,12 +197,32 @@ static func stats_text(stats: StatBlock) -> String:
 		var value: float = stats.get(stat)
 		if value > 0.0:
 			parts.append("%s %s" % [STAT_LABELS[stat], _num(value)])
+	for stat: StringName in CHANCE_STATS:
+		var chance: float = stats.get(stat)
+		if chance > 0.0:
+			parts.append("%s %d %%" % [STAT_LABELS[stat], roundi(chance * 100.0)])
 	return " · ".join(parts)
 
 
-## Cómo funciona un arma, en una línea.
+## Cómo funciona un arma, en una línea (más sus estados, si tiene).
 static func weapon_mode_text(data: WeaponData) -> String:
+	var text: String = _mode_text(data)
+	var statuses: PackedStringArray = []
+	for stat: StringName in CHANCE_STATS:
+		var chance: float = data.get(stat)
+		if chance > 0.0:
+			statuses.append("%s %d %%" % [STAT_LABELS[stat].to_lower(), roundi(chance * 100.0)])
+	if not statuses.is_empty():
+		text += " Chance de " + ", ".join(statuses) + "."
+	return text
+
+
+static func _mode_text(data: WeaponData) -> String:
 	match data.fire_mode:
+		WeaponData.FireMode.GRENADE:
+			return "Granadas que vuelan por arriba y explotan donde caen (con el mouse, donde apuntás)."
+		WeaponData.FireMode.RAIL:
+			return "Mantené el gatillo para cargarlo y soltalo: el rayo atraviesa a todos. Rodar lo descarga."
 		WeaponData.FireMode.SPREAD:
 			return "Abanico de %d perdigones: pega más de cerca." % data.projectiles
 		WeaponData.FireMode.BURST:
@@ -207,6 +231,10 @@ static func weapon_mode_text(data: WeaponData) -> String:
 			return "Rayo continuo que atraviesa a todos los enemigos. Lo cortan paredes y rocas."
 		WeaponData.FireMode.ORBITAL:
 			return "%d orbes te rodean: frenan balas y lastiman al tocar. El gatillo los lanza y después vuelven." % data.projectiles
+	if data.blast_radius > 0.0:
+		return "Cohetes que explotan al chocar y lastiman todo alrededor."
+	if data.sight:
+		return "Con mira láser; cada tiro atraviesa %d enemigos." % data.pierce_bonus
 	return "Un tiro por vez."
 
 
@@ -223,6 +251,12 @@ static func weapon_stats_text(data: WeaponData, stats: StatBlock) -> String:
 			return "Daño %s x%d · %s ráfagas/s · Alcance %s" % [_num(spec.damage), data.burst_count, _num(rate), _num(spec.max_range)]
 		WeaponData.FireMode.ORBITAL:
 			return "Daño %s (al tocar %s) · %s tiros/s" % [_num(spec.damage), _num(spec.damage * OrbitRing.CONTACT_DAMAGE), _num(rate)]
+		WeaponData.FireMode.GRENADE:
+			return "Daño %s en un radio de %s · Alcance %s" % [_num(spec.damage), _num(spec.blast_radius), _num(spec.max_range)]
+		WeaponData.FireMode.RAIL:
+			return "Daño %s · carga %s s" % [_num(spec.damage), _num(data.charge_time)]
+	if spec.blast_radius > 0.0:
+		return "Daño %s en un radio de %s · %s tiros/s" % [_num(spec.damage), _num(spec.blast_radius), _num(rate)]
 	return "Daño %s · %s tiros/s · Alcance %s" % [_num(spec.damage), _num(rate), _num(spec.max_range)]
 
 
@@ -239,7 +273,9 @@ static func modifiers_text(item: ItemData) -> String:
 	var parts: PackedStringArray = []
 	for modifier: StatModifier in item.modifiers:
 		var label: String = STAT_LABELS.get(modifier.stat, String(modifier.stat))
-		if modifier.op == StatModifier.Op.MULT:
+		if modifier.stat in CHANCE_STATS and modifier.op == StatModifier.Op.ADD:
+			parts.append("%s +%d %%" % [label, roundi(modifier.value * 100.0)])
+		elif modifier.op == StatModifier.Op.MULT:
 			parts.append("%s x%s" % [label, _num(modifier.value)])
 		elif modifier.stat == &"max_health":
 			# La vida va en medios corazones.

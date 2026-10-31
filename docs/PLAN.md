@@ -215,6 +215,10 @@ destellos.
 8 enemigos con mecánicas nuevas (dividirse, explotar, rayo, invocar, bajo tierra, fantasma, escudo y
 bolas en arco) y dos salas nuevas por piso.
 
+**Hito 13 — Armas y estados** (pedido del usuario): lanzagranadas, bazuca, franco tirador y caño de
+riel; estados fuego, veneno, corrupción y apagado, que dan cuatro items nuevos (y el lanzagranadas
+trae fuego).
+
 ## 6. Cosas a tener en cuenta desde ya
 
 - **Export templates.** Para el hito 7 hacen falta las plantillas de exportación de 4.7.2 instaladas

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://data/weapon_data.gd" id="1_weapon"]
+
+[resource]
+script = ExtResource("1_weapon")
+id = &"cano_de_riel"
+display_name = "Caño de riel"
+fire_mode = 6
+damage_mult = 5.0
+fire_rate_mult = 0.8
+charge_time = 0.9
+ammo = 20
+magazine = -1
+knockback = 220.0
+shake_trauma = 0.5
+sfx_id = &"rail"
+bullet_color = Color(0.478, 0.82, 1, 1)
+gun_color = Color(0.227, 0.353, 0.478, 1)
+gun_length = 10.0
+icon = PackedStringArray("#.#.#.#.#", "#########", "#########", "##.......", "##.......")
+icon_color = Color(0.478, 0.82, 1, 1)

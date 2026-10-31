@@ -143,6 +143,9 @@ func update_aim() -> void:
 		if to_mouse.length() > 1.0:
 			aim_direction = to_mouse.normalized()
 	visual.set_aim(aim_direction)
+	# Con el mouse se apunta a un punto (las granadas caen ahí); con el stick, solo a una dirección.
+	var distance: float = (get_global_mouse_position() - weapon.global_position).length() if _aim_with_mouse else INF
+	weapon.set_aim(aim_direction, distance)
 
 
 ## Dispara mientras se mantiene el botón, o si se apretó hace muy poco y el arma recién está lista.

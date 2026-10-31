@@ -68,6 +68,7 @@ var beam_direction: Vector2 = Vector2.DOWN
 @onready var flash: FlashComponent = $FlashComponent
 @onready var emitter: BulletEmitter = $BulletEmitter
 @onready var beam: EnemyBeam = $Beam
+@onready var status: StatusComponent = $Status
 @onready var machine: StateMachine = $StateMachine
 @onready var _body_shape: CollisionShape2D = $CollisionShape2D
 @onready var _hurtbox_shape: CollisionShape2D = $HurtboxComponent/CollisionShape2D
@@ -88,6 +89,7 @@ func _ready() -> void:
 	_set_radius(_hurtbox_shape, data.hurtbox_radius)
 	_set_radius(_hitbox_shape, data.body_radius)
 	visual.configure(data)
+	status.radius = data.visual_radius
 	if data.move_style == EnemyData.MoveStyle.FLY:
 		# Vuela: los fosos no lo frenan.
 		collision_mask &= ~PhysicsLayers.PIT
@@ -99,7 +101,8 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	machine.physics_update(delta)
+	# Apagado: todo lo suyo va más lento (moverse, avisar, atacar).
+	machine.physics_update(delta * status.speed_factor())
 	_update_guard()
 
 
@@ -131,9 +134,9 @@ func move_toward_velocity(target_velocity: Vector2, delta: float) -> void:
 	apply_velocity()
 
 
-## Mueve el cuerpo con move_velocity más el empujón de los golpes.
+## Mueve el cuerpo con move_velocity (más lento si está apagado) más el empujón de los golpes.
 func apply_velocity() -> void:
-	velocity = move_velocity + knockback.velocity
+	velocity = move_velocity * status.speed_factor() + knockback.velocity
 	move_and_slide()
 
 

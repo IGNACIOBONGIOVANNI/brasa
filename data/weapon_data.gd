@@ -1,10 +1,12 @@
 class_name WeaponData
 extends Resource
 ## Definición de un arma. Sus multiplicadores se aplican sobre los stats de quien dispara, así los
-## items afectan a cualquier arma. Modos: SINGLE (una bala), SPREAD (abanico), BURST (ráfaga),
-## LASER (rayo continuo) y ORBITAL (orbes que giran alrededor mientras se mantiene el gatillo).
+## items afectan a cualquier arma. Modos: SINGLE (una bala; con blast_radius, un cohete que explota),
+## SPREAD (abanico), BURST (ráfaga), LASER (rayo continuo), ORBITAL (orbes alrededor), GRENADE
+## (granada que vuela por arriba y explota donde cae) y RAIL (se mantiene para cargar y al soltar
+## sale un rayo que atraviesa a todos).
 
-enum FireMode { SINGLE, SPREAD, BURST, LASER, ORBITAL }
+enum FireMode { SINGLE, SPREAD, BURST, LASER, ORBITAL, GRENADE, RAIL }
 
 @export var id: StringName = &""
 @export var display_name: String = ""
@@ -26,6 +28,21 @@ enum FireMode { SINGLE, SPREAD, BURST, LASER, ORBITAL }
 @export var burst_interval: float = 0.07
 ## ORBITAL: distancia de los orbes al jugador.
 @export var orbit_radius: float = 22.0
+## SINGLE y GRENADE: radio de la explosión de cada bala o granada (0 = no explota).
+@export var blast_radius: float = 0.0
+## Enemigos de más que atraviesa cada bala (se suma a la perforación de los stats).
+@export var pierce_bonus: int = 0
+## RAIL: segundos que hay que mantener el gatillo para cargarlo.
+@export var charge_time: float = 0.9
+## Mira láser mientras está en la mano.
+@export var sight: bool = false
+
+@export_group("Estados")
+## Chance de cada estado al pegar; se suma a la de los stats (ver StatusComponent).
+@export_range(0.0, 1.0) var burn_chance: float = 0.0
+@export_range(0.0, 1.0) var poison_chance: float = 0.0
+@export_range(0.0, 1.0) var corrupt_chance: float = 0.0
+@export_range(0.0, 1.0) var douse_chance: float = 0.0
 
 @export_group("Munición")
 ## Munición de reserva (sin contar el cargador). -1 = infinita.

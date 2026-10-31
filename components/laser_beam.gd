@@ -44,7 +44,8 @@ func update_beam(from: Vector2, direction: Vector2, spec: ShotSpec, fire_interva
 		_tick_left = TICK
 		var damage: float = spec.damage * TICK / fire_interval
 		for hurtbox: HurtboxComponent in targets:
-			hurtbox.receive_hit(HitInfo.create(damage, direction, KNOCKBACK))
+			if hurtbox.receive_hit(HitInfo.create(damage, direction, KNOCKBACK)):
+				StatusComponent.apply_hit(hurtbox, spec)
 		for point: Vector2 in _hits:
 			var spark := Fx.spawn(get_tree(), SPARK_SCENE, point) as CPUParticles2D
 			spark.color = color

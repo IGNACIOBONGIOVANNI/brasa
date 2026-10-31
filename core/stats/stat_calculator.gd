@@ -16,6 +16,10 @@ const LIMITS: Dictionary[StringName, Vector2] = {
 	&"pierce": Vector2(0.0, 5.0),
 	&"homing": Vector2(0.0, 1.0),
 	&"shot_size": Vector2(0.5, 3.0),
+	&"burn_chance": Vector2(0.0, 1.0),
+	&"poison_chance": Vector2(0.0, 1.0),
+	&"corrupt_chance": Vector2(0.0, 1.0),
+	&"douse_chance": Vector2(0.0, 1.0),
 }
 
 

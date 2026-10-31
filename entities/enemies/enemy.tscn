@@ -17,6 +17,7 @@
 [ext_resource type="Script" path="res://entities/enemies/states/enemy_recover_state.gd" id="15_recover"]
 [ext_resource type="Script" path="res://components/enemy_beam.gd" id="20_beam"]
 [ext_resource type="Material" path="res://fx/unshaded.tres" id="21_unshaded"]
+[ext_resource type="Script" path="res://components/status_component.gd" id="22_status"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_body"]
 radius = 5.0
@@ -83,6 +84,14 @@ bullet_mask = 65
 [node name="Beam" type="Node2D" parent="."]
 material = ExtResource("21_unshaded")
 script = ExtResource("20_beam")
+
+[node name="Status" type="Node2D" parent="." node_paths=PackedStringArray("health", "hurtbox", "visual")]
+material = ExtResource("21_unshaded")
+z_index = 1
+script = ExtResource("22_status")
+health = NodePath("../HealthComponent")
+hurtbox = NodePath("../HurtboxComponent")
+visual = NodePath("../Visual")
 
 [node name="StateMachine" type="Node" parent="." node_paths=PackedStringArray("initial_state")]
 script = ExtResource("10_machine")

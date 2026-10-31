@@ -521,6 +521,61 @@ attack = 0.0
 decay_power = 1.5
 volume = 0.16
 
+[sub_resource type="Resource" id="Sfx_grenade"]
+script = ExtResource("2_sfx")
+id = &"grenade"
+wave = 1
+freq_start = 320.0
+freq_end = 140.0
+duration = 0.12
+attack = 0.0
+decay_power = 1.2
+volume = 0.25
+
+[sub_resource type="Resource" id="Sfx_rocket"]
+script = ExtResource("2_sfx")
+id = &"rocket"
+wave = 4
+freq_start = 700.0
+freq_end = 180.0
+duration = 0.35
+attack = 0.02
+decay_power = 0.8
+volume = 0.22
+
+[sub_resource type="Resource" id="Sfx_sniper"]
+script = ExtResource("2_sfx")
+id = &"sniper"
+wave = 0
+freq_start = 1300.0
+freq_end = 180.0
+duration = 0.16
+attack = 0.0
+decay_power = 1.6
+volume = 0.3
+
+[sub_resource type="Resource" id="Sfx_rail_charge"]
+script = ExtResource("2_sfx")
+id = &"rail_charge"
+wave = 2
+freq_start = 200.0
+freq_end = 900.0
+duration = 0.9
+attack = 0.1
+decay_power = 0.4
+volume = 0.14
+
+[sub_resource type="Resource" id="Sfx_rail"]
+script = ExtResource("2_sfx")
+id = &"rail"
+wave = 3
+freq_start = 950.0
+freq_end = 120.0
+duration = 0.35
+attack = 0.0
+decay_power = 1.0
+volume = 0.3
+
 [resource]
 script = ExtResource("1_library")
-sounds = Array[ExtResource("2_sfx")]([SubResource("Sfx_shoot"), SubResource("Sfx_bullet_impact"), SubResource("Sfx_enemy_shoot"), SubResource("Sfx_enemy_hit"), SubResource("Sfx_enemy_die"), SubResource("Sfx_player_hurt"), SubResource("Sfx_player_die"), SubResource("Sfx_roll"), SubResource("Sfx_pulse"), SubResource("Sfx_empty"), SubResource("Sfx_telegraph"), SubResource("Sfx_charge"), SubResource("Sfx_door_close"), SubResource("Sfx_door_open"), SubResource("Sfx_room_clear"), SubResource("Sfx_pickup_coin"), SubResource("Sfx_pickup"), SubResource("Sfx_pickup_heart"), SubResource("Sfx_bomb_place"), SubResource("Sfx_explosion"), SubResource("Sfx_rock_break"), SubResource("Sfx_secret_found"), SubResource("Sfx_item_pickup"), SubResource("Sfx_buy"), SubResource("Sfx_unlock"), SubResource("Sfx_reload"), SubResource("Sfx_weapon_swap"), SubResource("Sfx_laser"), SubResource("Sfx_active_use"), SubResource("Sfx_active_ready"), SubResource("Sfx_boss_phase"), SubResource("Sfx_boss_die"), SubResource("Sfx_exit_open"), SubResource("Sfx_ui_select"), SubResource("Sfx_pause"), SubResource("Sfx_achievement"), SubResource("Sfx_lightning"), SubResource("Sfx_crossbow"), SubResource("Sfx_heartbeat"), SubResource("Sfx_boss_intro"), SubResource("Sfx_victory"), SubResource("Sfx_defeat"), SubResource("Sfx_medkit"), SubResource("Sfx_orb_throw"), SubResource("Sfx_revive"), SubResource("Sfx_hop"), SubResource("Sfx_beam"), SubResource("Sfx_burrow"), SubResource("Sfx_summon"), SubResource("Sfx_lob"), SubResource("Sfx_shield_block")])
+sounds = Array[ExtResource("2_sfx")]([SubResource("Sfx_shoot"), SubResource("Sfx_bullet_impact"), SubResource("Sfx_enemy_shoot"), SubResource("Sfx_enemy_hit"), SubResource("Sfx_enemy_die"), SubResource("Sfx_player_hurt"), SubResource("Sfx_player_die"), SubResource("Sfx_roll"), SubResource("Sfx_pulse"), SubResource("Sfx_empty"), SubResource("Sfx_telegraph"), SubResource("Sfx_charge"), SubResource("Sfx_door_close"), SubResource("Sfx_door_open"), SubResource("Sfx_room_clear"), SubResource("Sfx_pickup_coin"), SubResource("Sfx_pickup"), SubResource("Sfx_pickup_heart"), SubResource("Sfx_bomb_place"), SubResource("Sfx_explosion"), SubResource("Sfx_rock_break"), SubResource("Sfx_secret_found"), SubResource("Sfx_item_pickup"), SubResource("Sfx_buy"), SubResource("Sfx_unlock"), SubResource("Sfx_reload"), SubResource("Sfx_weapon_swap"), SubResource("Sfx_laser"), SubResource("Sfx_active_use"), SubResource("Sfx_active_ready"), SubResource("Sfx_boss_phase"), SubResource("Sfx_boss_die"), SubResource("Sfx_exit_open"), SubResource("Sfx_ui_select"), SubResource("Sfx_pause"), SubResource("Sfx_achievement"), SubResource("Sfx_lightning"), SubResource("Sfx_crossbow"), SubResource("Sfx_heartbeat"), SubResource("Sfx_boss_intro"), SubResource("Sfx_victory"), SubResource("Sfx_defeat"), SubResource("Sfx_medkit"), SubResource("Sfx_orb_throw"), SubResource("Sfx_revive"), SubResource("Sfx_hop"), SubResource("Sfx_beam"), SubResource("Sfx_burrow"), SubResource("Sfx_summon"), SubResource("Sfx_lob"), SubResource("Sfx_shield_block"), SubResource("Sfx_grenade"), SubResource("Sfx_rocket"), SubResource("Sfx_sniper"), SubResource("Sfx_rail_charge"), SubResource("Sfx_rail")])

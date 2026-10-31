@@ -32,7 +32,15 @@
 [ext_resource type="Resource" path="res://content/items/arma_ballesta.tres" id="i26"]
 [ext_resource type="Resource" path="res://content/items/llama_madre.tres" id="i27"]
 [ext_resource type="Resource" path="res://content/items/segunda_chispa.tres" id="i28"]
+[ext_resource type="Resource" path="res://content/items/arma_lanzagranadas.tres" id="i29"]
+[ext_resource type="Resource" path="res://content/items/arma_bazuca.tres" id="i30"]
+[ext_resource type="Resource" path="res://content/items/arma_franco_tirador.tres" id="i31"]
+[ext_resource type="Resource" path="res://content/items/arma_cano_de_riel.tres" id="i32"]
+[ext_resource type="Resource" path="res://content/items/brasa_viva.tres" id="i33"]
+[ext_resource type="Resource" path="res://content/items/hiel.tres" id="i34"]
+[ext_resource type="Resource" path="res://content/items/grieta.tres" id="i35"]
+[ext_resource type="Resource" path="res://content/items/agua_de_pozo.tres" id="i36"]
 [resource]
 script = ExtResource("1_catalog")
-items = Array[ExtResource("2_item_script")]([ExtResource("i0"), ExtResource("i1"), ExtResource("i2"), ExtResource("i3"), ExtResource("i4"), ExtResource("i5"), ExtResource("i6"), ExtResource("i7"), ExtResource("i8"), ExtResource("i9"), ExtResource("i11"), ExtResource("i12"), ExtResource("i13"), ExtResource("i14"), ExtResource("i15"), ExtResource("i16"), ExtResource("i17"), ExtResource("i18"), ExtResource("i19"), ExtResource("i20"), ExtResource("i21"), ExtResource("i22"), ExtResource("i23"), ExtResource("i24"), ExtResource("i25"), ExtResource("i26"), ExtResource("i27"), ExtResource("i28")])
+items = Array[ExtResource("2_item_script")]([ExtResource("i0"), ExtResource("i1"), ExtResource("i2"), ExtResource("i3"), ExtResource("i4"), ExtResource("i5"), ExtResource("i6"), ExtResource("i7"), ExtResource("i8"), ExtResource("i9"), ExtResource("i11"), ExtResource("i12"), ExtResource("i13"), ExtResource("i14"), ExtResource("i15"), ExtResource("i16"), ExtResource("i17"), ExtResource("i18"), ExtResource("i19"), ExtResource("i20"), ExtResource("i21"), ExtResource("i22"), ExtResource("i23"), ExtResource("i24"), ExtResource("i25"), ExtResource("i26"), ExtResource("i27"), ExtResource("i28"), ExtResource("i29"), ExtResource("i30"), ExtResource("i31"), ExtResource("i32"), ExtResource("i33"), ExtResource("i34"), ExtResource("i35"), ExtResource("i36")])
 filler = ExtResource("i10")

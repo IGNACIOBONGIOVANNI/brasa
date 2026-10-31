@@ -5,10 +5,10 @@ estructura de los roguelites de salas + bullet hell, con contenido 100 % origina
 [docs/LORE.md](docs/LORE.md).
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 12 (enemigos nuevos) terminado: 8 enemigos con mecánicas nuevas (babosas que se
-dividen, mecha que explota, murciélago con rayo, nido que invoca, topo bajo tierra, hollín fantasma,
-escudero con escudo, fogonero que tira bolas en arco), dos salas nuevas por piso. Antes: hito 11 (luz y
-efectos), hito 10 (calidades C a S++), hito 9 (lore, título "Brasa"), hito 8 (texto, armas, Mochila). El usuario va a
+**Estado:** Hito 13 (armas y estados) terminado: lanzagranadas, bazuca, franco tirador y caño de riel;
+estados fuego, veneno, corrupción y apagado (por items o por arma). Antes: hito 12 (8 enemigos nuevos),
+tirar la bomba manteniendo, hito 11 (luz y efectos), hito 10 (calidades C a S++), hito 9 (lore, título
+"Brasa"), hito 8 (texto, armas, Mochila). El usuario va a
 mandar objetos propios con la ficha de [docs/OBJETOS.md](docs/OBJETOS.md). Cualquier trabajo nuevo, solo con OK del
 usuario. El `.exe` se exporta a `builds/Brasa.exe` (ignorado por git).
 
@@ -268,7 +268,8 @@ core/meta/                  MetaProfile (progreso entre runs), MetaRules (chispa
 data/                       StatBlock, StatModifier, WeaponData, ItemData, ItemCatalog, EnemyData, BossPhase,
                             BulletPatternData, SfxData, SfxLibrary, RoomTemplate, FloorTheme, PickupData,
                             RunConfig, CharacterData, AchievementData, MetaConfig
-content/                    weapons/ (pistola, trabuco, metralla, haz, órbita, ballesta), items/ (29 +
+content/                    weapons/ (pistola, trabuco, metralla, haz, órbita, ballesta, lanzagranadas, bazuca,
+                            franco tirador, caño de riel), items/ (37 +
                             catalog), enemies/ (carnero, vigia, farol, centinela, espora, fundidor, grasa
                             (→ grasita → gotita), mecha, murcielago, nido (→ cria), topo, hollin, escudero,
                             fogonero; jefes campanario, rey_carnero, raigon y yunque), patterns/ (29),
@@ -278,12 +279,14 @@ content/                    weapons/ (pistola, trabuco, metralla, haz, órbita, 
                             achievements/ (7), meta/meta_config
 items/                      ItemHook (base), HookContext, hooks/ (diente de leche, rencor, estallido,
                             caparazón, relámpago, botiquín, eco, esquirlas, segunda chispa)
-components/                 Weapon, LaserBeam, OrbitRing, Health, Hurtbox (con escudo), Hitbox, Knockback,
-                            Flash, BulletEmitter, EnemyBeam (rayo de enemigo), ItemHookRunner, state_machine/
+components/                 Weapon, LaserBeam, OrbitRing, RailGun, AimSight, Health, Hurtbox (con escudo y
+                            multiplicador de daño), Hitbox, Knockback, Flash, BulletEmitter, EnemyBeam (rayo de
+                            enemigo), StatusComponent (estados), ItemHookRunner, state_machine/
 entities/player/            player.tscn/.gd, player_visual.gd, states/ (move, roll, dead)
 entities/enemies/           enemy.tscn/.gd, enemy_visual.gd, states/ (idle, move, telegraph, attack, recover),
                             enemy_blast.gd (explosiones), lob_shell.tscn/.gd (bola en arco)
-entities/bullets/           bullet.tscn/.gd (rebote, perforación, teledirigido)
+entities/bullets/           bullet.tscn/.gd (rebote, perforación, teledirigido, explosivas), grenade.tscn/.gd,
+                            player_blast.gd (explosiones de armas del jugador)
 entities/pickups/           pickup.tscn/.gd, pickup_visual.gd, item_pedestal.tscn/.gd, item_pedestal_visual.gd
 entities/bomb/              bomb.tscn/.gd
 entities/exit/              trapdoor.tscn/.gd (trampilla al piso siguiente o salida final)
@@ -311,7 +314,8 @@ tests/unit/                 rng_streams, shot_spec, health_math, pattern_math, i
                             room_reward, stat_calculator, item_pool, weapon_slot, phase_math,
                             save_schema, save_store, meta_profile, inventory_text, window_scales
 tests/integration/          player_shooting, bullets, combat, main_flow, floor, rooms, items,
-                            bullet_behaviors, weapons, boss, meta_flow, feedback, inventory, enemy_kinds
+                            bullet_behaviors, weapons, boss, meta_flow, feedback, inventory, enemy_kinds,
+                            weapons_statuses
 tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria
 docs/PLAN.md                plan, arquitectura e hitos
 docs/LORE.md                la historia y dónde está cada texto en el juego
@@ -394,8 +398,22 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   tick mientras se mantiene el gatillo e `idle()` si no: SINGLE/SPREAD/BURST disparan balas; LASER usa
   `LaserBeam` (atraviesa a todos los enemigos, lo cortan paredes y rocas, gasta 1 de munición cada
   0,25 s); en ORBITAL los orbes de `OrbitRing` giran solos mientras el arma está equipada (frenan
-  balas, el roce pega la mitad) y el gatillo lanza uno como bala, que vuelve a crecer en 1,5 s. Recarga sola al vaciar el cargador; limpiar una sala devuelve 25 % de
-  munición. Balas enemigas: `ShotSpec.from_pattern(BulletPatternData)`.
+  balas, el roce pega la mitad) y el gatillo lanza uno como bala, que vuelve a crecer en 1,5 s;
+  GRENADE tira una `Grenade` que vuela por arriba hasta donde se apunta (el dueño pasa la distancia
+  con `set_aim`: con el mouse, la del cursor; con el stick, el enemigo más cercano a 25° de la mira) y
+  explota al caer; RAIL se carga mientras se mantiene
+  el gatillo y dispara al soltar (`idle`) si llegó a `charge_time` (`RailGun`: atraviesa a todos,
+  los escudos lo frenan; `release`, al rodar, lo descarga). Un `blast_radius` en SINGLE hace balas
+  que explotan (cohetes). Las explosiones de armas son `PlayerBlast` (no lastiman al jugador ni rompen
+  rocas). `sight` dibuja una mira láser (`AimSight`) y `pierce_bonus` suma perforación. Recarga sola
+  al vaciar el cargador; limpiar una sala devuelve 25 % de munición. Balas enemigas:
+  `ShotSpec.from_pattern(BulletPatternData)`.
+- **Estados:** `StatusComponent` en cada enemigo: FUEGO (quema 3 s), VENENO (capas hasta 4, 5 s),
+  CORRUPCIÓN (35 % más de daño por 4 s; si muere así revienta en 6 balas del jugador) y APAGADO (mitad
+  de velocidad por 2,5 s, también para atacar). Las chances son stats (`burn_chance`, etc., que dan
+  items como Brasa viva, Hiel, Grieta y Agua de pozo) más las del arma; `StatusComponent.apply_hit`
+  las tira (stream COMBAT) cada vez que pega una bala, el láser, un orbe, el riel o una explosión. El
+  daño de cada estado sale del golpe que lo aplicó; tiñe al enemigo y dibuja sus marcas.
 - **Balas:** `Bullet.spawn()` las pone en el nodo del grupo `projectiles`. Capa/máscara de quien
   dispara. Mueren por alcance, al chocar paredes/rocas (`body_entered`) o al golpear un
   `HurtboxComponent` (`area_entered`); si el hurtbox está invulnerable siguen de largo. Con rebotes

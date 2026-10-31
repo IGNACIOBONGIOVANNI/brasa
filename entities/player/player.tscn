@@ -19,6 +19,8 @@
 [ext_resource type="Script" path="res://fx/flicker_light.gd" id="18_flicker"]
 [ext_resource type="Material" path="res://fx/unshaded.tres" id="unshaded"]
 [ext_resource type="Script" path="res://entities/player/bomb_aim.gd" id="19_bomb_aim"]
+[ext_resource type="Script" path="res://components/rail_gun.gd" id="20_rail"]
+[ext_resource type="Script" path="res://components/aim_sight.gd" id="21_sight"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_body"]
 radius = 4.0
@@ -62,6 +64,14 @@ bullet_mask = 129
 [node name="LaserBeam" type="Node2D" parent="WeaponComponent"]
 material = ExtResource("unshaded")
 script = ExtResource("14_laser")
+
+[node name="RailGun" type="Node2D" parent="WeaponComponent"]
+material = ExtResource("unshaded")
+script = ExtResource("20_rail")
+
+[node name="AimSight" type="Node2D" parent="WeaponComponent"]
+material = ExtResource("unshaded")
+script = ExtResource("21_sight")
 
 [node name="OrbitRing" type="Node2D" parent="WeaponComponent"]
 material = ExtResource("unshaded")

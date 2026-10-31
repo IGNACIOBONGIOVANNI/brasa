@@ -110,7 +110,7 @@ func test_nest_summons_up_to_its_cap() -> void:
 	assert_eq(_enemies_with(&"cria").size(), nest_data.summon_cap, "no pasa del tope")
 	for cria_enemy: Enemy in _enemies_with(&"cria"):
 		cria_enemy.health.kill()
-	await wait_physics_frames(2)
+	# En el acto (con los tiempos rápidos, en un par de frames ya vuelve a parir).
 	assert_eq(_enemies_with(&"cria").size(), 0)
 	await wait_seconds(1.0)
 	assert_gt(_enemies_with(&"cria").size(), 0, "si se mueren, vuelve a parir")

@@ -96,11 +96,14 @@ func is_hostile_to_player() -> bool:
 	return collision_layer & PhysicsLayers.ENEMY_BULLET != 0
 
 
-## Saca la bala dejando chispas (al chocar o cuando un Pulso la borra).
+## Saca la bala dejando chispas (al chocar o cuando un Pulso la borra). Las que explotan (cohetes)
+## explotan acá: al chocar, al pegarle a un enemigo o al llegar a su alcance.
 func destroy() -> void:
 	if _dead:
 		return
 	_dead = true
+	if spec.blast_radius > 0.0:
+		PlayerBlast.explode(get_tree(), global_position, spec)
 	var impact := Fx.spawn(get_tree(), IMPACT_SCENE, global_position) as CPUParticles2D
 	impact.color = spec.color
 	queue_free()
@@ -158,11 +161,15 @@ func _on_area_entered(area: Area2D) -> void:
 	var hurtbox := area as HurtboxComponent
 	if _dead or hurtbox == null or _hit_targets.has(hurtbox.get_instance_id()):
 		return
+	if spec.blast_radius > 0.0:
+		destroy()
+		return
 	if hurtbox.guards(_velocity):
 		AudioManager.play_sfx(&"shield_block", 0.1)
 		destroy()
 		return
 	if hurtbox.receive_hit(HitInfo.create(spec.damage, _velocity, spec.knockback)):
+		StatusComponent.apply_hit(hurtbox, spec)
 		_hit_targets[hurtbox.get_instance_id()] = true
 		if _pierce_left > 0:
 			_pierce_left -= 1

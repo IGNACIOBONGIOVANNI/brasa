@@ -11,6 +11,8 @@ const DEBUG_COLOR: Color = Color(0.3, 1.0, 0.5, 0.45)
 
 @export var health: HealthComponent
 
+## Multiplica el daño de cada golpe (la corrupción lo sube).
+var damage_multiplier: float = 1.0
 ## Hacia dónde mira el escudo (cero = sin escudo) y el coseno de su medio ángulo.
 var guard_direction: Vector2 = Vector2.ZERO
 var guard_cos: float = 1.0
@@ -33,7 +35,7 @@ func guards(hit_direction: Vector2) -> bool:
 
 ## Devuelve true si el golpe hizo daño (false si estaba invulnerable o muerto).
 func receive_hit(info: HitInfo) -> bool:
-	if health == null or not health.take_damage(info.damage):
+	if health == null or not health.take_damage(info.damage * damage_multiplier):
 		return false
 	hurt.emit(info)
 	return true

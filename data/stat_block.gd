@@ -8,6 +8,7 @@ extends Resource
 const STAT_NAMES: Array[StringName] = [
 	&"damage", &"fire_rate", &"shot_range", &"shot_speed", &"move_speed", &"luck", &"max_health",
 	&"bounces", &"pierce", &"homing", &"shot_size",
+	&"burn_chance", &"poison_chance", &"corrupt_chance", &"douse_chance",
 ]
 
 ## Daño por bala.
@@ -32,3 +33,9 @@ const STAT_NAMES: Array[StringName] = [
 @export var homing: float = 0.0
 ## Multiplicador del tamaño de las balas.
 @export var shot_size: float = 1.0
+## Chance (0 a 1) de que cada golpe prenda fuego, envenene, corrompa o apague al enemigo (ver
+## StatusComponent). Se suman a las del arma.
+@export var burn_chance: float = 0.0
+@export var poison_chance: float = 0.0
+@export var corrupt_chance: float = 0.0
+@export var douse_chance: float = 0.0
