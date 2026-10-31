@@ -42,6 +42,29 @@ func test_values_are_clamped_to_minimums() -> void:
 	assert_almost_eq(spec.max_range, ShotSpec.MIN_RANGE, 0.0001)
 
 
+func test_weapon_impact_values_pass_through() -> void:
+	var weapon := _weapon()
+	weapon.knockback = 55.0
+	weapon.impact_sfx_id = &"thud"
+	var spec := ShotSpec.build(StatBlock.new(), weapon)
+	assert_almost_eq(spec.knockback, 55.0, 0.0001)
+	assert_eq(spec.impact_sfx_id, &"thud")
+
+
+func test_pattern_spec_copies_pattern_values() -> void:
+	var pattern := BulletPatternData.new()
+	pattern.damage = 1.0
+	pattern.bullet_speed = 75.0
+	pattern.bullet_range = 300.0
+	pattern.knockback = 90.0
+	var spec := ShotSpec.from_pattern(pattern)
+	assert_almost_eq(spec.damage, 1.0, 0.0001)
+	assert_almost_eq(spec.speed, 75.0, 0.0001)
+	assert_almost_eq(spec.max_range, 300.0, 0.0001)
+	assert_almost_eq(spec.knockback, 90.0, 0.0001)
+	assert_eq(spec.impact_sfx_id, &"", "las balas enemigas no suenan al chocar")
+
+
 func test_fire_interval_from_fire_rate() -> void:
 	var stats := StatBlock.new()
 	stats.fire_rate = 4.0

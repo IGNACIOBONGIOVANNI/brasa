@@ -1,0 +1,29 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/hud/hud.gd" id="1_hud"]
+[ext_resource type="Script" path="res://ui/hud/hearts_display.gd" id="2_hearts"]
+[ext_resource type="Script" path="res://ui/hud/pulse_display.gd" id="3_pulses"]
+
+[node name="Hud" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_hud")
+
+[node name="Hearts" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 28.0
+offset_top = 4.0
+offset_right = 56.0
+offset_bottom = 10.0
+mouse_filter = 2
+script = ExtResource("2_hearts")
+
+[node name="Pulses" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 28.0
+offset_top = 12.0
+offset_right = 56.0
+offset_bottom = 17.0
+mouse_filter = 2
+script = ExtResource("3_pulses")

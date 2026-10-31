@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="2_pattern_script"]
+[ext_resource type="Resource" path="res://content/patterns/vigia_aimed.tres" id="3_aimed"]
+[ext_resource type="Resource" path="res://content/patterns/vigia_fan.tres" id="4_fan"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"vigia"
+display_name = "Vigía"
+max_health = 8.0
+move_style = 1
+move_speed = 30.0
+preferred_distance = 90.0
+attack_kind = 1
+attack_range = 160.0
+attack_cooldown = 1.6
+telegraph_time = 0.5
+recover_time = 0.5
+patterns = Array[ExtResource("2_pattern_script")]([ExtResource("3_aimed"), ExtResource("4_fan")])
+body_radius = 5.0
+hurtbox_radius = 7.0
+visual_style = 1
+visual_radius = 7.0
+body_color = Color(0.345, 0.702, 0.604, 1)

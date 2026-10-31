@@ -12,9 +12,13 @@ var _weapon: WeaponComponent
 func before_each() -> void:
 	RunState.start_run()
 	_game = GAME_SCENE.instantiate() as Node2D
+	# Sin enemigos: estos tests miden movimiento y disparo sin que nadie empuje al jugador.
+	for child: Node in _game.get_node("Entities").get_children():
+		if child is Enemy:
+			child.free()
 	add_child_autofree(_game)
 	_player = _game.get_node("Entities/Player") as Player
-	_weapon = _player.get_node("WeaponComponent") as WeaponComponent
+	_weapon = _player.weapon
 
 
 func after_each() -> void:

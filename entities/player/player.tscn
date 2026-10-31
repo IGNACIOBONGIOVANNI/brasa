@@ -5,9 +5,20 @@
 [ext_resource type="Script" path="res://components/weapon_component.gd" id="3_weapon"]
 [ext_resource type="Resource" path="res://content/weapons/base_shot.tres" id="4_base_shot"]
 [ext_resource type="PackedScene" path="res://entities/bullets/bullet.tscn" id="5_bullet"]
+[ext_resource type="Script" path="res://components/health_component.gd" id="6_health"]
+[ext_resource type="Script" path="res://components/hurtbox_component.gd" id="7_hurtbox"]
+[ext_resource type="Script" path="res://components/knockback_component.gd" id="8_knockback"]
+[ext_resource type="Script" path="res://components/flash_component.gd" id="9_flash"]
+[ext_resource type="Script" path="res://components/state_machine/state_machine.gd" id="10_machine"]
+[ext_resource type="Script" path="res://entities/player/states/player_move_state.gd" id="11_move"]
+[ext_resource type="Script" path="res://entities/player/states/player_roll_state.gd" id="12_roll"]
+[ext_resource type="Script" path="res://entities/player/states/player_dead_state.gd" id="13_dead"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_body"]
 radius = 4.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hurtbox"]
+radius = 3.0
 
 [node name="Player" type="CharacterBody2D"]
 collision_layer = 2
@@ -28,3 +39,38 @@ weapon = ExtResource("4_base_shot")
 bullet_scene = ExtResource("5_bullet")
 bullet_layer = 8
 bullet_mask = 129
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("6_health")
+invulnerability_after_hit = 1.0
+
+[node name="HurtboxComponent" type="Area2D" parent="." node_paths=PackedStringArray("health")]
+collision_layer = 64
+collision_mask = 0
+monitoring = false
+script = ExtResource("7_hurtbox")
+health = NodePath("../HealthComponent")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HurtboxComponent"]
+position = Vector2(0, -2)
+shape = SubResource("CircleShape2D_hurtbox")
+
+[node name="KnockbackComponent" type="Node" parent="."]
+script = ExtResource("8_knockback")
+
+[node name="FlashComponent" type="Node" parent="." node_paths=PackedStringArray("target")]
+script = ExtResource("9_flash")
+target = NodePath("../Visual")
+
+[node name="StateMachine" type="Node" parent="." node_paths=PackedStringArray("initial_state")]
+script = ExtResource("10_machine")
+initial_state = NodePath("Move")
+
+[node name="Move" type="Node" parent="StateMachine"]
+script = ExtResource("11_move")
+
+[node name="Roll" type="Node" parent="StateMachine"]
+script = ExtResource("12_roll")
+
+[node name="Dead" type="Node" parent="StateMachine"]
+script = ExtResource("13_dead")

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="2_pattern_script"]
+[ext_resource type="Resource" path="res://content/patterns/farol_ring.tres" id="3_ring"]
+[ext_resource type="Resource" path="res://content/patterns/farol_spiral.tres" id="4_spiral"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"farol"
+display_name = "Farol"
+max_health = 14.0
+move_style = 1
+move_speed = 18.0
+preferred_distance = 70.0
+knockback_resistance = 0.6
+attack_kind = 1
+attack_range = 200.0
+attack_cooldown = 2.0
+telegraph_time = 0.6
+recover_time = 0.8
+patterns = Array[ExtResource("2_pattern_script")]([ExtResource("3_ring"), ExtResource("4_spiral")])
+body_radius = 6.0
+hurtbox_radius = 8.0
+visual_style = 2
+visual_radius = 8.0
+body_color = Color(0.561, 0.482, 0.941, 1)

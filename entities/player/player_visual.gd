@@ -2,12 +2,15 @@
 class_name PlayerVisual
 extends Node2D
 ## Placeholder del jugador dibujado por código: sombra, cuerpo, ojos y arma que sigue la mira.
-## Se reemplaza por un sprite animado manteniendo set_aim() y play_fire().
+## También dibuja el rol (bolita que gira, sin arma) y la muerte (tirado, ojos en cruz).
+## Se reemplaza por un sprite animado manteniendo set_aim(), play_fire(), set_rolling() y set_dead().
 
 const FLASH_TIME: float = 0.05
 const RECOIL_PIXELS: float = 2.0
 ## Píxeles por segundo que recupera el arma después del retroceso.
 const RECOIL_RECOVERY: float = 20.0
+## Radianes por segundo que gira la "bolita" al rodar.
+const ROLL_SPIN_SPEED: float = 26.0
 
 @export var body_color: Color = Color("e8c170")
 @export var outline_color: Color = Color("1b1420")
@@ -17,6 +20,9 @@ const RECOIL_RECOVERY: float = 20.0
 var aim_direction: Vector2 = Vector2.RIGHT
 var _flash_left: float = 0.0
 var _recoil: float = 0.0
+var _rolling: bool = false
+var _roll_spin: float = 0.0
+var _dead: bool = false
 
 
 func set_aim(direction: Vector2) -> void:
@@ -31,7 +37,21 @@ func play_fire() -> void:
 	queue_redraw()
 
 
+func set_rolling(rolling: bool) -> void:
+	_rolling = rolling
+	_roll_spin = 0.0
+	queue_redraw()
+
+
+func set_dead(dead: bool) -> void:
+	_dead = dead
+	queue_redraw()
+
+
 func _process(delta: float) -> void:
+	if _rolling:
+		_roll_spin += ROLL_SPIN_SPEED * delta
+		queue_redraw()
 	if _flash_left > 0.0 or _recoil > 0.0:
 		_flash_left = maxf(0.0, _flash_left - delta)
 		_recoil = maxf(0.0, _recoil - RECOIL_RECOVERY * delta)
@@ -43,6 +63,15 @@ func _draw() -> void:
 	draw_set_transform(Vector2(0, 5), 0.0, Vector2(1.0, 0.45))
 	draw_circle(Vector2.ZERO, 5.0, Color(0, 0, 0, 0.35))
 	draw_set_transform(Vector2.ZERO)
+	if _dead:
+		_draw_dead()
+	elif _rolling:
+		_draw_rolling()
+	else:
+		_draw_standing()
+
+
+func _draw_standing() -> void:
 	# Si apunta hacia arriba, el arma queda detrás del cuerpo.
 	var gun_behind: bool = aim_direction.y < -0.3
 	if gun_behind:
@@ -64,3 +93,22 @@ func _draw_gun() -> void:
 	if _flash_left > 0.0:
 		draw_circle(Vector2(start + 8.0, 0.0), 2.5, flash_color)
 	draw_set_transform(Vector2.ZERO)
+
+
+func _draw_rolling() -> void:
+	# Bolita más baja que el cuerpo normal, con una franja que gira.
+	var center := Vector2(0, 0)
+	draw_circle(center, 5.0, outline_color)
+	draw_circle(center, 4.0, body_color)
+	var band: Vector2 = Vector2.from_angle(_roll_spin) * 3.0
+	draw_line(center - band, center + band, outline_color, 1.0)
+
+
+func _draw_dead() -> void:
+	draw_set_transform(Vector2(0, 2), 0.0, Vector2(1.3, 0.6))
+	draw_circle(Vector2.ZERO, 6.0, outline_color)
+	draw_circle(Vector2.ZERO, 5.0, body_color.darkened(0.3))
+	draw_set_transform(Vector2.ZERO)
+	for eye_x: float in [-3.0, 2.0]:
+		draw_line(Vector2(eye_x - 1, 0), Vector2(eye_x + 1, 2), outline_color, 1.0)
+		draw_line(Vector2(eye_x - 1, 2), Vector2(eye_x + 1, 0), outline_color, 1.0)

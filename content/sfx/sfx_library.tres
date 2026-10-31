@@ -1,0 +1,128 @@
+[gd_resource type="Resource" script_class="SfxLibrary" format=3]
+
+[ext_resource type="Script" path="res://data/sfx_library.gd" id="1_library"]
+[ext_resource type="Script" path="res://data/sfx_data.gd" id="2_sfx"]
+
+[sub_resource type="Resource" id="Sfx_shoot"]
+script = ExtResource("2_sfx")
+id = &"shoot"
+wave = 0
+freq_start = 900.0
+freq_end = 300.0
+duration = 0.07
+square_duty = 0.25
+volume = 0.16
+
+[sub_resource type="Resource" id="Sfx_bullet_impact"]
+script = ExtResource("2_sfx")
+id = &"bullet_impact"
+wave = 4
+freq_start = 2200.0
+freq_end = 800.0
+duration = 0.04
+decay_power = 2.0
+volume = 0.12
+
+[sub_resource type="Resource" id="Sfx_enemy_shoot"]
+script = ExtResource("2_sfx")
+id = &"enemy_shoot"
+wave = 1
+freq_start = 520.0
+freq_end = 260.0
+duration = 0.09
+volume = 0.3
+
+[sub_resource type="Resource" id="Sfx_enemy_hit"]
+script = ExtResource("2_sfx")
+id = &"enemy_hit"
+wave = 0
+freq_start = 260.0
+freq_end = 120.0
+duration = 0.06
+decay_power = 1.5
+volume = 0.2
+
+[sub_resource type="Resource" id="Sfx_enemy_die"]
+script = ExtResource("2_sfx")
+id = &"enemy_die"
+wave = 4
+freq_start = 900.0
+freq_end = 60.0
+duration = 0.32
+decay_power = 1.2
+volume = 0.4
+
+[sub_resource type="Resource" id="Sfx_player_hurt"]
+script = ExtResource("2_sfx")
+id = &"player_hurt"
+wave = 3
+freq_start = 480.0
+freq_end = 110.0
+duration = 0.24
+decay_power = 0.8
+volume = 0.32
+
+[sub_resource type="Resource" id="Sfx_player_die"]
+script = ExtResource("2_sfx")
+id = &"player_die"
+wave = 0
+freq_start = 600.0
+freq_end = 40.0
+duration = 0.7
+decay_power = 0.6
+volume = 0.3
+
+[sub_resource type="Resource" id="Sfx_roll"]
+script = ExtResource("2_sfx")
+id = &"roll"
+wave = 4
+freq_start = 500.0
+freq_end = 1500.0
+duration = 0.14
+attack = 0.03
+decay_power = 1.5
+volume = 0.16
+
+[sub_resource type="Resource" id="Sfx_pulse"]
+script = ExtResource("2_sfx")
+id = &"pulse"
+wave = 2
+freq_start = 180.0
+freq_end = 1400.0
+duration = 0.45
+attack = 0.01
+decay_power = 0.7
+volume = 0.5
+
+[sub_resource type="Resource" id="Sfx_pulse_empty"]
+script = ExtResource("2_sfx")
+id = &"pulse_empty"
+wave = 0
+freq_start = 160.0
+freq_end = 150.0
+duration = 0.06
+volume = 0.14
+
+[sub_resource type="Resource" id="Sfx_telegraph"]
+script = ExtResource("2_sfx")
+id = &"telegraph"
+wave = 1
+freq_start = 350.0
+freq_end = 900.0
+duration = 0.18
+attack = 0.02
+decay_power = 0.3
+volume = 0.28
+
+[sub_resource type="Resource" id="Sfx_charge"]
+script = ExtResource("2_sfx")
+id = &"charge"
+wave = 4
+freq_start = 300.0
+freq_end = 120.0
+duration = 0.3
+volume = 0.28
+
+[resource]
+script = ExtResource("1_library")
+sounds = Array[ExtResource("2_sfx")]([SubResource("Sfx_shoot"), SubResource("Sfx_bullet_impact"), SubResource("Sfx_enemy_shoot"), SubResource("Sfx_enemy_hit"), SubResource("Sfx_enemy_die"), SubResource("Sfx_player_hurt"), SubResource("Sfx_player_die"), SubResource("Sfx_roll"), SubResource("Sfx_pulse"), SubResource("Sfx_pulse_empty"), SubResource("Sfx_telegraph"), SubResource("Sfx_charge")])
