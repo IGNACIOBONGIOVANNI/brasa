@@ -1,14 +1,17 @@
 class_name Player
 extends CharacterBody2D
 ## Jugador. Lee el input (con buffer) y delega en su StateMachine: Move (caminar, apuntar,
-## disparar, Pulso, bomba), Roll (rodar con i-frames) y Dead.
+## disparar, Pulso, bomba, recargar, cambiar de arma, usar el activo), Roll (rodar con i-frames)
+## y Dead. Sus stats, items y armas salen de RunState.
 ## Se apunta con el último dispositivo usado: mover el mouse vuelve a la mira por mouse,
 ## inclinar el stick derecho la pasa al stick.
 
 const GROUP: StringName = &"player"
 const STICK_AIM_DEADZONE: float = 0.35
 ## Acciones que pasan por el InputBuffer.
-const BUFFERED_ACTIONS: Array[StringName] = [&"shoot", &"dodge", &"blank", &"bomb"]
+const BUFFERED_ACTIONS: Array[StringName] = [
+	&"shoot", &"dodge", &"blank", &"bomb", &"reload", &"swap_weapon", &"use_active",
+]
 const HURT_FLASH_TIME: float = 0.12
 const HURT_TRAUMA: float = 0.6
 const HURT_HITSTOP: float = 0.08
@@ -44,6 +47,7 @@ var _roll_cooldown_left: float = 0.0
 @onready var knockback: KnockbackComponent = $KnockbackComponent
 @onready var flash: FlashComponent = $FlashComponent
 @onready var machine: StateMachine = $StateMachine
+@onready var hooks: ItemHookRunner = $ItemHookRunner
 
 
 func _ready() -> void:
@@ -51,6 +55,10 @@ func _ready() -> void:
 	weapon.fired.connect(_on_weapon_fired)
 	hurtbox.hurt.connect(_on_hurt)
 	health.died.connect(_on_died)
+	RunState.weapons_changed.connect(_sync_weapon)
+	RunState.stats_changed.connect(_on_stats_changed)
+	_sync_weapon()
+	_on_stats_changed(RunState.stats)
 	machine.start()
 
 
@@ -109,10 +117,22 @@ func update_aim() -> void:
 
 
 ## Dispara mientras se mantiene el botón, o si se apretó hace muy poco y el arma recién está lista.
-func try_shoot() -> void:
-	var wants_to_shoot: bool = Input.is_action_pressed(&"shoot") or input_buffer.is_buffered(&"shoot")
-	if wants_to_shoot and weapon.try_fire(RunState.stats, aim_direction):
-		input_buffer.consume(&"shoot")
+func try_shoot(delta: float) -> void:
+	if Input.is_action_pressed(&"shoot") or input_buffer.is_buffered(&"shoot"):
+		if weapon.trigger(RunState.stats, aim_direction, delta):
+			input_buffer.consume(&"shoot")
+	else:
+		weapon.release()
+
+
+## Recargar, cambiar de arma y usar el activo.
+func try_weapon_actions() -> void:
+	if input_buffer.consume(&"reload"):
+		weapon.reload()
+	if input_buffer.consume(&"swap_weapon") and RunState.select_next_weapon():
+		AudioManager.play_sfx(&"weapon_swap")
+	if input_buffer.consume(&"use_active"):
+		_use_active()
 
 
 func can_roll() -> bool:
@@ -174,5 +194,25 @@ func _on_died() -> void:
 	machine.transition_to(&"Dead")
 
 
-func _on_weapon_fired(_direction: Vector2) -> void:
+func _on_weapon_fired(direction: Vector2) -> void:
 	visual.play_fire()
+	hooks.on_shoot(direction)
+
+
+func _use_active() -> void:
+	if not RunState.is_active_ready():
+		AudioManager.play_sfx(&"empty")
+		return
+	if hooks.use_active():
+		RunState.spend_active()
+		AudioManager.play_sfx(&"active_use")
+
+
+func _sync_weapon() -> void:
+	weapon.slot = RunState.current_weapon_slot()
+	visual.set_gun(weapon.weapon().gun_color, weapon.weapon().gun_length)
+
+
+## Un item de vida máxima agranda (y llena) los contenedores.
+func _on_stats_changed(stats: StatBlock) -> void:
+	health.set_max(stats.max_health)

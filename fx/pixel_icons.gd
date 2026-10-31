@@ -40,6 +40,14 @@ const KEY: PackedStringArray = [
 	"..##.",
 ]
 const ALERT: PackedStringArray = ["#", "#", "#", ".", "#"]
+const INFINITY: PackedStringArray = [
+	".#...#.",
+	"#.#.#.#",
+	"#..#..#",
+	"#.#.#.#",
+	".#...#.",
+]
+const SLASH: PackedStringArray = ["..#", "..#", ".#.", "#..", "#.."]
 ## Los diez dígitos de 3 x 5 uno al lado del otro: el dígito d ocupa las columnas [3d, 3d + 3).
 const DIGITS: PackedStringArray = [
 	"###" + ".#." + "###" + "###" + "#.#" + "###" + "###" + "###" + "###" + "###",

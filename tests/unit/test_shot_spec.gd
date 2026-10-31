@@ -51,6 +51,19 @@ func test_weapon_impact_values_pass_through() -> void:
 	assert_eq(spec.impact_sfx_id, &"thud")
 
 
+func test_bullet_behaviors_come_from_stats() -> void:
+	var stats := StatBlock.new()
+	stats.bounces = 2.0
+	stats.pierce = 1.0
+	stats.homing = 0.5
+	stats.shot_size = 2.0
+	var spec := ShotSpec.build(stats, _weapon())
+	assert_eq(spec.bounces, 2)
+	assert_eq(spec.pierce, 1)
+	assert_almost_eq(spec.homing, 0.5, 0.0001)
+	assert_almost_eq(spec.radius, _weapon().bullet_radius * 2.0, 0.0001)
+
+
 func test_pattern_spec_copies_pattern_values() -> void:
 	var pattern := BulletPatternData.new()
 	pattern.damage = 1.0

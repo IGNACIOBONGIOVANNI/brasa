@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="ItemCatalog" format=3]
+
+[ext_resource type="Script" path="res://data/item_catalog.gd" id="1_catalog"]
+[ext_resource type="Script" path="res://data/item_data.gd" id="2_item_script"]
+[ext_resource type="Resource" path="res://content/items/bala_de_goma.tres" id="i0"]
+[ext_resource type="Resource" path="res://content/items/aguja.tres" id="i1"]
+[ext_resource type="Resource" path="res://content/items/iman_de_polvora.tres" id="i2"]
+[ext_resource type="Resource" path="res://content/items/polvora_negra.tres" id="i3"]
+[ext_resource type="Resource" path="res://content/items/gatillo_flojo.tres" id="i4"]
+[ext_resource type="Resource" path="res://content/items/corazon_de_repuesto.tres" id="i5"]
+[ext_resource type="Resource" path="res://content/items/diente_de_leche.tres" id="i6"]
+[ext_resource type="Resource" path="res://content/items/rencor.tres" id="i7"]
+[ext_resource type="Resource" path="res://content/items/estallido.tres" id="i8"]
+[ext_resource type="Resource" path="res://content/items/caparazon.tres" id="i9"]
+[ext_resource type="Resource" path="res://content/items/galleta.tres" id="i10"]
+[ext_resource type="Resource" path="res://content/items/arma_trabuco.tres" id="i11"]
+[ext_resource type="Resource" path="res://content/items/arma_metralla.tres" id="i12"]
+[ext_resource type="Resource" path="res://content/items/arma_haz.tres" id="i13"]
+[ext_resource type="Resource" path="res://content/items/arma_orbita.tres" id="i14"]
+
+[resource]
+script = ExtResource("1_catalog")
+items = Array[ExtResource("2_item_script")]([ExtResource("i0"), ExtResource("i1"), ExtResource("i2"), ExtResource("i3"), ExtResource("i4"), ExtResource("i5"), ExtResource("i6"), ExtResource("i7"), ExtResource("i8"), ExtResource("i9"), ExtResource("i11"), ExtResource("i12"), ExtResource("i13"), ExtResource("i14")])
+filler = ExtResource("i10")

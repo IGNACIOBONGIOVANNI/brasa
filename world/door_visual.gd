@@ -3,12 +3,14 @@ class_name DoorVisual
 extends Node2D
 ## Dibujo placeholder de una puerta, orientada como la de la pared de arriba (el interior de la sala
 ## queda hacia +y). Abierta: hueco oscuro con marco del color de la sala de al lado. Cerrada: además
-## rejas. Oculta: igual que la pared, con un par de grietas apenas visibles.
+## rejas. Oculta: igual que la pared, con un par de grietas apenas visibles. Con candado: rejas y
+## un candado dorado en el medio.
 
 const SIZE: Vector2 = Vector2(32, 16)
 const POST_WIDTH: float = 3.0
 const BAR_SPACING: float = 5.0
 const HOLE_COLOR: Color = Color("08060b")
+const LOCK_COLOR: Color = Color("f2c14e")
 
 @export var mode: Door.Mode = Door.Mode.OPEN:
 	set(value):
@@ -34,7 +36,7 @@ func _draw() -> void:
 		_draw_hidden(rect)
 		return
 	draw_rect(rect, HOLE_COLOR)
-	if mode == Door.Mode.CLOSED:
+	if mode == Door.Mode.CLOSED or mode == Door.Mode.LOCKED:
 		var x: float = rect.position.x + POST_WIDTH + 2.0
 		while x < rect.end.x - POST_WIDTH - 1.0:
 			draw_rect(Rect2(x, rect.position.y, 1.0, SIZE.y), frame_color.darkened(0.2))
@@ -43,6 +45,11 @@ func _draw() -> void:
 		var post := Rect2(post_x, rect.position.y, POST_WIDTH, SIZE.y)
 		draw_rect(post.grow(1.0), outline_color)
 		draw_rect(post, frame_color)
+	if mode == Door.Mode.LOCKED:
+		draw_rect(Rect2(-4, -2, 8, 7), outline_color)
+		draw_rect(Rect2(-3, -1, 6, 5), LOCK_COLOR)
+		draw_arc(Vector2(0, -2), 2.5, PI, TAU, 8, LOCK_COLOR, 1.0)
+		draw_rect(Rect2(-0.5, 1, 1, 2), outline_color)
 
 
 func _draw_hidden(rect: Rect2) -> void:

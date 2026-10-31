@@ -1,7 +1,9 @@
 class_name Bullet
 extends Area2D
-## Proyectil simple: avanza en línea recta y muere al llegar a su alcance, al chocar una pared o al
-## golpear un HurtboxComponent. Si el hurtbox está invulnerable (rodando, i-frames) la bala sigue.
+## Proyectil: avanza en línea recta y muere al llegar a su alcance, al chocar una pared o al golpear
+## un HurtboxComponent. Si el hurtbox está invulnerable (rodando, i-frames) la bala sigue.
+## Según su ShotSpec además rebota en las paredes (bounces), atraviesa enemigos (pierce) y dobla
+## hacia el enemigo más cercano (homing); las tres cosas se combinan solas.
 ## Las capas de colisión las define quien dispara (bala del jugador o de un enemigo).
 ## Tiene que quedar monitorable: en Godot 4.7 un Area2D con monitorable = false no detecta cuerpos
 ## estáticos, y las balas atravesarían paredes y rocas.
@@ -9,11 +11,19 @@ extends Area2D
 const GROUP: StringName = &"bullets"
 const PROJECTILES_GROUP: StringName = &"projectiles"
 const IMPACT_SCENE: PackedScene = preload("res://fx/bullet_impact.tscn")
+## Distancia a la que una bala teledirigida "ve" enemigos.
+const HOMING_RANGE: float = 110.0
+## Radianes por segundo que dobla una bala con homing 1.
+const HOMING_TURN_RATE: float = 9.0
 
 var spec: ShotSpec
 var _velocity: Vector2 = Vector2.ZERO
 var _traveled: float = 0.0
 var _dead: bool = false
+var _bounces_left: int = 0
+var _pierce_left: int = 0
+## Hurtboxes que ya golpeó (por id), para que al atravesar no pegue dos veces al mismo.
+var _hit_targets: Dictionary[int, bool] = {}
 
 @onready var _shape: CollisionShape2D = $CollisionShape2D
 @onready var _visual: PlaceholderShape = $Visual
@@ -36,6 +46,8 @@ static func spawn(tree: SceneTree, scene: PackedScene, shot: ShotSpec, at: Vecto
 func setup(shot: ShotSpec, direction: Vector2, layer: int, mask: int) -> void:
 	spec = shot
 	_velocity = direction.normalized() * shot.speed
+	_bounces_left = shot.bounces
+	_pierce_left = shot.pierce
 	collision_layer = layer
 	collision_mask = mask
 	rotation = direction.angle()
@@ -55,8 +67,11 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if spec.homing > 0.0:
+		_steer(delta)
 	var step: Vector2 = _velocity * delta
-	position += step
+	if not (_bounces_left > 0 and _try_bounce(step)):
+		position += step
 	_traveled += step.length()
 	if _traveled >= spec.max_range:
 		destroy()
@@ -76,7 +91,49 @@ func destroy() -> void:
 	queue_free()
 
 
+## Si en este paso choca una pared, rebota: refleja la velocidad con la normal de la pared.
+func _try_bounce(step: Vector2) -> bool:
+	var from: Vector2 = global_position
+	var to: Vector2 = from + step + step.normalized() * spec.radius
+	var hit: Dictionary = get_world_2d().direct_space_state.intersect_ray(
+			PhysicsRayQueryParameters2D.create(from, to, PhysicsLayers.WALL))
+	if hit.is_empty():
+		return false
+	var normal: Vector2 = hit.normal
+	var point: Vector2 = hit.position
+	_velocity = _velocity.bounce(normal)
+	global_position = point + normal * (spec.radius + 0.5)
+	rotation = _velocity.angle()
+	_bounces_left -= 1
+	if spec.impact_sfx_id != &"":
+		AudioManager.play_sfx(spec.impact_sfx_id, 0.15)
+	return true
+
+
+## Dobla un poco hacia el enemigo vivo más cercano (que todavía no atravesó).
+func _steer(delta: float) -> void:
+	var target: HurtboxComponent = null
+	var best_distance: float = HOMING_RANGE
+	for node: Node in get_tree().get_nodes_in_group(Enemy.GROUP):
+		var enemy := node as Enemy
+		if enemy.health.is_dead() or _hit_targets.has(enemy.hurtbox.get_instance_id()):
+			continue
+		var distance: float = enemy.hurtbox.global_position.distance_to(global_position)
+		if distance < best_distance:
+			best_distance = distance
+			target = enemy.hurtbox
+	if target == null:
+		return
+	var wanted: float = (target.global_position - global_position).angle()
+	var max_turn: float = HOMING_TURN_RATE * spec.homing * delta
+	_velocity = _velocity.rotated(clampf(angle_difference(_velocity.angle(), wanted), -max_turn, max_turn))
+	rotation = _velocity.angle()
+
+
 func _on_body_entered(_body: Node2D) -> void:
+	# Las que rebotan se manejan con el rayo de _try_bounce.
+	if _bounces_left > 0:
+		return
 	if not _dead and spec.impact_sfx_id != &"":
 		AudioManager.play_sfx(spec.impact_sfx_id, 0.15)
 	destroy()
@@ -84,7 +141,11 @@ func _on_body_entered(_body: Node2D) -> void:
 
 func _on_area_entered(area: Area2D) -> void:
 	var hurtbox := area as HurtboxComponent
-	if _dead or hurtbox == null:
+	if _dead or hurtbox == null or _hit_targets.has(hurtbox.get_instance_id()):
 		return
 	if hurtbox.receive_hit(HitInfo.create(spec.damage, _velocity, spec.knockback)):
-		destroy()
+		_hit_targets[hurtbox.get_instance_id()] = true
+		if _pierce_left > 0:
+			_pierce_left -= 1
+		else:
+			destroy()

@@ -4,7 +4,7 @@ Roguelite de acción top-down 2D (Godot 4.7.2, GDScript tipado) para Windows. In
 estructura de los roguelites de salas + bullet hell, con contenido 100 % original.
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 3 (piso) terminado. Próximo: hito 4 (items), arrancar solo con OK del usuario.
+**Estado:** Hito 4 (items) terminado. Próximo: hito 5 (loop completo), arrancar solo con OK del usuario.
 
 ## Ejecutables (rutas exactas)
 
@@ -99,6 +99,13 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
 - En `.tres` escritos a mano, un `Array[ClaseDeRecurso]` se escribe
   `Array[ExtResource("id_del_script")]([ExtResource("a"), ...])` (ver `content/enemies/vigia.tres`).
 - En tests, `Input.action_press()` sí dispara `is_action_just_pressed()` en el siguiente tick de física.
+- Un literal de array sin tipo (`[]`, `[x]`) pasado a un parámetro `Array[T]` falla en tiempo de
+  ejecución ("does not have the same element type"). Declarar antes `var a: Array[T] = [...]` o usar
+  `typed.assign(untyped)`.
+- `Area2D.get_overlapping_areas()` con `monitoring` apagado da error. Si se prende con `set_deferred`,
+  el primer tick todavía está apagado: chequear `monitoring` antes (ver `OrbitRing`).
+- Desde PowerShell no está cargado `System.Drawing.ColorTranslator`: para escribir colores en `.tres`
+  convertir el hex a mano (`[Convert]::ToInt32(..., 16) / 255`).
 - Hay una clase global `State` (máquina de estados): ningún enum interno puede llamarse `State`
   (por eso `Door.Mode` y `Room.Phase`).
 - Desde un callback de física (`body_entered`, `area_entered`) no se pueden agregar ni sacar cuerpos o
@@ -130,6 +137,10 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   `main/game.tscn` con `GameRNG.start_run(seed)` antes de instanciarla.
 - Plantillas de sala: texto de 9 x 15 con la leyenda de `RoomTemplateParser`; cada `.tres` nuevo va
   en `content/rooms/floor_N/` y en la lista `templates` del `FloorTheme` (lo exige un test).
+- Items: un `.tres` por item en `content/items/` y en `catalog.tres` (lo exige un test). Los efectos
+  son `StatModifier` (stats de `StatBlock.STAT_NAMES`) y, si hace falta algo especial, un script en
+  `items/hooks/` que extiende `ItemHook`. Los activos necesitan hook con `on_use` y `max_charge`.
+  Las armas son items de tipo WEAPON que apuntan a un `WeaponData` de `content/weapons/`.
 
 ## Configuración del proyecto (project.godot)
 
@@ -149,27 +160,33 @@ addons/gut/                 GUT 9.7.1 (terceros, no modificar)
 autoload/                   game_rng, event_bus, audio_manager, run_state, debug
 core/physics_layers.gd      PhysicsLayers: bits de las capas de colisión
 core/rng/                   RngStreams: streams con seed derivada
-core/combat/                ShotSpec, HealthMath, PatternMath, HitInfo
+core/combat/                ShotSpec, HealthMath, PatternMath, HitInfo, WeaponSlot (munición y recarga)
 core/input/                 InputBuffer
 core/audio/                 SfxSynth (sintetizador de sonidos placeholder)
 core/floor_gen/             FloorGenerator, FloorLayout, RoomSlot, FloorParams, TemplatePicker, MinimapModel
 core/rooms/                 RoomTemplateParser (texto → RoomGrid)
 core/loot/                  RoomReward (premio por limpiar sala)
-data/                       StatBlock, WeaponData, EnemyData, BulletPatternData, SfxData, SfxLibrary,
-                            RoomTemplate, FloorTheme, PickupData
-content/                    weapons/, enemies/ (carnero, vigia, farol), patterns/ (4), sfx/sfx_library,
+core/stats/                 StatCalculator (base + ADD, × MULT, límites)
+core/items/                 ItemPool (sorteo por pool y rareza, sin repetir)
+data/                       StatBlock, StatModifier, WeaponData, ItemData, ItemCatalog, EnemyData,
+                            BulletPatternData, SfxData, SfxLibrary, RoomTemplate, FloorTheme, PickupData
+content/                    weapons/ (pistola, trabuco, metralla, haz, órbita), items/ (15 + catalog),
+                            enemies/ (carnero, vigia, farol), patterns/ (4), sfx/sfx_library,
                             rooms/floor_1/ (16 plantillas), floors/floor_1, pickups/ (coin, heart, bomb, key)
-components/                 Weapon, Health, Hurtbox, Hitbox, Knockback, Flash, BulletEmitter, state_machine/
+items/                      ItemHook (base), HookContext, hooks/ (diente de leche, rencor, estallido, caparazón)
+components/                 Weapon, LaserBeam, OrbitRing, Health, Hurtbox, Hitbox, Knockback, Flash,
+                            BulletEmitter, ItemHookRunner, state_machine/
 entities/player/            player.tscn/.gd, player_visual.gd, states/ (move, roll, dead)
 entities/enemies/           enemy.tscn/.gd, enemy_visual.gd, states/ (idle, move, telegraph, attack, recover)
-entities/bullets/           bullet.tscn/.gd
-entities/pickups/           pickup.tscn/.gd, pickup_visual.gd
+entities/bullets/           bullet.tscn/.gd (rebote, perforación, teledirigido)
+entities/pickups/           pickup.tscn/.gd, pickup_visual.gd, item_pedestal.tscn/.gd, item_pedestal_visual.gd
 entities/bomb/              bomb.tscn/.gd
 world/                      floor_controller, room.tscn/.gd, room_builder, door.tscn/.gd, door_visual,
                             rock.tscn/.gd, pit.tscn, test_room.tscn (sala fija de la arena de tests)
 fx/                         game_camera, hit_stop, fx (spawner), flash.gdshader, pixel_bitmap, pixel_icons,
                             partículas (bullet_impact, burst, dust_puff), floor_stain, pulse_wave, placeholder_shape
-ui/hud/                     hud.tscn/.gd, hearts_display, pulse_display, counters_display
+ui/hud/                     hud.tscn/.gd, hearts_display, pulse_display, counters_display, active_display,
+                            items_display, weapon_display, item_banner
 ui/minimap/                 minimap.gd
 debug/                      demo_input.gd
 main/                       main.tscn/.gd (raíz, reinicio, salida prolija) → game.tscn/.gd (una run, un piso)
@@ -177,8 +194,9 @@ tools/                      check_scripts.gd, setup_input_map.gd
 tests/fixtures/             arena.tscn (sala fija con jugador, para tests de combate)
 tests/unit/                 rng_streams, shot_spec, health_math, pattern_math, input_buffer, sfx_synth, content,
                             floor_generator (500 seeds), room_template_parser, template_picker, minimap_model,
-                            room_reward
-tests/integration/          player_shooting, bullets, combat, main_flow, floor, rooms
+                            room_reward, stat_calculator, item_pool, weapon_slot
+tests/integration/          player_shooting, bullets, combat, main_flow, floor, rooms, items,
+                            bullet_behaviors, weapons
 docs/PLAN.md                plan, arquitectura e hitos
 ```
 
@@ -201,17 +219,32 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
 - **Salas:** `Room` + `RoomBuilder` arman piso, paredes con huecos de 32 px, puertas, rocas (`Rock`,
   rompibles) y fosos (capa pit: frenan cuerpos, no balas) desde el `RoomGrid` de la plantilla.
   Fases: UNVISITED → FIGHTING (puertas cerradas, oleadas por mayúsculas/minúsculas) → CLEARED
-  (puertas abiertas, `RoomReward` con el stream LOOT). Puertas: `Door.Mode` OPEN / CLOSED / HIDDEN.
-- **Secretas:** las puertas a la secreta arrancan HIDDEN en las dos salas. Una explosión
-  (`EventBus.exploded`) cerca de una puerta oculta de la sala actual la destapa de los dos lados.
+  (puertas abiertas, `RoomReward` con el stream LOOT). Los enemigos sueltan monedas a veces.
+  Puertas: `Door.Mode` OPEN / CLOSED / HIDDEN (secreta) / LOCKED (tienda).
+- **Barreras:** `FloorController._barrier(a, b)` decide cada puerta: HIDDEN si toca la secreta, LOCKED
+  si toca la tienda. Una explosión (`EventBus.exploded`) cerca de una HIDDEN la destapa; tocar una
+  LOCKED desde adentro con una llave la abre. Se abren de los dos lados (`_open_edge`).
 - **Pickups y bombas:** `Pickup` (Area2D en capa pickup) da monedas/bombas/llaves a `RunState` o cura
   (el corazón solo si falta vida). `Bomb`: mecha 1.6 s, radio 34, lastima a enemigos y jugador, rompe
   rocas y emite `EventBus.exploded`.
-- **Stats y armas:** `RunState.stats` (StatBlock) × `WeaponData` → `ShotSpec.build()`; cadencia con
-  `ShotSpec.fire_interval()`. Balas enemigas: `ShotSpec.from_pattern(BulletPatternData)`.
+- **Items:** `RunState.add_item()` reparte por tipo: pasivo (a `items`, recalcula `stats` con
+  `StatCalculator`), activo (reemplaza al anterior y lo devuelve para dejarlo en el pedestal), arma
+  (`add_weapon`). `RunState.item_pool` (`ItemPool`) sortea sin repetir en la run; `FloorController`
+  sortea al generar el piso un item para el tesoro y tres para la tienda (`RoomSlot.offers`), que
+  `Room` pone en `ItemPedestal` (con precio en la tienda). `ItemHookRunner` (en el jugador) despacha
+  los eventos a los `ItemHook` (los que vienen de la física, diferidos). El activo se usa con Q y se
+  carga una vez por sala limpia (`RunState._on_room_cleared`).
+- **Stats y armas:** `RunState.stats` (StatBlock) × `WeaponData` → `ShotSpec.build()` (incluye rebote,
+  perforación, teledirigido y tamaño); cadencia con `ShotSpec.fire_interval()`. Las armas son
+  `WeaponSlot` en `RunState.weapons` (munición, cargador, recarga). `WeaponComponent.trigger()` cada
+  tick mientras se mantiene el gatillo: SINGLE/SPREAD/BURST disparan balas, LASER usa `LaserBeam` y
+  ORBITAL usa `OrbitRing`. Recarga sola al vaciar el cargador; limpiar una sala devuelve 25 % de
+  munición. Balas enemigas: `ShotSpec.from_pattern(BulletPatternData)`.
 - **Balas:** `Bullet.spawn()` las pone en el nodo del grupo `projectiles`. Capa/máscara de quien
   dispara. Mueren por alcance, al chocar paredes/rocas (`body_entered`) o al golpear un
-  `HurtboxComponent` (`area_entered`); si el hurtbox está invulnerable siguen de largo.
+  `HurtboxComponent` (`area_entered`); si el hurtbox está invulnerable siguen de largo. Con rebotes
+  traza un rayo por paso y refleja la velocidad; con perforación sigue (sin pegarle dos veces al
+  mismo); con teledirigido dobla hacia el enemigo vivo más cercano.
 - **Daño:** `HurtboxComponent.receive_hit(HitInfo)` → `HealthComponent.take_damage()` (cuentas en
   `HealthMath`, i-frames con `invulnerability_after_hit`) → señal `hurt(info)` para que el dueño haga
   empujón (`KnockbackComponent`), flash/parpadeo (`FlashComponent`, shader `fx/flash.gdshader`), sonido,
@@ -220,9 +253,10 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   de Pulso (`RunState.blanks`, 2 por run), monedas, bombas (arranca con 1) y llaves viven en `RunState`.
 - **Estados:** `StateMachine` + nodos `State`; el dueño llama `machine.start()` en su `_ready` y
   `machine.physics_update(delta)` en su `_physics_process`. Transiciones con `transition_to(&"Nombre")`.
-- **Jugador:** `Player` registra en el `InputBuffer` (0.1 s) los toques de shoot/dodge/blank/bomb y
-  delega en Move (caminar, apuntar, disparar, Pulso, bomba), Roll (0.32 s invulnerable, cooldown 0.3 s)
-  y Dead.
+- **Jugador:** `Player` registra en el `InputBuffer` (0.1 s) los toques de shoot, dodge, blank, bomb,
+  reload, swap_weapon y use_active, y delega en Move (caminar, apuntar, disparar, Pulso, bomba,
+  recargar, cambiar de arma, usar el activo), Roll (0.32 s invulnerable, cooldown 0.3 s) y Dead.
+  Sigue a `RunState`: el arma equipada (`weapons_changed`) y la vida máxima (`stats_changed`).
 - **Enemigos:** una sola escena `enemy.tscn` configurada por `EnemyData` (moverse: CHASE o
   KEEP_DISTANCE; atacar: CHARGE o SHOOT con patrones en orden). Estados compartidos:
   Idle (aparece, sin daño de contacto) → Move → Telegraph (parpadeo amarillo + "!" + sonido) →
@@ -232,15 +266,19 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   contenedores `Effects` y `Decals` de `game.tscn`.
 - **Audio:** `SfxLibrary` (`content/sfx/sfx_library.tres`) con un `SfxData` por id; si no tiene archivo,
   `SfxSynth` lo genera al arrancar. Pool de 16 reproductores; si están todos ocupados se omite el sonido.
-- **HUD:** `ui/hud` (CanvasLayer): corazones, Pulsos y contadores (monedas, bombas, llaves) dibujados
-  con `PixelBitmap` + `PixelIcons` sobre la pared de arriba; minimapa (`MinimapModel` → `Minimap`)
-  arriba a la derecha.
+- **HUD:** `ui/hud` (CanvasLayer), dibujado con `PixelBitmap` + `PixelIcons`. Arriba (sobre la pared):
+  corazones, Pulsos, contadores y el activo con su carga; minimapa (`MinimapModel` → `Minimap`) arriba
+  a la derecha. Abajo: items pasivos a la izquierda, arma y munición a la derecha. `ItemBanner` muestra
+  nombre y descripción al agarrar un item (texto con la fuente por defecto, sin antialiasing:
+  `gui/theme/default_font_antialiasing=0` en project.godot).
 - **Arte placeholder:** cada entidad tiene un hijo `Visual` (script `@tool` que dibuja). Reemplazable
   por sprites manteniendo su interfaz (`set_aim`, `play_hit`, `set_alert`, etc.).
 - **Debug:** autoload `Debug` (solo builds debug): F1 overlay abajo a la derecha (FPS, seed, sala,
   balas), F2 formas de colisión (hurtbox verde, hitbox rojo), F3 menú dev con los comandos que
-  registra la escena (`Debug.add_command(dueño, texto, callable)`; pausa el juego): ir al jefe, tesoro,
-  tienda, secreta o inicio, revelar mapa, limpiar sala, curar, invulnerable, Pulsos, +5 recursos, morir.
+  registra la escena (`Debug.add_command(dueño, texto, callable)`; un texto "Grupo/Nombre" va a un
+  submenú; pausa el juego): ir al jefe, tesoro, tienda, secreta o inicio, revelar mapa, limpiar sala,
+  curar, invulnerable, Pulsos, +5 recursos, cargar activo, morir e "Items" (un pedestal gratis con
+  cualquier item del catálogo, arriba del jugador).
 - **Coordenadas de una sala:** origen en el centro del interior; interior 240x144 (15x9 tiles de 16 px),
   paredes de 16 px. La celda (i, j) tiene centro en `(-112 + 16i, -64 + 16j)` (`RoomGrid.cell_center`).
   La sala inicial está en el origen del mundo; las demás en `(celda - inicio) * ROOM_STRIDE`.

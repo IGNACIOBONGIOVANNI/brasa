@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://data/item_data.gd" id="1_item"]
+[ext_resource type="Script" path="res://items/hooks/shell_hook.gd" id="3_hook"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"caparazon"
+display_name = "Caparazón"
+description = "Activo: 3 segundos invulnerable. Se carga en 3 salas"
+kind = 1
+rarity = 1
+pools = 11
+price = 8
+hook_script = ExtResource("3_hook")
+max_charge = 3
+icon = PackedStringArray("#######", "#.....#", "#.###.#", "#.....#", ".#...#.", "..#.#..", "...#...")
+icon_color = Color(0.478, 0.82, 1, 1)

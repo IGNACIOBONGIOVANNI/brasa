@@ -63,6 +63,15 @@ func heal(amount: float) -> void:
 	health_changed.emit(current, max_health)
 
 
+## Cambia el máximo. Si sube, la vida actual sube lo mismo (un contenedor nuevo llega lleno).
+func set_max(new_max: float) -> void:
+	var gained: float = maxf(0.0, new_max - max_health)
+	max_health = new_max
+	if not is_dead():
+		current = HealthMath.healed(current, gained, max_health)
+	health_changed.emit(current, max_health)
+
+
 ## Invulnerable durante `seconds` (si ya lo era por más tiempo, queda el mayor).
 func grant_invulnerability(seconds: float) -> void:
 	_invulnerable_left = maxf(_invulnerable_left, seconds)

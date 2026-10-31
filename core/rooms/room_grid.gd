@@ -27,6 +27,8 @@ class PickupMarker:
 var cells: Array[Cell] = []
 var enemies: Array[EnemyMarker] = []
 var pickups: Array[PickupMarker] = []
+## Lugares para pedestales con item.
+var item_spots: Array[Vector2i] = []
 var errors: PackedStringArray = []
 
 
@@ -91,7 +93,8 @@ func reachable_from(from: Vector2i) -> Dictionary[Vector2i, bool]:
 	return seen
 
 
-## Celda caminable más cercana a `pos` (para soltar recompensas o aparecer en el centro).
+## Celda caminable más cercana a `pos` (para soltar recompensas o aparecer en el centro), sin
+## contar los lugares de pedestales: así nadie aparece arriba de un item.
 func nearest_walkable(pos: Vector2i) -> Vector2i:
 	var best: Vector2i = pos
 	var best_distance: int = 1 << 30
@@ -99,7 +102,7 @@ func nearest_walkable(pos: Vector2i) -> Vector2i:
 		for x: int in WIDTH:
 			var cell := Vector2i(x, y)
 			var distance: int = (cell - pos).length_squared()
-			if is_walkable(cell) and distance < best_distance:
+			if is_walkable(cell) and not item_spots.has(cell) and distance < best_distance:
 				best = cell
 				best_distance = distance
 	return best

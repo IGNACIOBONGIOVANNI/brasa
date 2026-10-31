@@ -1,12 +1,14 @@
 class_name Door
 extends Node2D
 ## Puerta entre dos salas, en el hueco de una pared. Se arma orientada como la de arriba y se rota
-## según el lado. Abierta deja pasar y avisa cuando el jugador entra al hueco; cerrada (combate) u
-## oculta (sala secreta sin descubrir) bloquea como una pared.
+## según el lado. Abierta deja pasar y avisa cuando el jugador entra al hueco; cerrada (combate),
+## oculta (sala secreta sin descubrir) o con candado (tienda) bloquea como una pared. Con candado,
+## avisa cuando el jugador la toca desde adentro para abrirla con una llave.
 
 signal player_entered
+signal unlock_requested
 
-enum Mode { OPEN, CLOSED, HIDDEN }
+enum Mode { OPEN, CLOSED, HIDDEN, LOCKED }
 
 ## Color del marco según la sala del otro lado.
 const FRAME_COLORS: Dictionary[RoomSlot.Kind, Color] = {
@@ -21,6 +23,7 @@ var mode: Mode = Mode.OPEN
 
 @onready var _blocker_shape: CollisionShape2D = $Blocker/CollisionShape2D
 @onready var _trigger: Area2D = $Trigger
+@onready var _unlock_area: Area2D = $UnlockArea
 @onready var _visual: DoorVisual = $Visual
 
 
@@ -49,6 +52,7 @@ func setup(door_side: Vector2i, kind: RoomSlot.Kind, initial_mode: Mode, theme: 
 
 func _ready() -> void:
 	_trigger.body_entered.connect(_on_trigger_body_entered)
+	_unlock_area.body_entered.connect(_on_unlock_area_body_entered)
 	_apply_mode()
 
 
@@ -66,3 +70,8 @@ func _apply_mode() -> void:
 func _on_trigger_body_entered(body: Node2D) -> void:
 	if mode == Mode.OPEN and body is Player:
 		player_entered.emit()
+
+
+func _on_unlock_area_body_entered(body: Node2D) -> void:
+	if mode == Mode.LOCKED and body is Player:
+		unlock_requested.emit()

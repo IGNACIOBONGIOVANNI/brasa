@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://data/weapon_data.gd" id="1_weapon"]
+
+[resource]
+script = ExtResource("1_weapon")
+id = &"haz"
+display_name = "Haz"
+fire_mode = 3
+damage_mult = 1.2
+range_mult = 1.1
+ammo = 120
+magazine = 20
+reload_time = 1.2
+shake_trauma = 0.0
+sfx_id = &"laser"
+bullet_color = Color(1, 0.353, 0.82, 1)
+gun_color = Color(0.69, 0.353, 0.627, 1)
+gun_length = 7.0
+icon = PackedStringArray("...######", ".########", "####.....", "##.......", "##.......")
+icon_color = Color(1, 0.478, 0.851, 1)

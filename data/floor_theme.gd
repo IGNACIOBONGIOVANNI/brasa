@@ -18,6 +18,8 @@ extends Resource
 @export_group("Recompensas")
 ## Probabilidad de que limpiar una sala dé un pickup.
 @export_range(0.0, 1.0) var room_reward_chance: float = 0.6
+## Probabilidad de que un enemigo suelte una moneda al morir.
+@export_range(0.0, 1.0) var enemy_coin_chance: float = 0.15
 @export var pickups: Array[PickupData] = []
 
 @export_group("Paleta")
@@ -33,6 +35,13 @@ func enemy_for_symbol(symbol: String) -> EnemyData:
 	for enemy: EnemyData in enemies:
 		if enemy.template_char == symbol:
 			return enemy
+	return null
+
+
+func pickup_of_kind(kind: PickupData.Kind) -> PickupData:
+	for pickup: PickupData in pickups:
+		if pickup.kind == kind:
+			return pickup
 	return null
 
 

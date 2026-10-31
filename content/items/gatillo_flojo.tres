@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://data/item_data.gd" id="1_item"]
+[ext_resource type="Script" path="res://data/stat_modifier.gd" id="2_modifier"]
+
+[sub_resource type="Resource" id="Modifier_0"]
+script = ExtResource("2_modifier")
+stat = &"fire_rate"
+op = 1
+value = 1.5
+
+[sub_resource type="Resource" id="Modifier_1"]
+script = ExtResource("2_modifier")
+stat = &"damage"
+op = 1
+value = 0.85
+
+[resource]
+script = ExtResource("1_item")
+id = &"gatillo_flojo"
+display_name = "Gatillo flojo"
+description = "Disparás más rápido, un poco más flojo"
+kind = 0
+rarity = 0
+pools = 3
+price = 5
+modifiers = Array[ExtResource("2_modifier")]([SubResource("Modifier_0"), SubResource("Modifier_1")])
+icon = PackedStringArray("....##.", "...##..", "..##...", ".#####.", "...##..", "..##...", ".##....")
+icon_color = Color(1, 0.878, 0.4, 1)

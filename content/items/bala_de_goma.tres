@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://data/item_data.gd" id="1_item"]
+[ext_resource type="Script" path="res://data/stat_modifier.gd" id="2_modifier"]
+
+[sub_resource type="Resource" id="Modifier_0"]
+script = ExtResource("2_modifier")
+stat = &"bounces"
+op = 0
+value = 2.0
+
+[resource]
+script = ExtResource("1_item")
+id = &"bala_de_goma"
+display_name = "Bala de goma"
+description = "Las balas rebotan en las paredes"
+kind = 0
+rarity = 1
+pools = 11
+price = 7
+modifiers = Array[ExtResource("2_modifier")]([SubResource("Modifier_0")])
+icon = PackedStringArray("..###..", ".#####.", "#######", "#######", "#######", ".#####.", "..###..")
+icon_color = Color(1, 0.494, 0.714, 1)

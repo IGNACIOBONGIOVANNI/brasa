@@ -9,6 +9,12 @@ signal shake_requested(trauma: float)
 ## Pide congelar el juego `duration` segundos (lo maneja HitStop). Si llegan dos, gana el más largo.
 signal hitstop_requested(duration: float)
 signal enemy_killed(enemy: Node2D)
+## Un golpe le hizo daño a un enemigo.
+signal enemy_hit(enemy: Node2D, info: HitInfo)
+## El jugador agarró un pickup del piso (moneda, corazón, bomba, llave).
+signal pickup_collected(pickup: PickupData)
+## El jugador agarró un item de un pedestal.
+signal item_picked(item: ItemData)
 ## El jugador perdió vida (en medios corazones).
 signal player_damaged(amount: float)
 signal player_died

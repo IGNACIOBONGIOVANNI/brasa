@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://data/item_data.gd" id="1_item"]
+[ext_resource type="Resource" path="res://content/weapons/metralla.tres" id="4_weapon"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"arma_metralla"
+display_name = "Metralla"
+description = "Ráfagas de 3 balas"
+kind = 2
+rarity = 0
+pools = 3
+price = 8
+weapon = ExtResource("4_weapon")

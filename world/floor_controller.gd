@@ -2,8 +2,9 @@ class_name FloorController
 extends Node
 ## Arma y maneja el piso: genera el layout (FloorGenerator + TemplatePicker con el stream FLOOR),
 ## construye cada sala la primera vez que se entra (después quedan armadas, con sus rocas rotas y
-## sus pickups), mueve la cámara de sala en sala al cruzar una puerta, destapa las puertas a la
-## secreta con explosiones y guarda lo que muestra el minimapa.
+## sus pickups), sortea los items del tesoro y la tienda (stream LOOT), mueve la cámara de sala en
+## sala al cruzar una puerta, destapa las puertas a la secreta con explosiones, abre la tienda con
+## una llave y guarda lo que muestra el minimapa.
 
 signal map_changed
 
@@ -13,6 +14,8 @@ const ROOM_STRIDE: Vector2 = Vector2(320, 192)
 const TRANSITION_TIME: float = 0.3
 ## Margen extra (además del radio de la explosión) para destapar una puerta oculta.
 const SECRET_REVEAL_MARGIN: float = 16.0
+## Pedestales de la tienda.
+const SHOP_OFFERS: int = 3
 
 @export var theme: FloorTheme
 @export var rooms_root: Node2D
@@ -26,8 +29,8 @@ var visited: Dictionary[Vector2i, bool] = {}
 var discovered_secrets: Dictionary[Vector2i, bool] = {}
 var map_revealed: bool = false
 var _rooms: Dictionary[Vector2i, Room] = {}
-## Conexiones con la secreta ya destapadas (clave: las dos celdas ordenadas).
-var _opened_secret_edges: Dictionary[Vector4i, bool] = {}
+## Conexiones con barrera (secreta o tienda) ya abiertas (clave: las dos celdas ordenadas).
+var _opened_edges: Dictionary[Vector4i, bool] = {}
 var _transitioning: bool = false
 
 
@@ -37,6 +40,7 @@ func _ready() -> void:
 	var rng: RandomNumberGenerator = GameRNG.stream(RngStreams.FLOOR)
 	layout = FloorGenerator.generate(rng, _params())
 	TemplatePicker.assign(layout, theme.templates, rng)
+	_roll_offers()
 	_register_dev_commands()
 	var room: Room = _ensure_room(layout.start)
 	player.global_position = room.to_global(room.spawn_point())
@@ -113,18 +117,28 @@ func _ensure_room(cell: Vector2i) -> Room:
 	if _rooms.has(cell):
 		return _rooms[cell]
 	var neighbors: Dictionary[Vector2i, RoomSlot.Kind] = {}
-	var hidden_sides: Array[Vector2i] = []
+	var door_modes: Dictionary[Vector2i, Door.Mode] = {}
 	for next: Vector2i in layout.neighbors(cell):
 		neighbors[next - cell] = layout.get_slot(next).kind
-		if _is_hidden_edge(cell, next):
-			hidden_sides.append(next - cell)
+		door_modes[next - cell] = _barrier(cell, next)
 	var room := ROOM_SCENE.instantiate() as Room
 	room.position = room_position(cell)
-	room.setup(layout.get_slot(cell), theme, neighbors, hidden_sides, entities)
+	room.setup(layout.get_slot(cell), theme, neighbors, door_modes, entities)
 	room.door_entered.connect(_on_room_door_entered.bind(cell))
+	room.door_unlock_requested.connect(_on_room_door_unlock_requested.bind(cell))
 	rooms_root.add_child(room)
 	_rooms[cell] = room
 	return room
+
+
+## Un pedestal en el tesoro y tres en la tienda, sorteados al generar el piso.
+func _roll_offers() -> void:
+	var loot: RandomNumberGenerator = GameRNG.stream(RngStreams.LOOT)
+	for cell: Vector2i in layout.cells_of_kind(RoomSlot.Kind.TREASURE):
+		layout.get_slot(cell).offers.append(RunState.item_pool.draw(ItemData.POOL_TREASURE, loot))
+	for cell: Vector2i in layout.cells_of_kind(RoomSlot.Kind.SHOP):
+		for _i: int in SHOP_OFFERS:
+			layout.get_slot(cell).offers.append(RunState.item_pool.draw(ItemData.POOL_SHOP, loot))
 
 
 static func _edge_key(a: Vector2i, b: Vector2i) -> Vector4i:
@@ -133,25 +147,42 @@ static func _edge_key(a: Vector2i, b: Vector2i) -> Vector4i:
 	return Vector4i(b.x, b.y, a.x, a.y)
 
 
-func _is_hidden_edge(a: Vector2i, b: Vector2i) -> bool:
-	var touches_secret: bool = layout.get_slot(a).kind == RoomSlot.Kind.SECRET \
-			or layout.get_slot(b).kind == RoomSlot.Kind.SECRET
-	return touches_secret and not _opened_secret_edges.has(_edge_key(a, b))
+## Cómo está la puerta entre dos salas vecinas: oculta si da a la secreta, con candado si da a la
+## tienda, abierta si no (o si esa barrera ya se abrió).
+func _barrier(a: Vector2i, b: Vector2i) -> Door.Mode:
+	if _opened_edges.has(_edge_key(a, b)):
+		return Door.Mode.OPEN
+	var kinds: Array[RoomSlot.Kind] = [layout.get_slot(a).kind, layout.get_slot(b).kind]
+	if kinds.has(RoomSlot.Kind.SECRET):
+		return Door.Mode.HIDDEN
+	if kinds.has(RoomSlot.Kind.SHOP):
+		return Door.Mode.LOCKED
+	return Door.Mode.OPEN
 
 
-## Destapa la conexión entre dos salas (una es la secreta), en las dos salas si ya están armadas.
-func _open_secret_edge(a: Vector2i, b: Vector2i) -> void:
-	if not _is_hidden_edge(a, b):
+## Abre la barrera entre dos salas, en las dos si ya están armadas.
+func _open_edge(a: Vector2i, b: Vector2i) -> void:
+	if _barrier(a, b) == Door.Mode.OPEN:
 		return
-	_opened_secret_edges[_edge_key(a, b)] = true
+	_opened_edges[_edge_key(a, b)] = true
 	for pair: Vector4i in [Vector4i(a.x, a.y, b.x, b.y), Vector4i(b.x, b.y, a.x, a.y)]:
 		var room: Room = get_room(Vector2i(pair.x, pair.y))
 		if room != null:
-			room.reveal_door(Vector2i(pair.z - pair.x, pair.w - pair.y))
+			room.open_barrier(Vector2i(pair.z - pair.x, pair.w - pair.y))
 	for cell: Vector2i in [a, b]:
 		if layout.get_slot(cell).kind == RoomSlot.Kind.SECRET:
 			discovered_secrets[cell] = true
 	map_changed.emit()
+
+
+func _on_room_door_unlock_requested(side: Vector2i, cell: Vector2i) -> void:
+	if cell != current_cell:
+		return
+	if RunState.use_key():
+		_open_edge(cell, cell + side)
+		AudioManager.play_sfx(&"unlock")
+	else:
+		AudioManager.play_sfx(&"empty")
 
 
 ## Llega desde un callback de física (el trigger de la puerta): armar la sala nueva ahí no está
@@ -169,7 +200,7 @@ func _on_exploded(at: Vector2, radius: float) -> void:
 	for side: Vector2i in room.doors:
 		var door: Door = room.doors[side]
 		if door.mode == Door.Mode.HIDDEN and door.global_position.distance_to(at) <= radius + SECRET_REVEAL_MARGIN:
-			_open_secret_edge(current_cell, current_cell + side)
+			_open_edge(current_cell, current_cell + side)
 			found = true
 	if found:
 		AudioManager.play_sfx(&"secret_found")
@@ -189,9 +220,9 @@ func _register_dev_commands() -> void:
 
 func _go_to_kind(kind: RoomSlot.Kind) -> void:
 	var cell: Vector2i = layout.first_of_kind(kind)
-	if kind == RoomSlot.Kind.SECRET:
+	if kind == RoomSlot.Kind.SECRET or kind == RoomSlot.Kind.SHOP:
 		for next: Vector2i in layout.neighbors(cell):
-			_open_secret_edge(cell, next)
+			_open_edge(cell, next)
 	move_to(cell)
 
 

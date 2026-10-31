@@ -18,6 +18,7 @@ func enter(_previous: StringName) -> void:
 	_direction = (move_input if move_input != Vector2.ZERO else player.aim_direction).normalized()
 	_time_left = player.roll_time
 	player.health.grant_invulnerability(player.roll_time)
+	player.weapon.release()
 	player.visual.set_rolling(true)
 	AudioManager.play_sfx(&"roll", 0.08)
 	Fx.spawn(get_tree(), DUST_SCENE, player.global_position + Vector2(0, 4))

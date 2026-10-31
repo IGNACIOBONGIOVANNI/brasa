@@ -5,8 +5,11 @@ extends Node2D
 ## este mismo script con una sala fija y sin piso.
 
 const ENEMY_SCENE: PackedScene = preload("res://entities/enemies/enemy.tscn")
+const PEDESTAL_SCENE: PackedScene = preload("res://entities/pickups/item_pedestal.tscn")
 ## Cuánto da el comando de debug de recursos.
 const DEV_RESOURCES: int = 5
+## Dónde aparece el pedestal de debug respecto del jugador.
+const DEV_PEDESTAL_OFFSET: Vector2 = Vector2(0, -28)
 
 @onready var player: Player = $Entities/Player
 @onready var floor_controller: FloorController = get_node_or_null(^"FloorController") as FloorController
@@ -22,7 +25,20 @@ func _ready() -> void:
 	Debug.add_command(self, "Invulnerable si/no", _toggle_invulnerable)
 	Debug.add_command(self, "Recargar Pulsos", _refill_pulses)
 	Debug.add_command(self, "+5 monedas, bombas y llaves", _give_resources)
+	Debug.add_command(self, "Cargar activo", RunState.charge_active.bind(99))
 	Debug.add_command(self, "Matar al jugador", player.health.kill)
+	var catalog := load(RunState.CATALOG_PATH) as ItemCatalog
+	for item: ItemData in catalog.items + [catalog.filler]:
+		Debug.add_command(self, "Items/%s" % item.display_name, spawn_item_pedestal.bind(item))
+
+
+## Pone un pedestal gratis con `item` arriba del jugador (menú de debug).
+func spawn_item_pedestal(item: ItemData) -> ItemPedestal:
+	var pedestal := PEDESTAL_SCENE.instantiate() as ItemPedestal
+	pedestal.set_item(item, 0)
+	pedestal.position = _entities.to_local(player.global_position + DEV_PEDESTAL_OFFSET)
+	_entities.add_child(pedestal)
+	return pedestal
 
 
 func spawn_enemy(data: EnemyData, at: Vector2) -> Enemy:

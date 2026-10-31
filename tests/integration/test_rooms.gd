@@ -60,8 +60,8 @@ func _build_room(text: String, at: Vector2) -> Room:
 	var room := ROOM_SCENE.instantiate() as Room
 	room.position = at
 	var no_neighbors: Dictionary[Vector2i, RoomSlot.Kind] = {}
-	var no_hidden: Array[Vector2i] = []
-	room.setup(slot, FLOOR_1, no_neighbors, no_hidden, _game.get_node("Entities") as Node2D)
+	var no_barriers: Dictionary[Vector2i, Door.Mode] = {}
+	room.setup(slot, FLOOR_1, no_neighbors, no_barriers, _game.get_node("Entities") as Node2D)
 	_game.add_child(room)
 	return room
 
@@ -117,7 +117,7 @@ func test_coins_bombs_and_keys_are_collected() -> void:
 	await wait_physics_frames(5)
 	assert_eq(RunState.coins, 1)
 	assert_eq(RunState.bombs, RunState.START_BOMBS + 1)
-	assert_eq(RunState.keys, 1)
+	assert_eq(RunState.keys, RunState.START_KEYS + 1)
 	await wait_physics_frames(1)
 
 

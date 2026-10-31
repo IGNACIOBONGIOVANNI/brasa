@@ -1,6 +1,7 @@
 class_name PlayerMoveState
 extends State
-## Estado normal: caminar, apuntar, disparar, usar un Pulso, poner una bomba y empezar a rodar.
+## Estado normal: caminar, apuntar, disparar, usar un Pulso, poner una bomba, recargar, cambiar de
+## arma, usar el activo y empezar a rodar.
 
 @onready var player: Player = owner as Player
 
@@ -14,4 +15,5 @@ func physics_update(delta: float) -> void:
 		return
 	player.try_pulse()
 	player.try_bomb()
-	player.try_shoot()
+	player.try_weapon_actions()
+	player.try_shoot(delta)

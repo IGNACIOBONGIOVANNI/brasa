@@ -10,6 +10,8 @@ var kind: Kind = Kind.NORMAL
 var distance: int = 0
 ## La asigna TemplatePicker después de generar el layout.
 var template: RoomTemplate
+## Items de los pedestales (tesoro y tienda), sorteados al generar el piso.
+var offers: Array[ItemData] = []
 
 
 func _init(slot_cell: Vector2i = Vector2i.ZERO, slot_kind: Kind = Kind.NORMAL) -> void:

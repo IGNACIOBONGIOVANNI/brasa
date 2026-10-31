@@ -1,20 +1,24 @@
 extends GutTest
-## Contenido (.tres): enemigos, patrones, sonidos, plantillas de sala, pickups y el tema del piso
-## cargan bien y son coherentes entre sí.
+## Contenido (.tres): enemigos, patrones, sonidos, plantillas de sala, pickups, items, armas y el
+## tema del piso cargan bien y son coherentes entre sí.
 
 const ENEMIES_DIR: String = "res://content/enemies/"
 const PATTERNS_DIR: String = "res://content/patterns/"
 const PICKUPS_DIR: String = "res://content/pickups/"
 const ROOMS_DIR: String = "res://content/rooms/floor_1/"
+const ITEMS_DIR: String = "res://content/items/"
+const WEAPONS_DIR: String = "res://content/weapons/"
 const LIBRARY: SfxLibrary = preload("res://content/sfx/sfx_library.tres")
 const FLOOR_1: FloorTheme = preload("res://content/floors/floor_1.tres")
+const CATALOG: ItemCatalog = preload("res://content/items/catalog.tres")
 ## Distancia mínima (en celdas, contando diagonales) entre un enemigo y la entrada de una puerta.
 const ENEMY_DOOR_DISTANCE: int = 3
 ## Sonidos que el código pide por id (además de los sfx_id de armas, patrones y pickups).
 const CODE_SFX: Array[StringName] = [
 	&"enemy_hit", &"enemy_die", &"player_hurt", &"player_die", &"roll", &"pulse", &"empty",
 	&"telegraph", &"charge", &"door_close", &"door_open", &"room_clear", &"bomb_place",
-	&"explosion", &"rock_break", &"secret_found",
+	&"explosion", &"rock_break", &"secret_found", &"item_pickup", &"buy", &"unlock", &"reload",
+	&"weapon_swap", &"active_use", &"active_ready", &"pickup_heart",
 ]
 
 
@@ -67,9 +71,11 @@ func test_sfx_ids_are_unique() -> void:
 func test_every_sound_used_exists() -> void:
 	var ids: Array[StringName] = _sfx_ids()
 	var used: Array[StringName] = CODE_SFX.duplicate()
-	var weapon: WeaponData = load("res://content/weapons/base_shot.tres")
-	used.append(weapon.sfx_id)
-	used.append(weapon.impact_sfx_id)
+	for resource: Resource in _load_all(WEAPONS_DIR):
+		var weapon := resource as WeaponData
+		for id: StringName in [weapon.sfx_id, weapon.impact_sfx_id]:
+			if id != &"":
+				used.append(id)
 	for resource: Resource in _load_all(PATTERNS_DIR):
 		used.append((resource as BulletPatternData).sfx_id)
 	for resource: Resource in _load_all(PICKUPS_DIR):
@@ -132,3 +138,86 @@ func test_pickups_cover_every_kind_with_unique_symbols() -> void:
 		kinds[pickup.kind] = true
 		assert_true(RoomTemplateParser.PICKUP_SYMBOLS.contains(pickup.template_symbol))
 	assert_eq(kinds.size(), PickupData.Kind.size(), "moneda, corazón, bomba y llave")
+
+
+func test_items_are_valid() -> void:
+	var ids: Dictionary[StringName, bool] = {}
+	var all: Array[ItemData] = CATALOG.items.duplicate()
+	all.append(CATALOG.filler)
+	for item: ItemData in all:
+		assert_false(ids.has(item.id), "id repetido: %s" % item.id)
+		ids[item.id] = true
+		assert_ne(item.display_name, "", "%s tiene nombre" % item.id)
+		assert_ne(item.description, "", "%s tiene descripción" % item.id)
+		assert_gt(item.price, 0, "%s tiene precio" % item.id)
+		var icon: PackedStringArray = item.get_icon()
+		assert_false(icon.is_empty(), "%s tiene ícono" % item.id)
+		for row: String in icon:
+			assert_eq(row.length(), icon[0].length(), "%s: filas del ícono parejas" % item.id)
+		for modifier: StatModifier in item.modifiers:
+			assert_has(StatBlock.STAT_NAMES, modifier.stat, "%s: stat %s existe" % [item.id, modifier.stat])
+		if item.hook_script != null:
+			assert_not_null(item.hook_script.new() as ItemHook, "%s: el hook extiende ItemHook" % item.id)
+		match item.kind:
+			ItemData.Kind.ACTIVE:
+				assert_gt(item.max_charge, 0, "%s: activo con carga" % item.id)
+				assert_not_null(item.hook_script, "%s: activo con hook" % item.id)
+			ItemData.Kind.WEAPON:
+				assert_not_null(item.weapon, "%s: arma con WeaponData" % item.id)
+	assert_eq(CATALOG.filler.pools, 0, "el relleno no está en ningún pool")
+
+
+func test_catalog_has_the_milestone_items() -> void:
+	var passive_or_active: int = 0
+	var actives: int = 0
+	var stats_touched: Dictionary[StringName, bool] = {}
+	for item: ItemData in CATALOG.items:
+		if item.kind != ItemData.Kind.WEAPON:
+			passive_or_active += 1
+		if item.kind == ItemData.Kind.ACTIVE:
+			actives += 1
+		for modifier: StatModifier in item.modifiers:
+			stats_touched[modifier.stat] = true
+	assert_gte(passive_or_active, 10, "al menos 10 items")
+	assert_gte(actives, 2, "al menos 2 activos")
+	for stat: StringName in [&"bounces", &"pierce", &"homing"]:
+		assert_true(stats_touched.has(stat), "algún item da %s" % stat)
+	for pool: int in [ItemData.POOL_TREASURE, ItemData.POOL_SHOP]:
+		var count: int = 0
+		for item: ItemData in CATALOG.items:
+			if item.is_in_pool(pool):
+				count += 1
+		assert_gte(count, FloorController.SHOP_OFFERS + 1, "el pool %d alcanza para un piso" % pool)
+
+
+func test_every_item_file_is_in_the_catalog() -> void:
+	var in_catalog: Dictionary[String, bool] = {CATALOG.filler.resource_path: true}
+	for item: ItemData in CATALOG.items:
+		in_catalog[item.resource_path] = true
+	for resource: Resource in _load_all(ITEMS_DIR):
+		if resource is ItemData:
+			assert_true(in_catalog.has(resource.resource_path), "%s está en el catálogo" % resource.resource_path)
+
+
+func test_weapons_are_valid_and_cover_every_mode() -> void:
+	var modes: Dictionary[WeaponData.FireMode, bool] = {}
+	for resource: Resource in _load_all(WEAPONS_DIR):
+		var weapon := resource as WeaponData
+		assert_not_null(weapon, "%s es WeaponData" % resource.resource_path)
+		modes[weapon.fire_mode] = true
+		assert_eq(weapon.icon.size(), 5, "%s: ícono de 5 filas" % weapon.id)
+		for row: String in weapon.icon:
+			assert_eq(row.length(), 9, "%s: ícono de 9 columnas" % weapon.id)
+		assert_true(weapon.magazine != 0 and weapon.ammo != 0, "%s: munición coherente" % weapon.id)
+	assert_eq(modes.size(), WeaponData.FireMode.size(), "simple, escopeta, ráfaga, láser y orbital")
+
+
+func test_treasure_and_shop_have_pedestal_spots() -> void:
+	for template: RoomTemplate in FLOOR_1.templates:
+		var spots: int = RoomTemplateParser.parse(template.layout).item_spots.size()
+		if template.kind == RoomSlot.Kind.TREASURE:
+			assert_eq(spots, 1, "%s: un pedestal" % template.id)
+		elif template.kind == RoomSlot.Kind.SHOP:
+			assert_eq(spots, FloorController.SHOP_OFFERS, "%s: un pedestal por oferta" % template.id)
+		else:
+			assert_eq(spots, 0, "%s: sin pedestales" % template.id)

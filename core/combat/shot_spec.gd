@@ -15,6 +15,12 @@ var max_range: float
 var knockback: float
 var radius: float
 var color: Color
+## Rebotes en paredes antes de morir.
+var bounces: int = 0
+## Enemigos que atraviesa antes de morir.
+var pierce: int = 0
+## Qué tanto dobla hacia el enemigo más cercano (0 a 1).
+var homing: float = 0.0
 ## Sonido al chocar una pared; vacío = sin sonido.
 var impact_sfx_id: StringName = &""
 
@@ -25,8 +31,11 @@ static func build(stats: StatBlock, weapon: WeaponData) -> ShotSpec:
 	spec.speed = maxf(MIN_SPEED, stats.shot_speed * weapon.shot_speed_mult)
 	spec.max_range = maxf(MIN_RANGE, stats.shot_range * weapon.range_mult)
 	spec.knockback = weapon.knockback
-	spec.radius = weapon.bullet_radius
+	spec.radius = weapon.bullet_radius * stats.shot_size
 	spec.color = weapon.bullet_color
+	spec.bounces = roundi(stats.bounces)
+	spec.pierce = roundi(stats.pierce)
+	spec.homing = stats.homing
 	spec.impact_sfx_id = weapon.impact_sfx_id
 	return spec
 

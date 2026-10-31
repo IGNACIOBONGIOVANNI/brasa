@@ -2,7 +2,8 @@ extends Node
 ## Herramientas de debug, solo en builds debug.
 ## F1: overlay (abajo a la derecha) con FPS, seed, sala actual y cantidad de balas.
 ## F2: muestra las formas de colisión (cuerpos, hurtboxes en verde, hitboxes en rojo).
-## F3: menú de desarrollo con los comandos que registra la escena actual (pausa el juego).
+## F3: menú de desarrollo con los comandos que registra la escena actual (pausa el juego). Un
+## comando "Grupo/Nombre" va adentro del submenú "Grupo".
 ## Argumentos de usuario (después de "--"): --debug-overlay muestra el overlay al arrancar,
 ## --demo-input simula input (ver DemoInput) para capturas y corridas automáticas, y
 ## --quit-frames=N cierra el juego prolijo (Main.quit_game) a los N frames. Usar este y no el
@@ -11,6 +12,7 @@ extends Node
 const OVERLAY_LAYER: int = 100
 const FONT_SIZE: int = 8
 const QUIT_FRAMES_PREFIX: String = "--quit-frames="
+const MENU_SIZE: Vector2 = Vector2(170, 150)
 
 
 ## Comando del menú F3. Se descarta solo cuando su dueño sale del árbol.
@@ -25,6 +27,8 @@ var _label: Label
 var _menu_layer: CanvasLayer
 var _menu_list: VBoxContainer
 var _commands: Array[DevCommand] = []
+## Submenú abierto ("" = el principal).
+var _menu_group: String = ""
 ## Frame en el que se cierra el juego (--quit-frames). -1 = nunca.
 var _quit_at_frame: int = -1
 var _room_text: String = "-"
@@ -118,12 +122,24 @@ func _build_menu() -> void:
 	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	panel.grow_vertical = Control.GROW_DIRECTION_BOTH
 	_menu_layer.add_child(panel)
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = MENU_SIZE
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.follow_focus = true
+	panel.add_child(scroll)
 	_menu_list = VBoxContainer.new()
+	_menu_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_menu_list.add_theme_constant_override(&"separation", 1)
-	panel.add_child(_menu_list)
+	scroll.add_child(_menu_list)
+
+
+func _open_group(group: String) -> void:
+	_menu_group = group
+	_fill_menu()
 
 
 func _set_menu_open(open: bool) -> void:
+	_menu_group = ""
 	_menu_layer.visible = open
 	get_tree().paused = open
 	if open:
@@ -139,15 +155,31 @@ func _fill_menu() -> void:
 			alive.append(command)
 	_commands = alive
 	var title := Label.new()
-	title.text = "Menú dev (F3 o Esc cierra)"
+	title.text = "Menú dev" + (" > %s" % _menu_group if _menu_group != "" else " (F3 o Esc cierra)")
 	_style_label(title)
 	_menu_list.add_child(title)
 	var first: Button = null
+	var groups_shown: Dictionary[String, bool] = {}
 	for command: DevCommand in _commands:
-		var button := _add_button(command.label)
-		button.pressed.connect(_run_command.bind(command))
+		var slash: int = command.label.find("/")
+		var group: String = command.label.left(slash) if slash >= 0 else ""
+		var button: Button = null
+		if _menu_group == "" and group != "":
+			if groups_shown.has(group):
+				continue
+			groups_shown[group] = true
+			button = _add_button("%s >" % group)
+			button.pressed.connect(_open_group.bind(group))
+		elif group == _menu_group:
+			button = _add_button(command.label.substr(slash + 1))
+			button.pressed.connect(_run_command.bind(command))
+		else:
+			continue
 		if first == null:
 			first = button
+	if _menu_group != "":
+		var back := _add_button("< Volver")
+		back.pressed.connect(_open_group.bind(""))
 	var close := _add_button("Cerrar")
 	close.pressed.connect(_set_menu_open.bind(false))
 	(first if first != null else close).grab_focus.call_deferred()

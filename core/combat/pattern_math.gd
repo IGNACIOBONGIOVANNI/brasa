@@ -22,6 +22,16 @@ static func directions(pattern: BulletPatternData, aim: Vector2, volley_index: i
 	return single
 
 
+## `count` direcciones repartidas en 360°, la primera en `start_angle` (radianes).
+static func ring(count: int, start_angle: float = 0.0) -> Array[Vector2]:
+	return _circle(maxi(1, count), start_angle)
+
+
+## `count` direcciones en un abanico de `spread_degrees` centrado en `aim`.
+static func spread(count: int, aim: Vector2, spread_degrees: float) -> Array[Vector2]:
+	return _arc(maxi(1, count), aim.angle(), deg_to_rad(spread_degrees))
+
+
 static func _circle(count: int, start_angle: float) -> Array[Vector2]:
 	var result: Array[Vector2] = []
 	for i: int in count:
@@ -29,13 +39,13 @@ static func _circle(count: int, start_angle: float) -> Array[Vector2]:
 	return result
 
 
-static func _arc(count: int, center_angle: float, spread: float) -> Array[Vector2]:
+static func _arc(count: int, center_angle: float, arc_width: float) -> Array[Vector2]:
 	var result: Array[Vector2] = []
 	if count == 1:
 		result.append(Vector2.from_angle(center_angle))
 		return result
-	var step: float = spread / (count - 1)
-	var start: float = center_angle - spread * 0.5
+	var step: float = arc_width / (count - 1)
+	var start: float = center_angle - arc_width * 0.5
 	for i: int in count:
 		result.append(Vector2.from_angle(start + step * i))
 	return result

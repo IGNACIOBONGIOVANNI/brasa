@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://data/item_data.gd" id="1_item"]
+[ext_resource type="Resource" path="res://content/weapons/orbita.tres" id="4_weapon"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"arma_orbita"
+display_name = "Órbita"
+description = "Orbes que giran alrededor y frenan balas"
+kind = 2
+rarity = 1
+pools = 11
+price = 10
+weapon = ExtResource("4_weapon")

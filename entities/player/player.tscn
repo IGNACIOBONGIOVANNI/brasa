@@ -3,7 +3,6 @@
 [ext_resource type="Script" path="res://entities/player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://entities/player/player_visual.gd" id="2_visual"]
 [ext_resource type="Script" path="res://components/weapon_component.gd" id="3_weapon"]
-[ext_resource type="Resource" path="res://content/weapons/base_shot.tres" id="4_base_shot"]
 [ext_resource type="PackedScene" path="res://entities/bullets/bullet.tscn" id="5_bullet"]
 [ext_resource type="Script" path="res://components/health_component.gd" id="6_health"]
 [ext_resource type="Script" path="res://components/hurtbox_component.gd" id="7_hurtbox"]
@@ -13,6 +12,9 @@
 [ext_resource type="Script" path="res://entities/player/states/player_move_state.gd" id="11_move"]
 [ext_resource type="Script" path="res://entities/player/states/player_roll_state.gd" id="12_roll"]
 [ext_resource type="Script" path="res://entities/player/states/player_dead_state.gd" id="13_dead"]
+[ext_resource type="Script" path="res://components/laser_beam.gd" id="14_laser"]
+[ext_resource type="Script" path="res://components/orbit_ring.gd" id="15_orbit"]
+[ext_resource type="Script" path="res://components/item_hook_runner.gd" id="16_hooks"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_body"]
 radius = 4.0
@@ -36,10 +38,15 @@ script = ExtResource("2_visual")
 [node name="WeaponComponent" type="Node2D" parent="."]
 position = Vector2(0, -1)
 script = ExtResource("3_weapon")
-weapon = ExtResource("4_base_shot")
 bullet_scene = ExtResource("5_bullet")
 bullet_layer = 8
 bullet_mask = 129
+
+[node name="LaserBeam" type="Node2D" parent="WeaponComponent"]
+script = ExtResource("14_laser")
+
+[node name="OrbitRing" type="Node2D" parent="WeaponComponent"]
+script = ExtResource("15_orbit")
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("6_health")
@@ -75,3 +82,6 @@ script = ExtResource("12_roll")
 
 [node name="Dead" type="Node" parent="StateMachine"]
 script = ExtResource("13_dead")
+
+[node name="ItemHookRunner" type="Node" parent="."]
+script = ExtResource("16_hooks")

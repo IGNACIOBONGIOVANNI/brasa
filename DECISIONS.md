@@ -168,3 +168,45 @@ Formato: fecha, decisión, por qué. Lo marcado **(propuesta)** espera el OK del
 - **`Door.Mode` y `Room.Phase`** en vez de `State`: ya existe la clase global `State` de las máquinas
   de estado y el nombre chocaba.
 - **El sonido `pulse_empty` pasó a llamarse `empty`**: lo usan también las bombas cuando no hay.
+
+## Hito 4 — items (2026-10-30)
+
+- **Stats nuevos para las balas:** rebotes, perforación, teledirigido y tamaño son stats como el daño,
+  así cualquier item o arma los combina sin código especial (una bala de la escopeta con Bala de goma +
+  Aguja rebota y atraviesa). También la vida máxima es un stat: un contenedor nuevo llega lleno.
+- **Fórmula:** `(base + suma de ADD) × producto de MULT`, recortado a límites fijos (por ejemplo,
+  rebotes y perforación hasta 5, teledirigido hasta 1). No depende del orden en que se agarran.
+- **10 items** (nombres propios): Bala de goma (rebota ×2), Aguja (atraviesa ×2), Imán de pólvora
+  (teledirigido), Pólvora negra (+1 daño), Gatillo flojo (cadencia ×1.5, daño ×0.85), Corazón de
+  repuesto (+1 corazón), Diente de leche (cada 6 muertes cura medio corazón), Rencor (anillo de balas al
+  recibir daño) y dos activos: Estallido (anillo de 14 balas, 2 salas) y Caparazón (3 s invulnerable,
+  3 salas). Relleno cuando un pool se vacía: Galleta (+0.5 suerte), el único que se repite.
+- **Armas como items:** Trabuco (escopeta), Metralla (ráfaga), Haz (láser) y Órbita (orbes) salen en los
+  mismos pedestales. Agarrar un arma que ya se tiene le llena la munición en vez de duplicarla.
+- **Un solo hook por evento, diferido:** `on_hit`, `on_kill`, `on_damaged`, `on_pickup` y
+  `on_room_clear` llegan con `call_deferred` porque nacen en callbacks de física; así un hook puede
+  crear balas. `on_shoot` y `on_use` son directos. Un solo `HookContext` con campos por evento en vez de
+  una clase por evento: más simple y sigue siendo tipado.
+- **Activos:** llegan cargados; se usan con Q; cada sala limpia suma una carga; suena un aviso cuando
+  quedan listos. Agarrar otro activo deja el viejo en el pedestal (gratis) y hay que salir y volver a
+  entrar para cambiarlo de nuevo.
+- **Pools y rarezas:** cada pool pesa distinto común/poco común/rara (tesoro 1/0.6/0.3, tienda
+  1/0.5/0.15, jefe 0.4/1/0.6, secreta 0.6/1/0.5). Los items del tesoro (1) y la tienda (3) se sortean
+  **al generar el piso** con el stream LOOT, así la misma seed da los mismos items sin importar el
+  orden en que se limpian las salas. Un item sorteado sale del pool aunque no se agarre.
+- **Tienda con candado:** la puerta a la tienda arranca con candado y se abre tocándola con una llave.
+  Para que el primer piso siempre tenga tienda, la run arranca con **1 llave**. Precios entre 5 y 12.
+- **Economía:** además del premio por sala, cada enemigo tiene 15 % de soltar una moneda (stream LOOT).
+  Con la secreta (3 monedas) alcanza para más o menos un item de tienda por piso.
+- **Munición:** cada arma tiene cargador y reserva (la pistola es infinita). Al vaciar el cargador
+  recarga sola; R recarga antes. Limpiar una sala devuelve el 25 % de la munición máxima a cada arma.
+  Cambiar de arma (Tab / rueda / LB) corta la recarga en curso. Sin munición, "clic".
+- **Láser:** rayo continuo con el mismo daño por segundo que el arma tendría disparando balas (×1.2), daño
+  cada 0.1 s, corta en la primera pared y en el primer enemigo (o atraviesa tantos como la perforación).
+  Gasta una unidad por tick (cargador de 20 = 2 s de rayo).
+- **Orbital:** mientras se mantiene el gatillo, 3 orbes giran a 22 px; lastiman al tocar (cada 0.3 s
+  por enemigo) y borran balas enemigas. Gasta una unidad cada 0.25 s.
+- **HUD:** el activo y su carga arriba (al lado de los contadores), los pasivos abajo a la izquierda y el
+  arma con su munición abajo a la derecha, sobre las paredes. El cartel con el nombre del item usa la
+  fuente por defecto de Godot sin antialiasing (no hay fuente de píxeles todavía).
+- **Menú dev con submenús:** "Items" lista todo el catálogo y pone un pedestal gratis arriba del jugador.

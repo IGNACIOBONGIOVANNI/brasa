@@ -1,9 +1,11 @@
 @tool
 class_name PlayerVisual
 extends Node2D
-## Placeholder del jugador dibujado por código: sombra, cuerpo, ojos y arma que sigue la mira.
-## También dibuja el rol (bolita que gira, sin arma) y la muerte (tirado, ojos en cruz).
-## Se reemplaza por un sprite animado manteniendo set_aim(), play_fire(), set_rolling() y set_dead().
+## Placeholder del jugador dibujado por código: sombra, cuerpo, ojos y arma que sigue la mira (con
+## el color y largo del arma equipada). También dibuja el rol (bolita que gira, sin arma), la muerte
+## (tirado, ojos en cruz) y el escudo del Caparazón.
+## Se reemplaza por un sprite animado manteniendo set_aim(), play_fire(), set_rolling(), set_dead(),
+## set_gun() y show_shield().
 
 const FLASH_TIME: float = 0.05
 const RECOIL_PIXELS: float = 2.0
@@ -11,10 +13,12 @@ const RECOIL_PIXELS: float = 2.0
 const RECOIL_RECOVERY: float = 20.0
 ## Radianes por segundo que gira la "bolita" al rodar.
 const ROLL_SPIN_SPEED: float = 26.0
+const SHIELD_COLOR: Color = Color("7ad1ff")
 
 @export var body_color: Color = Color("e8c170")
 @export var outline_color: Color = Color("1b1420")
 @export var gun_color: Color = Color("8a8a9e")
+@export var gun_length: float = 6.0
 @export var flash_color: Color = Color("fff6d5")
 
 var aim_direction: Vector2 = Vector2.RIGHT
@@ -23,6 +27,19 @@ var _recoil: float = 0.0
 var _rolling: bool = false
 var _roll_spin: float = 0.0
 var _dead: bool = false
+var _shield_left: float = 0.0
+var _time: float = 0.0
+
+
+func set_gun(color: Color, length: float) -> void:
+	gun_color = color
+	gun_length = length
+	queue_redraw()
+
+
+func show_shield(seconds: float) -> void:
+	_shield_left = seconds
+	queue_redraw()
 
 
 func set_aim(direction: Vector2) -> void:
@@ -49,6 +66,10 @@ func set_dead(dead: bool) -> void:
 
 
 func _process(delta: float) -> void:
+	_time += delta
+	if _shield_left > 0.0:
+		_shield_left = maxf(0.0, _shield_left - delta)
+		queue_redraw()
 	if _rolling:
 		_roll_spin += ROLL_SPIN_SPEED * delta
 		queue_redraw()
@@ -69,6 +90,12 @@ func _draw() -> void:
 		_draw_rolling()
 	else:
 		_draw_standing()
+	if _shield_left > 0.0 and not _dead:
+		# Parpadea el último segundo para avisar que se termina.
+		var visible_now: bool = _shield_left > 1.0 or fmod(_time, 0.2) < 0.1
+		if visible_now:
+			draw_arc(Vector2(0, -2), 10.0 + sin(_time * 6.0), 0.0, TAU, 24, Color(SHIELD_COLOR, 0.8), 1.0)
+			draw_circle(Vector2(0, -2), 10.0, Color(SHIELD_COLOR, 0.12))
 
 
 func _draw_standing() -> void:
@@ -88,10 +115,10 @@ func _draw_standing() -> void:
 func _draw_gun() -> void:
 	draw_set_transform(Vector2(0, -1), aim_direction.angle())
 	var start: float = 4.0 - _recoil
-	draw_rect(Rect2(start - 1.0, -2.0, 8.0, 4.0), outline_color)
-	draw_rect(Rect2(start, -1.0, 6.0, 2.0), gun_color)
+	draw_rect(Rect2(start - 1.0, -2.0, gun_length + 2.0, 4.0), outline_color)
+	draw_rect(Rect2(start, -1.0, gun_length, 2.0), gun_color)
 	if _flash_left > 0.0:
-		draw_circle(Vector2(start + 8.0, 0.0), 2.5, flash_color)
+		draw_circle(Vector2(start + gun_length + 2.0, 0.0), 2.5, flash_color)
 	draw_set_transform(Vector2.ZERO)
 
 

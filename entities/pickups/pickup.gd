@@ -49,6 +49,7 @@ func _try_collect(player: Player) -> bool:
 		PickupData.Kind.KEY:
 			RunState.add_keys(data.amount)
 	AudioManager.play_sfx(data.sfx_id, 0.05)
+	EventBus.pickup_collected.emit(data)
 	var sparkle := Fx.spawn(get_tree(), SPARKLE_SCENE, global_position) as CPUParticles2D
 	sparkle.color = _visual.main_color()
 	queue_free()

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://data/item_data.gd" id="1_item"]
+[ext_resource type="Script" path="res://items/hooks/milk_tooth_hook.gd" id="3_hook"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"diente_de_leche"
+display_name = "Diente de leche"
+description = "Cada 6 enemigos muertos curás medio corazón"
+kind = 0
+rarity = 1
+pools = 9
+price = 7
+hook_script = ExtResource("3_hook")
+icon = PackedStringArray(".#####.", "#######", "#######", "#######", "##.#.##", "##...##", "#.....#")
+icon_color = Color(0.949, 0.937, 0.902, 1)

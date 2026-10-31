@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://data/item_data.gd" id="1_item"]
+[ext_resource type="Script" path="res://items/hooks/burst_hook.gd" id="3_hook"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"estallido"
+display_name = "Estallido"
+description = "Activo: un anillo de 14 balas. Se carga en 2 salas"
+kind = 1
+rarity = 0
+pools = 3
+price = 6
+hook_script = ExtResource("3_hook")
+max_charge = 2
+icon = PackedStringArray("...#...", "#..#..#", ".#####.", "..###..", ".#####.", "#..#..#", "...#...")
+icon_color = Color(1, 0.604, 0.235, 1)

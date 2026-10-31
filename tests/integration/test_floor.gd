@@ -137,3 +137,57 @@ func test_minimap_follows_visited_rooms() -> void:
 			_floor.current_cell, _floor.discovered_secrets, false)
 	assert_eq(states[_layout.start], MinimapModel.CellState.VISITED)
 	assert_eq(states[_layout.start + side], MinimapModel.CellState.CURRENT)
+
+
+func _pedestals_in(room: Room) -> Array[ItemPedestal]:
+	var result: Array[ItemPedestal] = []
+	for child: Node in room.get_node("Pickups").get_children():
+		if child is ItemPedestal:
+			result.append(child as ItemPedestal)
+	return result
+
+
+## Camina hacia la puerta de ese lado desde adentro de la sala actual.
+func _walk_into_door(room: Room, side: Vector2i) -> void:
+	_game.player.global_position = room.entry_point(side)
+	Input.action_press(MOVE_ACTIONS[side])
+	await wait_physics_frames(15)
+	Input.action_release(MOVE_ACTIONS[side])
+	_game.player.global_position = room.to_global(room.spawn_point())
+	await wait_physics_frames(2)
+
+
+func test_treasure_room_has_a_free_item() -> void:
+	await _floor.move_to(_layout.first_of_kind(RoomSlot.Kind.TREASURE))
+	var pedestals: Array[ItemPedestal] = _pedestals_in(_floor.current_room())
+	assert_eq(pedestals.size(), 1, "un pedestal")
+	assert_not_null(pedestals[0].item, "con un item")
+	assert_eq(pedestals[0].price, 0, "gratis")
+
+
+func test_shop_opens_with_a_key_and_sells_items() -> void:
+	var shop: Vector2i = _layout.first_of_kind(RoomSlot.Kind.SHOP)
+	var neighbor: Vector2i = _layout.neighbors(shop, false)[0]
+	await _floor.move_to(neighbor)
+	await _clear_current_room()
+	var room: Room = _floor.current_room()
+	var side: Vector2i = shop - neighbor
+	assert_eq(room.doors[side].mode, Door.Mode.LOCKED, "la tienda arranca con candado")
+	RunState.add_keys(-RunState.keys)
+	await _walk_into_door(room, side)
+	assert_eq(room.doors[side].mode, Door.Mode.LOCKED, "sin llave no abre")
+	RunState.add_keys(1)
+	await _walk_into_door(room, side)
+	assert_eq(room.doors[side].mode, Door.Mode.OPEN, "con la llave se abre")
+	assert_eq(RunState.keys, 0, "y se gasta")
+	# Al abrirse, el jugador puede haber seguido de largo y cruzado: se espera esa transición.
+	for _i: int in 60:
+		if not _floor.is_transitioning():
+			break
+		await wait_physics_frames(1)
+	if _floor.current_cell != shop:
+		await _floor.move_to(shop, side)
+	var pedestals: Array[ItemPedestal] = _pedestals_in(_floor.current_room())
+	assert_eq(pedestals.size(), FloorController.SHOP_OFFERS)
+	for pedestal: ItemPedestal in pedestals:
+		assert_gt(pedestal.price, 0, "en la tienda todo tiene precio")

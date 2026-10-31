@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://data/weapon_data.gd" id="1_weapon"]
+
+[resource]
+script = ExtResource("1_weapon")
+id = &"trabuco"
+display_name = "Trabuco"
+fire_mode = 1
+damage_mult = 0.6
+fire_rate_mult = 0.55
+range_mult = 0.6
+shot_speed_mult = 0.9
+projectiles = 5
+spread_degrees = 40.0
+ammo = 32
+magazine = 4
+reload_time = 1.1
+knockback = 110.0
+shake_trauma = 0.35
+bullet_radius = 2.5
+bullet_color = Color(1, 0.702, 0.4, 1)
+gun_color = Color(0.541, 0.416, 0.29, 1)
+gun_length = 8.0
+icon = PackedStringArray("#########", "#########", "####.....", "###......", "##.......")
+icon_color = Color(0.851, 0.639, 0.357, 1)

@@ -4,11 +4,13 @@ extends RefCounted
 ##
 ## Leyenda: "." piso, "#" roca, "o" foso; letra mayúscula = enemigo de la primera oleada,
 ## minúscula = de la segunda (la letra la define EnemyData.template_char; la "o" queda para los
-## fosos); "$" moneda, "+" corazón, "%" bomba, "&" llave (PickupData.template_symbol).
+## fosos); "$" moneda, "+" corazón, "%" bomba, "&" llave (PickupData.template_symbol); "*" lugar
+## para un pedestal con item (tesoro y tienda).
 ## Reglas: 9 filas de 15 caracteres, las celdas frente a las 4 puertas libres, y desde cualquier
-## puerta se llega a las otras y a todos los pickups.
+## puerta se llega a las otras, a todos los pickups y a todos los pedestales.
 
 const PICKUP_SYMBOLS: String = "$+%&"
+const ITEM_SPOT_SYMBOL: String = "*"
 
 
 static func parse(text: String) -> RoomGrid:
@@ -45,7 +47,9 @@ static func _read_cell(grid: RoomGrid, symbol: String, pos: Vector2i) -> RoomGri
 			return RoomGrid.Cell.ROCK
 		"o":
 			return RoomGrid.Cell.PIT
-	if PICKUP_SYMBOLS.contains(symbol):
+	if symbol == ITEM_SPOT_SYMBOL:
+		grid.item_spots.append(pos)
+	elif PICKUP_SYMBOLS.contains(symbol):
 		var pickup := RoomGrid.PickupMarker.new()
 		pickup.cell = pos
 		pickup.symbol = symbol
@@ -72,6 +76,9 @@ static func _validate(grid: RoomGrid) -> void:
 	for side: Vector2i in FloorLayout.DIRECTIONS:
 		if not reachable.has(RoomGrid.door_cells(side)[1]):
 			grid.errors.append("no se llega a la puerta %s" % side)
+	for spot: Vector2i in grid.item_spots:
+		if not reachable.has(spot):
+			grid.errors.append("no se llega al pedestal de (%d, %d)" % [spot.x, spot.y])
 	for pickup: RoomGrid.PickupMarker in grid.pickups:
 		if not reachable.has(pickup.cell):
 			grid.errors.append("no se llega al pickup de (%d, %d)" % [pickup.cell.x, pickup.cell.y])

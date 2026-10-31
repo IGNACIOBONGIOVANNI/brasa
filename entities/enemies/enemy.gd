@@ -108,6 +108,7 @@ func _on_hurt(info: HitInfo) -> void:
 	flash.flash(HIT_FLASH_TIME)
 	visual.play_hit()
 	AudioManager.play_sfx(&"enemy_hit", 0.12)
+	EventBus.enemy_hit.emit(self, info)
 
 
 func _die() -> void:
