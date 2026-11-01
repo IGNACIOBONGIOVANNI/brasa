@@ -1,9 +1,9 @@
 class_name OptionsMenu
 extends Control
 ## Opciones: volumen general y de la música (de a 10 %), pantalla completa y resolución de la ventana
-## (múltiplos de 320x180 que entran en el monitor; cada toque pasa a la siguiente). Se guardan en el
-## perfil y se aplican en el acto (SaveManager.apply_options). También deja volver a ver la intro. Esc
-## vuelve al menú.
+## (múltiplos de 320x180 que entran en el monitor; cada toque pasa a la siguiente). Son las mismas
+## para todas las partidas y se aplican en el acto (SaveManager.apply_options). También deja volver a
+## ver la intro. Esc vuelve al menú.
 
 signal back_requested
 signal story_requested
@@ -45,20 +45,20 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func change_volume(amount: float) -> void:
 	# Redondeado a pasos de 10 % para que no se acumulen errores de float.
-	SaveManager.set_volume(roundf((SaveManager.profile.volume + amount) / VOLUME_STEP) * VOLUME_STEP)
+	SaveManager.set_volume(roundf((SaveManager.options.volume + amount) / VOLUME_STEP) * VOLUME_STEP)
 
 
 func change_music_volume(amount: float) -> void:
-	SaveManager.set_music_volume(roundf((SaveManager.profile.music_volume + amount) / VOLUME_STEP) * VOLUME_STEP)
+	SaveManager.set_music_volume(roundf((SaveManager.options.music_volume + amount) / VOLUME_STEP) * VOLUME_STEP)
 
 
 func toggle_fullscreen() -> void:
-	SaveManager.set_fullscreen(not SaveManager.profile.fullscreen)
+	SaveManager.set_fullscreen(not SaveManager.options.fullscreen)
 
 
 ## Pasa a la resolución siguiente (después de la más grande vuelve a la más chica).
 func next_resolution() -> void:
-	SaveManager.set_window_scale(WindowScales.next(SaveManager.profile.window_scale, SaveManager.available_window_scales()))
+	SaveManager.set_window_scale(WindowScales.next(SaveManager.options.window_scale, SaveManager.available_window_scales()))
 
 
 func resolution_text() -> String:
@@ -66,12 +66,12 @@ func resolution_text() -> String:
 
 
 func _refresh() -> void:
-	_volume.text = "Volumen %d %%" % roundi(SaveManager.profile.volume * 100.0)
-	_music.text = "Música %d %%" % roundi(SaveManager.profile.music_volume * 100.0)
-	_fullscreen.text = "Pantalla completa: %s" % ("sí" if SaveManager.profile.fullscreen else "no")
+	_volume.text = "Volumen %d %%" % roundi(SaveManager.options.volume * 100.0)
+	_music.text = "Música %d %%" % roundi(SaveManager.options.music_volume * 100.0)
+	_fullscreen.text = "Pantalla completa: %s" % ("sí" if SaveManager.options.fullscreen else "no")
 	var window: Vector2i = SaveManager.window_size()
 	# En pantalla completa se usa la del monitor: la elegida queda para cuando vuelva a ventana.
-	_resolution.text = "Resolución: %dx%d%s" % [window.x, window.y, " (en ventana)" if SaveManager.profile.fullscreen else ""]
+	_resolution.text = "Resolución: %dx%d%s" % [window.x, window.y, " (en ventana)" if SaveManager.options.fullscreen else ""]
 
 
 ## Una fila "-  texto  +" que llama a `change` con -VOLUME_STEP o +VOLUME_STEP. Devuelve el "+".

@@ -36,7 +36,7 @@ func _ready() -> void:
 		elif arg.begins_with(FLOORS_ARG) and arg.trim_prefix(FLOORS_ARG).is_valid_int():
 			_floors = arg.trim_prefix(FLOORS_ARG).to_int()
 	_main = MAIN_SCENE.instantiate() as Main
-	_main.save_path = ""
+	_main.save_dir = ""
 	add_child(_main)
 	_run.call_deferred()
 

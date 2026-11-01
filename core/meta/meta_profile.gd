@@ -1,14 +1,12 @@
 class_name MetaProfile
 extends RefCounted
-## El progreso entre runs (lo que se guarda): chispas, items y personajes desbloqueados, logros, el
-## último personaje elegido, los totales de todas las runs y las opciones (volumen, música, pantalla completa, resolución). Pasa a y desde el diccionario del
-## guardado; al leer tolera claves que falten y tipos raros (quedan en su valor por defecto).
+## El progreso de una partida (lo que se guarda en su espacio): chispas, items y personajes
+## desbloqueados, logros, el último personaje elegido, si vio la intro y los totales de todas las
+## runs. Las opciones van aparte (GameOptions). Pasa a y desde el diccionario del guardado; al leer
+## tolera claves que falten y tipos raros (quedan en su valor por defecto).
 
 
 ## Lo que dejó una run terminada (para el resumen).
-const DEFAULT_MUSIC_VOLUME: float = 0.8
-
-
 class RunRewards:
 	var sparks: int = 0
 	var achievements: Array[AchievementData] = []
@@ -22,13 +20,6 @@ var last_character: StringName = &""
 var runs: int = 0
 var wins: int = 0
 var total_kills: int = 0
-## Volumen general, de 0 a 1.
-var volume: float = 1.0
-## Volumen de la música, de 0 a 1 (encima del general).
-var music_volume: float = DEFAULT_MUSIC_VOLUME
-var fullscreen: bool = false
-## Tamaño de la ventana en múltiplos de 320x180 (ver WindowScales).
-var window_scale: int = WindowScales.DEFAULT_SCALE
 ## Ya vio la intro de la historia (se muestra la primera vez que se aprieta Jugar).
 var intro_seen: bool = false
 
@@ -99,7 +90,6 @@ func to_dict() -> Dictionary:
 		"achievements": _ids(achievements),
 		"last_character": String(last_character),
 		"totals": {"runs": runs, "wins": wins, "kills": total_kills},
-		"options": {"volume": volume, "music_volume": music_volume, "fullscreen": fullscreen, "window_scale": window_scale},
 		"intro_seen": intro_seen,
 	}
 
@@ -118,19 +108,6 @@ static func from_dict(data: Dictionary) -> MetaProfile:
 		profile.runs = maxi(0, _int(totals, "runs"))
 		profile.wins = maxi(0, _int(totals, "wins"))
 		profile.total_kills = maxi(0, _int(totals, "kills"))
-	var options: Variant = data.get("options")
-	if options is Dictionary:
-		var volume_value: Variant = (options as Dictionary).get("volume")
-		if typeof(volume_value) == TYPE_FLOAT or typeof(volume_value) == TYPE_INT:
-			profile.volume = clampf(float(volume_value), 0.0, 1.0)
-		var music_value: Variant = (options as Dictionary).get("music_volume")
-		if typeof(music_value) == TYPE_FLOAT or typeof(music_value) == TYPE_INT:
-			profile.music_volume = clampf(float(music_value), 0.0, 1.0)
-		var fullscreen_value: Variant = (options as Dictionary).get("fullscreen")
-		profile.fullscreen = typeof(fullscreen_value) == TYPE_BOOL and fullscreen_value
-		var scale_value: Variant = (options as Dictionary).get("window_scale")
-		if typeof(scale_value) == TYPE_FLOAT or typeof(scale_value) == TYPE_INT:
-			profile.window_scale = clampi(int(scale_value), WindowScales.MIN_SCALE, WindowScales.MAX_SCALE)
 	var intro_value: Variant = data.get("intro_seen")
 	profile.intro_seen = typeof(intro_value) == TYPE_BOOL and intro_value
 	return profile

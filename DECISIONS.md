@@ -567,3 +567,30 @@ Pedido del usuario: "algún soundtrack piola tipo retro".
   de 1 s entre temas. La música sigue con el juego en pausa.
 - **Opción "Música"** (de a 10 %, 80 % por defecto) aparte del volumen general; los guardados viejos
   toman el valor por defecto. Bus "Music" creado por código (no hace falta un layout de buses).
+
+## Hito 15 — partidas (2026-11-01)
+
+Pedido del usuario: cuatro espacios de guardado, cada uno con su juego y su progreso, independientes,
+con un marcador de 0 a 100 %.
+
+- **Un archivo por partida** (`slot_1.json` a `slot_4.json` en `user://`), cada uno un `MetaProfile`
+  como el de antes: chispas, Taller, logros, personajes, totales e intro vista son de cada partida.
+- **Las opciones no son de ninguna partida:** volumen, música, pantalla completa y resolución pasan a
+  `options.json` (`GameOptions`), así cambiar de partida no cambia la ventana ni el volumen. También
+  guarda la última partida abierta: la pantalla de partidas arranca con el foco ahí y `--skip-menu`
+  la usa.
+- **El guardado de antes no se pierde:** si hay un `save.json` y ninguna partida usada, pasa a ser la
+  partida 1 y sus opciones van a `options.json`. El viejo queda como `save.json.bak` (no se vuelve a
+  leer: si después se borra la partida 1, no reaparece). Probado con una copia del guardado real.
+- **El porcentaje** cuenta cosas que se consiguen una sola vez y valen lo mismo: cada logro (7), cada
+  item bloqueado ya disponible (9, por logro o en el Taller), cada personaje bloqueado (2) y haber
+  ganado una run (1). Redondea para abajo, así 100 % es todo. Las chispas y las runs no suman (se
+  muestran aparte: runs y victorias en la pantalla de partidas).
+- **Pantalla de partidas** primero (antes del menú): las cuatro con su barra, porcentaje, runs y
+  victorias, o "vacía". Elegir una vacía empieza de cero (el archivo se crea al guardar algo).
+  "Borrar" pregunta "¿Borrarla?" en la misma fila (Sí, borrar / No). En el menú principal la partida
+  y su % van arriba, al lado de las chispas, y "Cambiar partida" vuelve a la pantalla de partidas;
+  Taller, Logros, Opciones y Cambiar partida van de a dos para que entren con la ayuda de controles.
+- **Corridas automáticas y tests nunca tocan la carpeta real:** `--demo-input` y `--save=` siguen sin
+  partidas (en memoria o con un archivo suelto). En los tests `SaveManager` bloquea los archivos
+  sueltos de `user://`; los de partidas usan una subcarpeta propia.

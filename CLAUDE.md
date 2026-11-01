@@ -5,8 +5,9 @@ estructura de los roguelites de salas + bullet hell, con contenido 100 % origina
 [docs/LORE.md](docs/LORE.md).
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 14 (música) terminado: banda sonora chiptune original (menú, un tema por piso y el del
-jefe) generada por código con `ChipTune`, con volumen propio en Opciones. Antes: hito 13 (lanzagranadas,
+**Estado:** Hito 15 (partidas) terminado: cuatro espacios de guardado independientes, cada uno con su
+progreso de 0 a 100 %, y las opciones aparte (las mismas para todas). Antes: hito 14 (música chiptune
+generada con `ChipTune`), hito 13 (lanzagranadas,
 bazuca, franco tirador, caño de riel y estados fuego, veneno, corrupción y apagado), hito 12 (8 enemigos nuevos),
 tirar la bomba manteniendo, hito 11 (luz y efectos), hito 10 (calidades C a S++), hito 9 (lore, título
 "Brasa"), hito 8 (texto, armas, Mochila). El usuario va a
@@ -51,17 +52,21 @@ Todos los flags están confirmados con `--help` en 4.7.2. `sed 's/\x1b\[[0-9;]*m
 | Comparar un arma (bot) | `... balance_probe.tscn -- --seed=1234 --floors=2 --weapon=haz` |
 
 Argumentos de usuario del juego (van después de `--`): `--seed=N` fija la seed de todas las runs,
-`--skip-menu` arranca directo en una run, `--demo-input` simula input (moverse en ocho, girar la mira,
+`--skip-menu` arranca directo en una run (en la última partida abierta), `--demo-input` simula input (moverse en ocho, girar la mira,
 disparar, rodar, Pulso, bomba y "aceptar" en los menús cada 3 s; también salta el menú),
 `--debug-overlay` muestra el overlay, `--quit-frames=N` cierra el juego prolijo a los N frames y
-`--save=RUTA` usa otro archivo de guardado (por ejemplo `--save=user://prueba.json`).
-**Para cortar corridas usar `--quit-frames`, no el `--quit-after` de Godot** (ver gotchas). Sin
-`--skip-menu` ni `--demo-input` el juego arranca en el menú principal.
+`--save=RUTA` usa un archivo suelto en vez de las partidas (por ejemplo `--save=user://prueba.json`;
+las opciones quedan en memoria). **Para cortar corridas usar `--quit-frames`, no el `--quit-after` de
+Godot** (ver gotchas). Sin `--skip-menu`, `--demo-input` ni `--save=` el juego arranca en la pantalla de
+partidas (con las reales: en corridas automáticas pasar siempre `--save=` o `--demo-input`).
 
-**Guardado:** el real es `user://save.json` =
-`%APPDATA%\Godot\app_userdata\mi-roguelite\save.json`. Con `--demo-input` (y sin `--save=`) el
-progreso queda solo en memoria, así las corridas automáticas no lo tocan. Los tests tampoco: el
-`pre_run_script` de `.gutconfig.json` (`tests/pre_run_hook.gd`) deja el `SaveManager` en memoria.
+**Guardado:** en `user://` = `%APPDATA%\Godot\app_userdata\mi-roguelite\`: las cuatro partidas
+(`slot_1.json` a `slot_4.json`) y las opciones (`options.json`). El `save.json` de antes de las
+partidas pasa solo a la partida 1 la primera vez (queda una copia, `save.json.bak`). Con
+`--demo-input` (y sin `--save=`) el progreso queda solo en memoria, así las corridas automáticas no
+lo tocan. Los tests tampoco: el `pre_run_script` de `.gutconfig.json` (`tests/pre_run_hook.gd`) deja
+el `SaveManager` en memoria y nunca usa archivos sueltos en `user://`; los tests de partidas usan una
+subcarpeta propia (`Main.save_dir`) y la borran.
 
 **Movie Maker funciona** (abre una ventana unos segundos): graba PNG a 1280x720 (el tamaño de la
 ventana) en `captures/` (`frame00000000.png`, ...) y además `frame.wav` (estéreo, 48 kHz, 32 bits)
@@ -194,7 +199,9 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
 - Para mirar con Movie Maker situaciones a las que `--demo-input` no llega (otras salas, secreta), sirve
   una escena descartable en `captures/` (ignorada por git) que instancie `main.tscn` y llame a
   `FloorController.move_to()`; se corre con `"$G" --path . res://captures/tour.tscn --write-movie ...`.
-  Borrarla al terminar: `check_scripts` compila todo `.gd` del proyecto.
+  Borrarla al terminar: `check_scripts` compila todo `.gd` del proyecto. Para la pantalla de
+  partidas: en esa escena poner `Main.save_dir` en una subcarpeta (`user://capturas/`) con partidas
+  de prueba, nunca la real.
 
 ## Convenciones
 
@@ -265,9 +272,11 @@ core/rooms/                 RoomTemplateParser (texto → RoomGrid)
 core/loot/                  RoomReward (premio por limpiar sala)
 core/stats/                 StatCalculator (base + ADD, × MULT, límites)
 core/items/                 ItemPool (sorteo por pool y rareza, sin repetir)
-core/save/                  SaveSchema (versión y migraciones), SaveStore (JSON con escritura atómica)
+core/save/                  SaveSchema (versión y migraciones), SaveStore (JSON con escritura atómica),
+                            SaveSlots (las cuatro partidas, options.json y el paso del save.json viejo)
 core/display/               WindowScales (resoluciones de ventana y nitidez del texto)
-core/meta/                  MetaProfile (progreso entre runs), MetaRules (chispas y logros), RunRecord
+core/meta/                  MetaProfile (progreso de una partida), MetaRules (chispas, logros y porcentaje
+                            de progreso), RunRecord, GameOptions (opciones de todas las partidas)
 data/                       StatBlock, StatModifier, WeaponData, ItemData, ItemCatalog, EnemyData, BossPhase,
                             BulletPatternData, SfxData, SfxLibrary, RoomTemplate, FloorTheme, PickupData,
                             RunConfig, CharacterData, AchievementData, MetaConfig
@@ -304,7 +313,8 @@ fx/                         game_camera, hit_stop, fx (spawner), flash.gdshader,
 ui/theme/                   ui_theme.tres (tema de todos los Control; gui/theme/custom en project.godot)
 ui/menus/                   main_menu, intro_screen, character_select, workshop_menu (Taller),
                             achievements_menu, options_menu, pause_menu, inventory_menu (Mochila) +
-                            inventory_slot, run_summary, menu_builder (arman la UI por código)
+                            inventory_slot, run_summary, save_slots_menu (Partidas) + progress_meter,
+                            menu_builder (arman la UI por código)
 ui/hud/                     hud.tscn/.gd, hearts_display, pulse_display, counters_display, active_display,
                             items_display, weapon_display, item_banner, boss_bar, danger_overlay
 ui/minimap/                 minimap.gd
@@ -317,11 +327,12 @@ tests/fixtures/             arena.tscn (sala fija con jugador, para tests de com
 tests/unit/                 rng_streams, shot_spec, health_math, pattern_math, input_buffer, sfx_synth, content,
                             floor_generator (500 seeds), room_template_parser, template_picker, minimap_model,
                             room_reward, stat_calculator, item_pool, weapon_slot, phase_math,
-                            save_schema, save_store, meta_profile, inventory_text, window_scales, chip_tune
+                            save_schema, save_store, meta_profile, inventory_text, window_scales, chip_tune,
+                            game_options, save_slots
 tests/integration/          player_shooting, bullets, combat, main_flow, floor, rooms, items,
                             bullet_behaviors, weapons, boss, meta_flow, feedback, inventory, enemy_kinds,
-                            weapons_statuses, music
-tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria
+                            weapons_statuses, music, save_slots_flow
+tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria y la música apagada
 docs/PLAN.md                plan, arquitectura e hitos
 docs/LORE.md                la historia y dónde está cada texto en el juego
 docs/OBJETOS.md             ficha para que el usuario mande objetos nuevos
@@ -334,8 +345,9 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
 - **Aleatoriedad:** `GameRNG.stream(RngStreams.FLOOR | LOOT | COMBAT | COSMETIC)`. Seed de cada stream =
   `hash(seed_run, nombre, piso)`. `GameRNG.set_floor(i)` re-deriva todos. Lo visual usa `COSMETIC`; el
   azar de la IA (cooldowns, hacia qué lado se mueve) usa `COMBAT`.
-- **Flujo:** `Main` abre el guardado (`SaveManager.open`) y maneja las pantallas (`screen`): menú
-  principal (Jugar, Taller, Logros, Opciones) → la primera vez, la intro (`IntroScreen`, queda marcada
+- **Flujo:** `Main` abre las partidas (`SaveManager.use_slots(save_dir)`) y maneja las pantallas
+  (`screen`): partidas (`SaveSlotsMenu`: elegir una la abre con `open_slot`) → menú principal (la
+  partida con su %, chispas, Jugar, Taller, Logros, Opciones, Cambiar partida, Salir) → la primera vez, la intro (`IntroScreen`, queda marcada
   en `MetaProfile.intro_seen`; también desde Opciones) → elegir personaje → run (`start_run(personaje)`:
   `GameRNG.start_run`, `RunState.start_run(personaje, perfil)`, instancia `game.tscn`) → resumen
   (`finish_run`, 1.5 s después de `EventBus.player_died` o al recibir `EventBus.run_ended(true)`:
@@ -372,9 +384,17 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   muestra `BombAim` (arco y radio donde cae) y al soltar `Player.try_bomb` la tira (`Bomb.launch`,
   vuela 0,4 s en arco): con el mouse cae donde apunta, con el stick más lejos cuanto más se mantiene
   (32 a 120 px), siempre antes de una pared o roca. Rodar o morir cancela la puntería sin gastarla.
-- **Meta-progresión:** `SaveManager` (autoload) tiene el `MetaProfile` (chispas, items y personajes
-  desbloqueados, logros, último personaje, totales) y lo guarda con `SaveStore` después de cada
-  cambio. `SaveStore` escribe JSON a un `.tmp` y lo renombra encima; al leer migra con `SaveSchema`
+- **Partidas:** cuatro espacios independientes (`SaveSlots.COUNT`), cada uno un `MetaProfile` en su
+  archivo. `SaveManager.slot` es la abierta (0 = ninguna); `slot_info(i)` lee una sin abrirla (para la
+  pantalla de partidas: si se usó, porcentaje, runs, victorias); `delete_slot(i)` la borra (la
+  pantalla pide confirmación); `close_slot()` vuelve a ninguna. Elegir una vacía empieza de cero y el
+  archivo aparece al guardar algo. El progreso de 0 a 100 % es `MetaRules.completion`: cada logro,
+  cada item y personaje bloqueado ya conseguido y haber ganado una run valen lo mismo
+  (`MetaRules.percent` redondea para abajo: 100 % solo con todo). Se muestra con una `ProgressMeter`.
+  `SaveSlots.migrate_legacy` pasa el `save.json` de antes a la partida 1 si ninguna se usó.
+- **Meta-progresión:** `SaveManager` (autoload) tiene el `MetaProfile` de la partida abierta (chispas,
+  items y personajes desbloqueados, logros, último personaje, intro vista, totales) y lo guarda con
+  `SaveStore` después de cada cambio. `SaveStore` escribe JSON a un `.tmp` y lo renombra encima; al leer migra con `SaveSchema`
   (`VERSION` + una migración por versión), aparta un archivo roto como `.corrupt` y no pisa uno de
   una versión más nueva. Al terminar una run, `RunState.make_record()` → `MetaProfile.record_run()`:
   chispas (`MetaRules.sparks_for`: 1 cada 5 enemigos, 10 por jefe, 10 por ganar), totales y logros
@@ -471,8 +491,9 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
 - **Avisos:** `DangerOverlay` (en el HUD) pone bordes rojos al recibir daño y, con un corazón o menos,
   late con un sonido de corazón. Al aparecer un jefe: cartel con su nombre, sonido y sacudida. El
   resumen suena distinto al ganar o perder.
-- **Opciones:** volumen general, de la música, pantalla completa y resolución, en el perfil (clave `options` del guardado);
-  `SaveManager.apply_options()` las aplica al abrir el guardado y al cambiarlas.
+- **Opciones:** volumen general, de la música, pantalla completa, resolución y la última partida
+  abierta, en `GameOptions` (`SaveManager.options`, archivo `options.json`): las mismas para todas las
+  partidas. `SaveManager.apply_options()` las aplica al abrir las partidas y al cambiarlas.
 - **HUD:** `ui/hud` (CanvasLayer), dibujado con `PixelBitmap` + `PixelIcons`. Arriba (sobre la pared):
   corazones, Pulsos, contadores y el activo con su carga; minimapa (`MinimapModel` → `Minimap`) arriba
   a la derecha. Abajo: items pasivos a la izquierda, arma y munición a la derecha, y la barra del jefe

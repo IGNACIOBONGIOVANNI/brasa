@@ -17,7 +17,7 @@ var _main: Main
 ## Main abre el guardado en memoria: cada test arranca con un perfil nuevo.
 func before_each() -> void:
 	_main = MAIN_SCENE.instantiate() as Main
-	_main.save_path = ""
+	_main.save_dir = ""
 	add_child_autofree(_main)
 
 
@@ -193,10 +193,12 @@ func test_progress_persists_between_sessions() -> void:
 
 
 func test_save_path_from_args() -> void:
-	assert_eq(Main.save_path_from_args(PackedStringArray(["--save=user://otro.json"]), "x"), "user://otro.json")
-	assert_eq(Main.save_path_from_args(PackedStringArray(["--demo-input"]), "x"), "", "la demo no guarda")
-	assert_eq(Main.save_path_from_args(PackedStringArray(["--demo-input", "--save=user://d.json"]), "x"), "user://d.json")
-	assert_eq(Main.save_path_from_args(PackedStringArray(), "x"), "x")
+	assert_true(Main.uses_slots(PackedStringArray()), "sin argumentos: las partidas")
+	assert_false(Main.uses_slots(PackedStringArray(["--demo-input"])), "la demo no guarda")
+	assert_false(Main.uses_slots(PackedStringArray(["--save="])))
+	assert_eq(Main.save_path_from_args(PackedStringArray(["--save=user://otro.json"])), "user://otro.json")
+	assert_eq(Main.save_path_from_args(PackedStringArray(["--demo-input"])), "", "en memoria")
+	assert_eq(Main.save_path_from_args(PackedStringArray(["--demo-input", "--save=user://d.json"])), "user://d.json")
 
 
 func test_first_play_shows_the_intro_once() -> void:
@@ -249,18 +251,18 @@ func test_options_change_the_volume_and_are_saved() -> void:
 	assert_not_null(options)
 	options.change_volume(-OptionsMenu.VOLUME_STEP)
 	options.change_volume(-OptionsMenu.VOLUME_STEP)
-	assert_almost_eq(SaveManager.profile.volume, 0.8, 0.0001)
+	assert_almost_eq(SaveManager.options.volume, 0.8, 0.0001)
 	assert_almost_eq(AudioServer.get_bus_volume_db(SaveManager.MASTER_BUS), linear_to_db(0.8), 0.01, "se aplicó")
 	options.change_volume(5.0)
-	assert_eq(SaveManager.profile.volume, 1.0, "no pasa del máximo")
+	assert_eq(SaveManager.options.volume, 1.0, "no pasa del máximo")
 	options.toggle_fullscreen()
-	assert_true(SaveManager.profile.fullscreen)
+	assert_true(SaveManager.options.fullscreen)
 	options.toggle_fullscreen()
-	assert_false(SaveManager.profile.fullscreen)
+	assert_false(SaveManager.options.fullscreen)
 	assert_eq(options.resolution_text(), "Resolución: 1280x720", "arranca en 1280x720")
 	options.next_resolution()
-	assert_eq(SaveManager.profile.window_scale, 5, "pasa a la siguiente")
+	assert_eq(SaveManager.options.window_scale, 5, "pasa a la siguiente")
 	assert_eq(options.resolution_text(), "Resolución: 1600x900")
 	options.next_resolution()
-	assert_eq(SaveManager.profile.window_scale, WindowScales.MIN_SCALE, "y vuelve a la más chica")
+	assert_eq(SaveManager.options.window_scale, WindowScales.MIN_SCALE, "y vuelve a la más chica")
 	await _settle()

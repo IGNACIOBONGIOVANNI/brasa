@@ -1,36 +1,131 @@
 extends Node
-## El progreso entre runs: el MetaProfile y su archivo. Arranca en memoria (perfil nuevo, sin disco)
-## hasta que Main llama a `open()` con la ruta del guardado. Guarda después de cada cambio: run
-## terminada, compra en el Taller, personaje elegido, opciones. También aplica las opciones (volumen
-## del bus Master, de la música y pantalla completa).
-## Los tests lo dejan siempre en memoria (tests/pre_run_hook.gd) para no tocar el guardado real.
+## El guardado: las cuatro partidas (SaveSlots), la que está abierta (su MetaProfile y su archivo) y
+## las opciones, que son las mismas para todas (GameOptions, en options.json). Arranca todo en
+## memoria hasta que Main llama a `use_slots()` con la carpeta (o a `open()` con un archivo suelto).
+## La partida abierta se guarda después de cada cambio (run terminada, compra en el Taller, personaje
+## elegido); las opciones, al cambiarlas. También aplica las opciones (volumen del bus Master, de la
+## música, pantalla completa y resolución).
+## Los tests lo dejan en memoria (tests/pre_run_hook.gd): la carpeta real nunca se toca.
 
+## Cambió la partida abierta, su progreso o las opciones (los menús se rearman).
 signal profile_changed
 
-const DEFAULT_PATH: String = "user://save.json"
+## Carpeta del guardado real (partidas y opciones).
+const DEFAULT_DIR: String = "user://"
 const MASTER_BUS: int = 0
 ## Lo que ocupan la barra de título y los bordes de la ventana (no entra en el lugar libre del monitor).
 const WINDOW_DECORATION: Vector2i = Vector2i(16, 40)
 ## Pantalla que se supone sin monitor (tests y corridas headless).
 const HEADLESS_SCREEN: Vector2i = Vector2i(1920, 1040)
 
+
 var profile: MetaProfile = MetaProfile.new()
+var options: GameOptions = GameOptions.new()
 var config: MetaConfig
-## Archivo del perfil; vacío = solo en memoria.
+## Partida abierta (1 a SaveSlots.COUNT); 0 = ninguna (archivo suelto, memoria o la pantalla de
+## partidas).
+var slot: int = 0
+## Las partidas en disco; null = sin disco (todo en memoria).
+var slots: SaveSlots = null
+## Archivo del perfil abierto; vacío = solo en memoria.
 var path: String = ""
 var _store: SaveStore
+var _options_store: SaveStore
 var _memory_only: bool = false
+var _catalog: ItemCatalog
 
 
 func _ready() -> void:
 	config = MetaConfig.get_default()
+	_catalog = load(RunState.CATALOG_PATH) as ItemCatalog
 
 
-## Abre el perfil guardado en `save_path` (si no existe, uno nuevo que se va a guardar ahí). Con
-## una ruta vacía, perfil nuevo solo en memoria.
+## Usa las partidas y las opciones de la carpeta `dir` ("" = todo en memoria, sin partidas). Lee las
+## opciones y las aplica; no abre ninguna partida (el perfil queda nuevo, en memoria, hasta
+## `open_slot`). Si quedó un guardado de antes de las partidas, pasa a ser la partida 1.
+func use_slots(dir: String) -> void:
+	if _memory_only and _is_real(dir.path_join(SaveSlots.OPTIONS_FILE)):
+		dir = ""
+	slots = null
+	_options_store = null
+	options = GameOptions.new()
+	if not dir.is_empty():
+		slots = SaveSlots.new(dir)
+		slots.migrate_legacy()
+		_options_store = SaveStore.new(slots.options_path())
+		_options_store.steps.clear()
+		var data: Dictionary = _options_store.read()
+		if _options_store.status == SaveStore.Status.TOO_NEW:
+			_options_store = null
+		elif not data.is_empty():
+			options = GameOptions.from_dict(data)
+	apply_options()
+	open("")
+
+
+func has_slots() -> bool:
+	return slots != null
+
+
+## Abre la partida `slot_index` (si está vacía, empieza de cero y se crea al guardar algo).
+func open_slot(slot_index: int) -> void:
+	open(slots.slot_path(slot_index))
+	slot = slot_index
+	options.last_slot = slot_index
+	_save_options()
+
+
+## Cierra la partida abierta (para volver a la pantalla de partidas).
+func close_slot() -> void:
+	open("")
+
+
+## La partida a la que vuelve el juego: la última abierta, o la 1.
+func last_slot() -> int:
+	return options.last_slot if options.last_slot > 0 else 1
+
+
+## Progreso de la partida `slot_index` sin abrirla (la abierta, con lo que tiene en memoria).
+func slot_info(slot_index: int) -> SaveSlots.Info:
+	var info := SaveSlots.Info.new()
+	var slot_profile: MetaProfile = profile
+	if slot_index != slot:
+		if slots == null or not slots.is_used(slot_index):
+			return info
+		slot_profile = MetaProfile.from_dict(slots.read(slot_index))
+	info.used = slot_index != slot or _store_has_file()
+	info.completion = completion_of(slot_profile)
+	info.runs = slot_profile.runs
+	info.wins = slot_profile.wins
+	info.sparks = slot_profile.sparks
+	return info
+
+
+## Borra la partida `slot_index` (si es la abierta, queda cerrada).
+func delete_slot(slot_index: int) -> void:
+	if slots == null:
+		return
+	if slot_index == slot:
+		close_slot()
+	slots.delete(slot_index)
+	profile_changed.emit()
+
+
+## Cuánto de la partida abierta está hecho (0 a 1).
+func completion() -> float:
+	return completion_of(profile)
+
+
+func completion_of(some_profile: MetaProfile) -> float:
+	return MetaRules.completion(some_profile, config.achievements, config.characters, _catalog.items)
+
+
+## Abre el perfil guardado en `save_path` (si no existe, uno nuevo que se va a guardar ahí), sin
+## partida. Con una ruta vacía, perfil nuevo solo en memoria.
 func open(save_path: String) -> void:
 	profile = MetaProfile.new()
-	path = "" if _memory_only else save_path
+	slot = 0
+	path = "" if _memory_only and _is_real(save_path) else save_path
 	_store = null
 	if not path.is_empty():
 		_store = SaveStore.new(path)
@@ -43,14 +138,13 @@ func open(save_path: String) -> void:
 				_store = null
 		if not data.is_empty():
 			profile = MetaProfile.from_dict(data)
-	apply_options()
 	profile_changed.emit()
 
 
-## A partir de acá nunca toca el disco (los tests lo llaman antes de correr).
+## A partir de acá nunca toca la carpeta del guardado real (los tests lo llaman antes de correr).
 func use_memory_only() -> void:
 	_memory_only = true
-	open("")
+	use_slots("")
 
 
 func is_persistent() -> bool:
@@ -95,18 +189,6 @@ func select_character(character: CharacterData) -> void:
 	_changed()
 
 
-func set_volume(volume: float) -> void:
-	profile.volume = clampf(volume, 0.0, 1.0)
-	apply_options()
-	_changed()
-
-
-func set_music_volume(volume: float) -> void:
-	profile.music_volume = clampf(volume, 0.0, 1.0)
-	apply_options()
-	_changed()
-
-
 func mark_intro_seen() -> void:
 	if profile.intro_seen:
 		return
@@ -114,16 +196,24 @@ func mark_intro_seen() -> void:
 	_changed()
 
 
+func set_volume(volume: float) -> void:
+	options.volume = clampf(volume, 0.0, 1.0)
+	_options_changed()
+
+
+func set_music_volume(volume: float) -> void:
+	options.music_volume = clampf(volume, 0.0, 1.0)
+	_options_changed()
+
+
 func set_fullscreen(fullscreen: bool) -> void:
-	profile.fullscreen = fullscreen
-	apply_options()
-	_changed()
+	options.fullscreen = fullscreen
+	_options_changed()
 
 
 func set_window_scale(scale: int) -> void:
-	profile.window_scale = scale
-	apply_options()
-	_changed()
+	options.window_scale = scale
+	_options_changed()
 
 
 ## Las escalas de ventana que entran en el monitor (sin pantalla, como en un monitor de 1080p).
@@ -136,22 +226,22 @@ func available_window_scales() -> Array[int]:
 
 ## El tamaño de ventana que se usa de verdad: el elegido, o el más grande que entre si no entra.
 func window_size() -> Vector2i:
-	return WindowScales.size_of(WindowScales.fit(profile.window_scale, available_window_scales()))
+	return WindowScales.size_of(WindowScales.fit(options.window_scale, available_window_scales()))
 
 
-## Lleva las opciones del perfil al audio y a la ventana.
+## Lleva las opciones al audio y a la ventana.
 func apply_options() -> void:
-	AudioServer.set_bus_mute(MASTER_BUS, profile.volume <= 0.0)
-	AudioServer.set_bus_volume_db(MASTER_BUS, linear_to_db(maxf(profile.volume, 0.0001)))
-	AudioManager.set_music_volume(profile.music_volume)
+	AudioServer.set_bus_mute(MASTER_BUS, options.volume <= 0.0)
+	AudioServer.set_bus_volume_db(MASTER_BUS, linear_to_db(maxf(options.volume, 0.0001)))
+	AudioManager.set_music_volume(options.music_volume)
 	if DisplayServer.get_name() == "headless":
 		return
 	var current: DisplayServer.WindowMode = DisplayServer.window_get_mode()
 	var is_fullscreen: bool = current == DisplayServer.WINDOW_MODE_FULLSCREEN \
 			or current == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
-	if is_fullscreen != profile.fullscreen:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if profile.fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
-	if profile.fullscreen:
+	if is_fullscreen != options.fullscreen:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if options.fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
+	if options.fullscreen:
 		return
 	# En ventana: el tamaño elegido, centrada en el monitor.
 	var size: Vector2i = window_size()
@@ -169,8 +259,7 @@ func add_sparks(amount: int) -> void:
 
 ## Menú de debug: todos los items y personajes disponibles (los logros quedan como estaban).
 func unlock_everything() -> void:
-	var catalog := load(RunState.CATALOG_PATH) as ItemCatalog
-	for item: ItemData in catalog.items:
+	for item: ItemData in _catalog.items:
 		if item.locked:
 			profile.unlocked_items[item.id] = true
 	for character: CharacterData in config.characters:
@@ -179,17 +268,36 @@ func unlock_everything() -> void:
 	_changed()
 
 
-## Menú de debug: perfil nuevo (se guarda vacío). Las opciones se mantienen.
+## Menú de debug: la partida abierta vuelve a cero (se guarda vacía).
 func reset_progress() -> void:
-	var previous: MetaProfile = profile
 	profile = MetaProfile.new()
-	profile.volume = previous.volume
-	profile.music_volume = previous.music_volume
-	profile.fullscreen = previous.fullscreen
-	profile.window_scale = previous.window_scale
 	_changed()
 
 
 func _changed() -> void:
 	save()
 	profile_changed.emit()
+
+
+func _options_changed() -> void:
+	apply_options()
+	_save_options()
+	profile_changed.emit()
+
+
+func _save_options() -> void:
+	if _options_store == null:
+		return
+	var error: Error = _options_store.write(options.to_dict())
+	if error != OK:
+		push_warning("No se pudieron guardar las opciones en %s (error %d)." % [_options_store.path, error])
+
+
+## true si el perfil abierto ya tiene archivo (una partida recién elegida no lo tiene hasta guardar).
+func _store_has_file() -> bool:
+	return _store != null and SaveSlots.has_file(_store.path)
+
+
+## Un archivo de la carpeta del guardado real (no de una subcarpeta, como las de los tests).
+static func _is_real(file_path: String) -> bool:
+	return file_path.begins_with(DEFAULT_DIR) and not file_path.trim_prefix(DEFAULT_DIR).contains("/")

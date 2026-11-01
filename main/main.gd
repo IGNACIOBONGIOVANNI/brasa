@@ -1,12 +1,14 @@
 class_name Main
 extends Node
-## Raíz del juego y flujo de pantallas: menú principal → (la primera vez, la intro) → elegir
-## personaje → run → resumen (al morir o ganar, con lo ganado) → menú u otra run. Desde el menú
-## también se va al Taller, a los logros y a las opciones (que pueden volver a mostrar la intro).
+## Raíz del juego y flujo de pantallas: partidas (elegir uno de los cuatro espacios de guardado) →
+## menú principal → (la primera vez, la intro) → elegir personaje → run → resumen (al morir o ganar,
+## con lo ganado) → menú u otra run. Desde el menú también se va al Taller, a los logros, a las
+## opciones (que pueden volver a mostrar la intro) y de vuelta a las partidas.
 ## Abre el guardado al arrancar y cierra el juego prolijo (corta el audio antes de salir). Fuera de
 ## la run suena el tema del menú (la run pone el de cada piso).
-## Argumentos de usuario: --skip-menu o --demo-input arrancan directo en una run; --save=RUTA usa
-## otro guardado; con --demo-input (y sin --save) el progreso queda solo en memoria.
+## Argumentos de usuario: --skip-menu o --demo-input arrancan directo en una run (--skip-menu en la
+## última partida); --save=RUTA usa un archivo suelto en vez de las partidas (vacío = memoria); con
+## --demo-input (y sin --save) el progreso queda solo en memoria.
 
 const MENU_SCENE: PackedScene = preload("res://ui/menus/main_menu.tscn")
 const CHARACTER_SCENE: PackedScene = preload("res://ui/menus/character_select.tscn")
@@ -16,6 +18,7 @@ const OPTIONS_SCENE: PackedScene = preload("res://ui/menus/options_menu.tscn")
 const INTRO_SCENE: PackedScene = preload("res://ui/menus/intro_screen.tscn")
 const GAME_SCENE: PackedScene = preload("res://main/game.tscn")
 const SUMMARY_SCENE: PackedScene = preload("res://ui/menus/run_summary.tscn")
+const SLOTS_SCENE: PackedScene = preload("res://ui/menus/save_slots_menu.tscn")
 const MENU_MUSIC: AudioStream = preload("res://content/music/menu.wav")
 ## En el resumen el tema del menú entra despacio, después del sonido de victoria o derrota.
 const SUMMARY_MUSIC_FADE: float = 3.0
@@ -28,8 +31,8 @@ const DEATH_DELAY: float = 1.5
 ## proceso sale antes, avisa "ObjectDB instances were leaked".
 const QUIT_AUDIO_DRAIN: float = 0.5
 
-## Guardado a abrir al arrancar (los argumentos lo pisan; vacío = solo en memoria).
-@export var save_path: String = SaveManager.DEFAULT_PATH
+## Carpeta de las partidas (los argumentos la pisan; vacío = sin partidas, todo en memoria).
+@export var save_dir: String = SaveManager.DEFAULT_DIR
 
 ## Pantalla actual (un menú, la run o el resumen).
 var screen: Node
@@ -45,12 +48,20 @@ func _ready() -> void:
 	EventBus.player_died.connect(_on_player_died)
 	EventBus.run_ended.connect(finish_run)
 	var args: PackedStringArray = OS.get_cmdline_user_args()
-	SaveManager.open(save_path_from_args(args, save_path))
+	if uses_slots(args):
+		SaveManager.use_slots(save_dir)
+	else:
+		SaveManager.use_slots("")
+		SaveManager.open(save_path_from_args(args))
 	Debug.add_command(self, "Progreso/+%d chispas" % DEV_SPARKS, SaveManager.add_sparks.bind(DEV_SPARKS))
 	Debug.add_command(self, "Progreso/Desbloquear todo", SaveManager.unlock_everything)
 	Debug.add_command(self, "Progreso/Borrar progreso", SaveManager.reset_progress)
 	if "--skip-menu" in args or "--demo-input" in args:
+		if SaveManager.has_slots():
+			SaveManager.open_slot(SaveManager.last_slot())
 		start_run()
+	elif SaveManager.has_slots():
+		show_slots()
 	else:
 		show_menu()
 
@@ -60,14 +71,28 @@ func _notification(what: int) -> void:
 		quit_game()
 
 
-## --save=RUTA gana; si no, --demo-input usa solo memoria; si no, `default_path`.
-static func save_path_from_args(args: PackedStringArray, default_path: String) -> String:
+## Sin --save= ni --demo-input se usan las partidas.
+static func uses_slots(args: PackedStringArray) -> bool:
+	for arg: String in args:
+		if arg.begins_with(SAVE_ARG):
+			return false
+	return not "--demo-input" in args
+
+
+## El archivo de --save=RUTA; si no hay, vacío (solo en memoria, como con --demo-input).
+static func save_path_from_args(args: PackedStringArray) -> String:
 	for arg: String in args:
 		if arg.begins_with(SAVE_ARG):
 			return arg.trim_prefix(SAVE_ARG)
-	if "--demo-input" in args:
-		return ""
-	return default_path
+	return ""
+
+
+## La pantalla de partidas: elegir una la abre y lleva al menú.
+func show_slots() -> void:
+	var slots_menu := SLOTS_SCENE.instantiate() as SaveSlotsMenu
+	slots_menu.slot_chosen.connect(_on_slot_chosen)
+	slots_menu.quit_requested.connect(quit_game)
+	_set_screen(slots_menu)
 
 
 func show_menu() -> void:
@@ -76,6 +101,7 @@ func show_menu() -> void:
 	menu.workshop_requested.connect(show_workshop)
 	menu.achievements_requested.connect(show_achievements)
 	menu.options_requested.connect(show_options)
+	menu.change_slot_requested.connect(_on_change_slot_requested)
 	menu.quit_requested.connect(quit_game)
 	_set_screen(menu)
 
@@ -172,6 +198,16 @@ func _set_screen(next: Node) -> void:
 func _fit_text_to_window() -> void:
 	var window: Window = get_window()
 	window.oversampling_override = WindowScales.text_oversampling(WindowScales.scale_for(window.size))
+
+
+func _on_slot_chosen(slot: int) -> void:
+	SaveManager.open_slot(slot)
+	show_menu()
+
+
+func _on_change_slot_requested() -> void:
+	SaveManager.close_slot()
+	show_slots()
 
 
 func _on_play_requested() -> void:

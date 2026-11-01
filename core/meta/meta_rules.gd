@@ -1,6 +1,7 @@
 class_name MetaRules
 extends RefCounted
-## Cuentas de la meta-progresión: cuántas chispas deja una run y si se cumplió un logro.
+## Cuentas de la meta-progresión: cuántas chispas deja una run, si se cumplió un logro y cuánto de
+## una partida está hecho.
 
 const KILLS_PER_SPARK: int = 5
 const SPARKS_PER_BOSS: int = 10
@@ -27,3 +28,31 @@ static func is_met(achievement: AchievementData, profile: MetaProfile, record: R
 		AchievementData.Condition.ITEMS_IN_RUN:
 			return record.items >= achievement.amount
 	return false
+
+
+## Cuánto de la partida está hecho, de 0 a 1: cada logro, cada item y personaje bloqueado que ya se
+## consiguió (por logro o en el Taller) y haber ganado una run valen lo mismo. 1 = todo.
+static func completion(profile: MetaProfile, achievements: Array[AchievementData],
+		characters: Array[CharacterData], items: Array[ItemData]) -> float:
+	var total: int = 1
+	var done: int = 1 if profile.wins > 0 else 0
+	for achievement: AchievementData in achievements:
+		total += 1
+		if profile.has_achievement(achievement):
+			done += 1
+	for character: CharacterData in characters:
+		if character.locked:
+			total += 1
+			if profile.unlocked_characters.has(character.id):
+				done += 1
+	for item: ItemData in items:
+		if item.locked:
+			total += 1
+			if profile.unlocked_items.has(item.id):
+				done += 1
+	return done / float(total)
+
+
+## El porcentaje para mostrar: redondeado para abajo (100 % solo con todo hecho).
+static func percent(fraction: float) -> int:
+	return floori(fraction * 100.0 + 0.0001)

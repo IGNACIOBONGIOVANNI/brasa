@@ -44,7 +44,7 @@ func test_floors_and_bosses_have_their_music() -> void:
 
 func test_menu_screens_play_the_menu_theme() -> void:
 	var main := MAIN_SCENE.instantiate() as Main
-	main.save_path = ""
+	main.save_dir = ""
 	add_child_autofree(main)
 	assert_eq(AudioManager.current_music(), Main.MENU_MUSIC, "menú principal")
 	main.start_run()
@@ -81,23 +81,23 @@ func test_each_floor_plays_its_own_theme() -> void:
 
 func test_options_change_the_music_volume() -> void:
 	var main := MAIN_SCENE.instantiate() as Main
-	main.save_path = ""
+	main.save_dir = ""
 	add_child_autofree(main)
 	main.show_options()
 	await wait_physics_frames(2)
 	var options := main.screen as OptionsMenu
 	var bus: int = AudioServer.get_bus_index(AudioManager.MUSIC_BUS)
-	assert_almost_eq(SaveManager.profile.music_volume, MetaProfile.DEFAULT_MUSIC_VOLUME, 0.0001)
+	assert_almost_eq(SaveManager.options.music_volume, GameOptions.DEFAULT_MUSIC_VOLUME, 0.0001)
 	options.change_music_volume(-OptionsMenu.VOLUME_STEP)
-	assert_almost_eq(SaveManager.profile.music_volume, 0.7, 0.0001)
+	assert_almost_eq(SaveManager.options.music_volume, 0.7, 0.0001)
 	assert_almost_eq(AudioServer.get_bus_volume_db(bus), linear_to_db(0.7), 0.01, "se aplicó al bus de la música")
-	assert_almost_eq(AudioServer.get_bus_volume_db(SaveManager.MASTER_BUS), linear_to_db(SaveManager.profile.volume), 0.01, "el general no cambia")
+	assert_almost_eq(AudioServer.get_bus_volume_db(SaveManager.MASTER_BUS), linear_to_db(SaveManager.options.volume), 0.01, "el general no cambia")
 	for _i: int in 10:
 		options.change_music_volume(-OptionsMenu.VOLUME_STEP)
-	assert_eq(SaveManager.profile.music_volume, 0.0)
+	assert_eq(SaveManager.options.music_volume, 0.0)
 	assert_true(AudioServer.is_bus_mute(bus), "en 0 % no suena")
 	assert_string_contains(_labels(options), "Música 0 %")
-	SaveManager.set_music_volume(MetaProfile.DEFAULT_MUSIC_VOLUME)
+	SaveManager.set_music_volume(GameOptions.DEFAULT_MUSIC_VOLUME)
 
 
 func _labels(root: Node) -> String:

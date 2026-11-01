@@ -1,6 +1,6 @@
 extends GutTest
-## MetaProfile y MetaRules: desbloqueos, Taller, chispas por run, logros y pasar a/desde el
-## diccionario del guardado. Con items, personajes y logros armados acá (no el contenido real).
+## MetaProfile y MetaRules: desbloqueos, Taller, chispas por run, logros, progreso de la partida y
+## pasar a/desde el diccionario del guardado. Con items, personajes y logros armados acá (no el contenido real).
 
 var _profile: MetaProfile
 
@@ -188,26 +188,23 @@ func test_intro_seen_round_trip() -> void:
 	assert_false(MetaProfile.from_dict({"intro_seen": "sí"}).intro_seen, "solo true cuenta")
 
 
-func test_window_scale_round_trip_and_clamp() -> void:
-	assert_eq(MetaProfile.from_dict({}).window_scale, WindowScales.DEFAULT_SCALE, "sin dato: 1280x720")
-	_profile.window_scale = 5
-	var copy: MetaProfile = MetaProfile.from_dict(JSON.parse_string(JSON.stringify(_profile.to_dict())))
-	assert_eq(copy.window_scale, 5)
-	assert_eq(MetaProfile.from_dict({"options": {"window_scale": 99}}).window_scale, WindowScales.MAX_SCALE, "recortada")
-	assert_eq(MetaProfile.from_dict({"options": {"window_scale": "grande"}}).window_scale, WindowScales.DEFAULT_SCALE)
-
-
-func test_options_round_trip_and_clamp() -> void:
-	_profile.volume = 0.4
-	_profile.music_volume = 0.3
-	_profile.fullscreen = true
-	var copy: MetaProfile = MetaProfile.from_dict(JSON.parse_string(JSON.stringify(_profile.to_dict())))
-	assert_almost_eq(copy.volume, 0.4, 0.0001)
-	assert_almost_eq(copy.music_volume, 0.3, 0.0001)
-	assert_true(copy.fullscreen)
-	var bad: MetaProfile = MetaProfile.from_dict({"options": {"volume": 7, "music_volume": -2, "fullscreen": "sí"}})
-	assert_eq(bad.volume, 1.0, "recortado a 1")
-	assert_eq(bad.music_volume, 0.0, "recortado a 0")
-	assert_false(bad.fullscreen, "solo true cuenta")
-	assert_eq(MetaProfile.from_dict({}).volume, 1.0, "sin opciones: volumen al máximo")
-	assert_eq(MetaProfile.from_dict({}).music_volume, MetaProfile.DEFAULT_MUSIC_VOLUME, "guardados viejos: la música por defecto")
+func test_completion_counts_achievements_unlocks_and_a_win() -> void:
+	var achievements: Array[AchievementData] = [_achievement(&"a", AchievementData.Condition.TOTAL_KILLS, 1),
+			_achievement(&"b", AchievementData.Condition.TOTAL_KILLS, 2)]
+	var characters: Array[CharacterData] = [_character(&"base", false), _character(&"extra", true)]
+	var items: Array[ItemData] = [_item(&"libre", false), _item(&"caro", true, 5), _item(&"premio", true)]
+	# 2 logros + 1 personaje + 2 items bloqueados + ganar = 6 cosas.
+	assert_eq(MetaRules.completion(_profile, achievements, characters, items), 0.0, "partida nueva: 0 %")
+	_profile.achievements[&"a"] = true
+	_profile.unlocked_items[&"caro"] = true
+	_profile.unlocked_items[&"libre"] = true
+	assert_almost_eq(MetaRules.completion(_profile, achievements, characters, items), 2.0 / 6.0, 0.0001, "lo libre no cuenta")
+	assert_eq(MetaRules.percent(2.0 / 6.0), 33)
+	_profile.achievements[&"b"] = true
+	_profile.unlocked_items[&"premio"] = true
+	_profile.unlocked_characters[&"extra"] = true
+	assert_lt(MetaRules.completion(_profile, achievements, characters, items), 1.0, "falta ganar")
+	_profile.wins = 1
+	assert_eq(MetaRules.completion(_profile, achievements, characters, items), 1.0)
+	assert_eq(MetaRules.percent(1.0), 100)
+	assert_eq(MetaRules.percent(0.999), 99, "100 % solo con todo")

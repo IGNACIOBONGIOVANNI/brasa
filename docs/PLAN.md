@@ -223,6 +223,10 @@ trae fuego).
 originales (menú, uno por piso y el del jefe) escritos en una notación tipo MML y generados por código,
 con fundidos entre temas y volumen de la música en Opciones.
 
+**Hito 15 — Partidas** (pedido del usuario): cuatro espacios de guardado independientes, cada uno con
+su progreso de 0 a 100 %, elegibles al arrancar; se pueden borrar y las opciones son las mismas para
+todos. El guardado anterior pasa a la partida 1.
+
 ## 6. Cosas a tener en cuenta desde ya
 
 - **Export templates.** Para el hito 7 hacen falta las plantillas de exportación de 4.7.2 instaladas
