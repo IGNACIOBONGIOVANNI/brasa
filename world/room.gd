@@ -7,6 +7,8 @@ extends Node2D
 ## sorteados del piso (en el Altar se pagan con vida y al llevarse uno los otros desaparecen); en el
 ## Pozo, el pozo; en la sala del jefe y en la Prueba el pedestal aparece recién al ganar (la salida
 ## del jefe la pone FloorController).
+## Trampas: las arma RoomBuilder (la del piso en cada "^"); solo funcionan en la sala actual
+## (set_present) y al volver arrancan de nuevo.
 ## Regla (RoomSlot.rule): se anuncia por EventBus.room_rule_changed al cerrarse las puertas, cambia la
 ## vida y el ritmo de los enemigos y, al limpiar, suelta sus pickups extra (con Contrarreloj, solo si
 ## se limpió a tiempo).
@@ -63,6 +65,8 @@ func setup(room_slot: RoomSlot, theme: FloorTheme, neighbors: Dictionary[Vector2
 		sides.append(side)
 	RoomBuilder.build_walls($Walls as Node2D, sides, theme)
 	RoomBuilder.build_obstacles($Obstacles as Node2D, grid, theme)
+	RoomBuilder.build_traps($Traps as Node2D, grid, theme)
+	set_present(false)
 	for side: Vector2i in sides:
 		var door := DOOR_SCENE.instantiate() as Door
 		door.setup(side, neighbors[side], door_modes.get(side, Door.Mode.OPEN), theme)
@@ -88,6 +92,19 @@ func _physics_process(delta: float) -> void:
 	_rule_time += delta
 	if had_time and slot.rule.time_limit > 0.0 and rule_time_left() <= 0.0:
 		AudioManager.play_sfx(&"empty")
+
+
+## Las trampas solo andan en la sala donde está el jugador; al volver arrancan quietas.
+func set_present(present: bool) -> void:
+	var traps := $Traps as Node2D
+	traps.process_mode = Node.PROCESS_MODE_INHERIT if present else Node.PROCESS_MODE_DISABLED
+	if present:
+		for child: Node in traps.get_children():
+			(child as Trap).reset()
+
+
+func trap_count() -> int:
+	return ($Traps as Node2D).get_child_count()
 
 
 ## Segundos que quedan para el premio extra de Contrarreloj (INF si la regla no tiene límite).

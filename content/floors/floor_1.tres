@@ -37,6 +37,9 @@
 [ext_resource type="Resource" path="res://content/rooms/floor_1/prueba.tres" id="rs0"]
 [ext_resource type="Resource" path="res://content/rooms/floor_1/altar.tres" id="rs1"]
 [ext_resource type="Resource" path="res://content/rooms/floor_1/pozo.tres" id="rs2"]
+[ext_resource type="Resource" path="res://content/traps/pinchos.tres" id="trap"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/sotano_pinchos.tres" id="rt0"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/sotano_trampa.tres" id="rt1"]
 
 [resource]
 script = ExtResource("1_theme")
@@ -49,9 +52,10 @@ mote_velocity = Vector2(3, -4)
 mote_amount = 22
 music = ExtResource("m_music")
 boss_music = ExtResource("m_boss")
-templates = Array[ExtResource("2_template_script")]([ExtResource("r0"), ExtResource("r1"), ExtResource("r2"), ExtResource("r3"), ExtResource("r4"), ExtResource("r5"), ExtResource("r6"), ExtResource("r7"), ExtResource("r8"), ExtResource("r9"), ExtResource("r10"), ExtResource("r11"), ExtResource("r12"), ExtResource("r13"), ExtResource("r14"), ExtResource("r15"), ExtResource("rn0"), ExtResource("rn1"), ExtResource("rs0"), ExtResource("rs1"), ExtResource("rs2")])
+templates = Array[ExtResource("2_template_script")]([ExtResource("r0"), ExtResource("r1"), ExtResource("r2"), ExtResource("r3"), ExtResource("r4"), ExtResource("r5"), ExtResource("r6"), ExtResource("r7"), ExtResource("r8"), ExtResource("r9"), ExtResource("r10"), ExtResource("r11"), ExtResource("r12"), ExtResource("r13"), ExtResource("r14"), ExtResource("r15"), ExtResource("rn0"), ExtResource("rn1"), ExtResource("rs0"), ExtResource("rs1"), ExtResource("rs2"), ExtResource("rt0"), ExtResource("rt1")])
 enemies = Array[ExtResource("3_enemy_script")]([ExtResource("e_carnero"), ExtResource("e_vigia"), ExtResource("e_farol"), ExtResource("e_campanario"), ExtResource("e_grasa"), ExtResource("e_mecha")])
 pickups = Array[ExtResource("4_pickup_script")]([ExtResource("p_coin"), ExtResource("p_heart"), ExtResource("p_bomb"), ExtResource("p_key")])
 extra_rooms = Array[int]([6, 7, 8])
 extra_room_count = 1
 rule_chance = 0.2
+trap = ExtResource("trap")

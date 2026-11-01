@@ -5,12 +5,13 @@ extends RefCounted
 ## Leyenda: "." piso, "#" roca, "o" foso; letra mayúscula = enemigo de la primera oleada,
 ## minúscula = de la segunda (la letra la define EnemyData.template_char; la "o" queda para los
 ## fosos); "$" moneda, "+" corazón, "%" bomba, "&" llave (PickupData.template_symbol); "*" lugar
-## para un pedestal con item (tesoro y tienda).
-## Reglas: 9 filas de 15 caracteres, las celdas frente a las 4 puertas libres, y desde cualquier
-## puerta se llega a las otras, a todos los pickups y a todos los pedestales.
+## para un pedestal con item (tesoro y tienda) o el pozo; "^" trampa (la del piso: FloorTheme.trap).
+## Reglas: 9 filas de 15 caracteres, las celdas frente a las 4 puertas libres (también de trampas), y
+## desde cualquier puerta se llega a las otras, a todos los pickups y a todos los pedestales.
 
 const PICKUP_SYMBOLS: String = "$+%&"
 const ITEM_SPOT_SYMBOL: String = "*"
+const TRAP_SYMBOL: String = "^"
 
 
 static func parse(text: String) -> RoomGrid:
@@ -49,6 +50,8 @@ static func _read_cell(grid: RoomGrid, symbol: String, pos: Vector2i) -> RoomGri
 			return RoomGrid.Cell.PIT
 	if symbol == ITEM_SPOT_SYMBOL:
 		grid.item_spots.append(pos)
+	elif symbol == TRAP_SYMBOL:
+		grid.traps.append(pos)
 	elif PICKUP_SYMBOLS.contains(symbol):
 		var pickup := RoomGrid.PickupMarker.new()
 		pickup.cell = pos
@@ -70,6 +73,8 @@ static func _validate(grid: RoomGrid) -> void:
 		for cell: Vector2i in RoomGrid.door_cells(side):
 			if not grid.is_walkable(cell):
 				grid.errors.append("la puerta %s está tapada en (%d, %d)" % [side, cell.x, cell.y])
+			elif grid.traps.has(cell):
+				grid.errors.append("hay una trampa en la puerta %s, en (%d, %d)" % [side, cell.x, cell.y])
 	if not grid.is_valid():
 		return
 	var reachable: Dictionary[Vector2i, bool] = grid.reachable_from(RoomGrid.door_cells(Vector2i.UP)[1])

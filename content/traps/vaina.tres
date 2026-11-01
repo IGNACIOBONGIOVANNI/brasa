@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="TrapData" format=3]
+
+[ext_resource type="Script" path="res://data/trap_data.gd" id="1_trap"]
+
+[resource]
+script = ExtResource("1_trap")
+id = &"vaina"
+display_name = "Vaina de esporas"
+look = 2
+trigger = 1
+rest_time = 4.0
+warn_time = 0.6
+active_time = 0.3
+trigger_radius = 20.0
+radius = 28.0
+enemy_damage = 12.0
+applies_status = true
+status = 2
+color = Color(0.9098, 0.7686, 0.3529, 1)
+sfx_id = &"trap_pop"

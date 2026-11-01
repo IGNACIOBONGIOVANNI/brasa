@@ -233,7 +233,8 @@ salas especiales nuevas: Prueba (pelea opcional con regla e item), Altar (items 
 y Pozo (cura una vez).
 
 **Hito 17 — Trampas por piso** (pedido del usuario): algunas salas tienen trampas propias de cada piso
-que lastiman al jugador y a los enemigos.
+que lastiman al jugador y a los enemigos: pinchos (Sótano), vapor que envenena (Cloacas), vainas de
+esporas que revientan al acercarse (Raíces) y chorros de fuego (Forja).
 
 **Hito 18 — Mechas** (pedido del usuario): vehículos tipo mecha que el jugador encuentra y maneja.
 

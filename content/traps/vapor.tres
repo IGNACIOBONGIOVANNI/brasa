@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="TrapData" format=3]
+
+[ext_resource type="Script" path="res://data/trap_data.gd" id="1_trap"]
+
+[resource]
+script = ExtResource("1_trap")
+id = &"vapor"
+display_name = "Vapor"
+look = 1
+trigger = 0
+rest_time = 2.2
+warn_time = 0.7
+active_time = 1.0
+radius = 20.0
+enemy_damage = 4.0
+applies_status = true
+status = 1
+color = Color(0.5608, 0.8392, 0.3529, 1)
+sfx_id = &"trap_gas"

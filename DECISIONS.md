@@ -624,3 +624,27 @@ que van en los hitos 17 y 18, uno por vez).
   (un impacto de bala justo en el último frame) porque la IA usaba una seed distinta en cada corrida.
   Ahora el `pre_run_hook` fija la seed de `GameRNG`, los tests de combate y de enemigos ponen la suya,
   y los dos que terminaban con un enemigo disparando lo sacan con sus balas antes de cerrar.
+
+## Hito 17 — trampas por piso (2026-11-01)
+
+Pedido del usuario: "algunas salas, dependiendo el piso, tendrán trampas específicas que dañen al
+jugador y al enemigo".
+
+- **Una trampa por piso, puesta por la plantilla:** las plantillas marcan con `^` dónde va una trampa
+  y el piso decide cuál (`FloorTheme.trap`). Así una sala del Sótano que se repite en la Forja tiene
+  chorros de fuego en vez de pinchos: depende del piso, como se pidió.
+- **Cuatro trampas que se juegan distinto:** Pinchos (Sótano: salen en ciclos, en damero, la casilla
+  justa), Vapor (Cloacas: una nube grande que envenena a los bichos), Vaina de esporas (Raíces: no
+  tiene ciclo, revienta cuando alguien se acerca y tarda en rearmarse; corrompe a los bichos) y
+  Chorro de fuego (Forja: una llama de tres casillas hacia el medio de la sala que los quema).
+- **Siempre se ven venir:** cada una tiene un aviso (puntas que asoman, burbujas, la vaina que se
+  hincha, la boquilla al rojo) y un sonido corto antes de lastimar. Se dibujan sin penumbra para que
+  se vean en la oscuridad.
+- **Daño parejo:** al jugador medio corazón por activación (rodar lo esquiva: es invulnerable); a
+  los enemigos un daño fijo por piso (8, 4 + veneno, 12 + corrupción, 10 + fuego). Los que están bajo
+  tierra o en fantasma no se lastiman; los que vuelan sí (más simple, y se nota igual). Matar con
+  trampas cuenta como cualquier muerte.
+- **Dónde salen:** dos salas nuevas con trampas por piso (que los pisos siguientes también usan). No
+  hay trampas en salas especiales ni frente a las puertas, y nadie aparece arriba de una.
+- **Solo funciona la sala actual:** las trampas de las salas que quedan atrás se frenan y, al volver,
+  arrancan quietas un momento (no te reciben con un pinchazo).

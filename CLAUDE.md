@@ -5,10 +5,10 @@ estructura de los roguelites de salas + bullet hell, con contenido 100 % origina
 [docs/LORE.md](docs/LORE.md).
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 16 (reglas de sala y salas especiales) terminado: seis reglas que cambian algunas
-peleas (Furia, Coraza, Contrarreloj, Apagón, Sin Pulso, Frágil) y tres salas especiales nuevas (Prueba,
-Altar, Pozo). Siguen, ya pedidos por el usuario: hito 17 (trampas por piso, que lastiman a jugador y
-enemigos) e hito 18 (mechas que el jugador maneja). Antes: hito 15 (cuatro partidas con su progreso),
+**Estado:** Hito 17 (trampas) terminado: cada piso tiene su trampa (Pinchos, Vapor, Vaina de esporas,
+Chorro de fuego) en algunas salas, y lastima al jugador y a los enemigos. Sigue, ya pedido por el
+usuario: hito 18 (mechas que el jugador maneja). Antes: hito 16 (seis reglas de sala y las salas
+Prueba, Altar y Pozo), hito 15 (cuatro partidas con su progreso),
 hito 14 (música chiptune generada con `ChipTune`), hito 13 (lanzagranadas,
 bazuca, franco tirador, caño de riel y estados fuego, veneno, corrupción y apagado), hito 12 (8 enemigos nuevos),
 tirar la bomba manteniendo, hito 11 (luz y efectos), hito 10 (calidades C a S++), hito 9 (lore, título
@@ -229,6 +229,10 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   en `content/rooms/floor_N/` y en la lista `templates` del `FloorTheme` (lo exige un test). Las
   especiales usan `*` para lo que ponen: pedestales (tesoro 1, tienda 3, Altar 2, secreta 1, jefe y
   Prueba 1, que aparece al ganar) o el pozo (Pozo 1). La Prueba tiene enemigos en dos oleadas.
+  `^` es una trampa (la del piso): solo en salas normales y nunca frente a una puerta. Cada piso
+  tiene al menos una sala propia con trampas (lo exige un test).
+- Trampas: un `.tres` por trampa en `content/traps/` (`TrapData`), cada una en un `FloorTheme.trap`
+  (lo exige un test, con un aspecto distinto por piso).
 - Reglas de sala: un `.tres` por regla en `content/rules/` (`RoomRule`) y en
   `run_config.room_rules` (lo exige un test).
 - Items: un `.tres` por item en `content/items/` y en `catalog.tres` (lo exige un test), con su
@@ -286,15 +290,16 @@ core/meta/                  MetaProfile (progreso de una partida), MetaRules (ch
                             de progreso), RunRecord, GameOptions (opciones de todas las partidas)
 data/                       StatBlock, StatModifier, WeaponData, ItemData, ItemCatalog, EnemyData, BossPhase,
                             BulletPatternData, SfxData, SfxLibrary, RoomTemplate, FloorTheme, PickupData,
-                            RunConfig, CharacterData, AchievementData, MetaConfig, RoomRule
+                            RunConfig, CharacterData, AchievementData, MetaConfig, RoomRule, TrapData
 content/                    weapons/ (pistola, trabuco, metralla, haz, órbita, ballesta, lanzagranadas, bazuca,
                             franco tirador, caño de riel), items/ (37 +
                             catalog), enemies/ (carnero, vigia, farol, centinela, espora, fundidor, grasa
                             (→ grasita → gotita), mecha, murcielago, nido (→ cria), topo, hollin, escudero,
                             fogonero; jefes campanario, rey_carnero, raigon y yunque), patterns/ (29),
-                            sfx/sfx_library, rooms/floor_1/ (21), floor_2/ (8), floor_3/ (8), floor_4/ (9),
+                            sfx/sfx_library, rooms/floor_1/ (23), floor_2/ (10), floor_3/ (10), floor_4/ (11),
                             floors/ (Sótano, Cloacas, Raíces, Forja), run/run_config, rules/ (furia,
-                            coraza, contrarreloj, apagon, sin_pulso, fragil),
+                            coraza, contrarreloj, apagon, sin_pulso, fragil), traps/ (pinchos, vapor,
+                            vaina, chorro),
                             pickups/ (coin, heart, bomb, key), characters/ (brasa, musgo, ceniza),
                             achievements/ (7), meta/meta_config, music/ (menu, floor_1..4, boss: .wav
                             generados, no editar a mano)
@@ -312,6 +317,7 @@ entities/pickups/           pickup.tscn/.gd, pickup_visual.gd, item_pedestal.tsc
                             well.tscn/.gd + well_visual.gd (Pozo de brasas)
 entities/bomb/              bomb.tscn/.gd
 entities/exit/              trapdoor.tscn/.gd (trampilla al piso siguiente o salida final)
+entities/traps/             trap.tscn/.gd + trap_visual.gd (trampas de los pisos)
 world/                      floor_controller, room.tscn/.gd, room_builder, door.tscn/.gd, door_visual,
                             rock.tscn/.gd, pit.tscn, test_room.tscn (sala fija de la arena de tests)
 fx/                         game_camera, hit_stop, fx (spawner), flash.gdshader, pixel_bitmap, pixel_icons,
@@ -341,7 +347,7 @@ tests/unit/                 rng_streams, shot_spec, health_math, pattern_math, i
                             game_options, save_slots, rule_picker
 tests/integration/          player_shooting, bullets, combat, main_flow, floor, rooms, items,
                             bullet_behaviors, weapons, boss, meta_flow, feedback, inventory, enemy_kinds,
-                            weapons_statuses, music, save_slots_flow, special_rooms
+                            weapons_statuses, music, save_slots_flow, special_rooms, traps
 tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria, la música apagada y GameRNG con una seed fija
 docs/PLAN.md                plan, arquitectura e hitos
 docs/LORE.md                la historia y dónde está cada texto en el juego
@@ -393,6 +399,15 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   del pool jefe que cuestan un corazón cada uno, `ItemPedestal.health_price` con
   `HealthComponent.spend`, que nunca mata; al llevarse uno el otro desaparece) y WELL (`Well`, Pozo de
   brasas: si falta vida o Pulsos, cura todo y devuelve los Pulsos, una vez).
+- **Trampas:** `TrapData` (`content/traps/`), una por piso en `FloorTheme.trap`; `RoomBuilder.build_traps`
+  pone una `Trap` en cada `^` de la plantilla (nodo `Traps` de la sala). Etapas REST → WARN (se ve
+  venir, suena `trap_warn`) → ACTIVE (lastima con `HurtboxComponent.receive_hit` a cada hurtbox que toque,
+  una vez por activación: medio corazón al jugador, `enemy_damage` y su estado a los enemigos; no a
+  los que están bajo tierra o en fantasma; si el jugador estaba invulnerable, rodando, no cuenta).
+  TIMED: ciclo solo, en damero (las vecinas se turnan); PROXIMITY: se dispara si alguien se acerca.
+  NOZZLE es un chorro de `length` px hacia el medio de la sala (`RoomBuilder.jet_direction`), las otras
+  un círculo. Solo andan en la sala actual (`Room.set_present`, que llama `FloorController._enter`) y
+  arrancan quietas `Trap.START_GRACE` s. Varias que se activan juntas suenan una vez.
 - **Reglas de sala:** `RoomRule` (`content/rules/`, lista en `RunConfig.room_rules`). `RulePicker` las
   sortea con el stream FLOOR: siempre en la Prueba y, con `FloorTheme.rule_chance`, en salas normales a 2+
   pasos del inicio (`RoomSlot.rule`). Al cerrarse las puertas la sala avisa

@@ -61,6 +61,10 @@ encender y bajar otra vez.
 - **Altar:** la fragua apagada todavía pide calor: deja llevarse una de sus herramientas a cambio de un
   poco del fuego de la chispa (un corazón).
 - **Pozo de brasas:** agua tibia que bajaba de la fragua; alcanza para recuperarse una vez.
+- **Trampas:** cada piso se defiende a su manera. En el Sótano asoman los **pinchos** de las rejas
+  viejas; en las Cloacas las rejillas largan **vapor** podrido; en las Raíces las **vainas de esporas**
+  revientan cuando algo pasa cerca; en la Forja las boquillas de los hornos escupen **chorros de
+  fuego**. No distinguen: lastiman igual a los bichos.
 - **Reglas:** abajo el fuego suelto pone sus propias reglas en algunas salas (Furia, Coraza,
   Contrarreloj, Apagón, Sin Pulso, Frágil); aguantarlas tiene premio.
 

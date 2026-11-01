@@ -32,6 +32,19 @@ func test_valid_template_parses_cells_and_markers() -> void:
 	assert_eq(grid.pickups[0].cell, Vector2i(3, 6))
 
 
+func test_traps_are_floor_with_a_trap() -> void:
+	var grid: RoomGrid = RoomTemplateParser.parse(_with_row(4, "..^.........^.."))
+	assert_true(grid.is_valid(), "sin errores: %s" % ", ".join(grid.errors))
+	assert_eq(grid.traps, [Vector2i(2, 4), Vector2i(12, 4)] as Array[Vector2i])
+	assert_true(grid.is_walkable(Vector2i(2, 4)), "se camina por arriba")
+	assert_false(grid.traps.has(grid.nearest_walkable(Vector2i(2, 4))), "nadie aparece arriba de una trampa")
+
+
+func test_trap_in_front_of_a_door_is_an_error() -> void:
+	var grid: RoomGrid = RoomTemplateParser.parse(_with_row(4, "^.............."))
+	assert_false(grid.is_valid(), "la trampa tapa la puerta izquierda")
+
+
 func test_letter_case_sets_the_wave() -> void:
 	var grid: RoomGrid = RoomTemplateParser.parse(VALID)
 	var waves: Dictionary[String, int] = {}

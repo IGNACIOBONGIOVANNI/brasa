@@ -1,7 +1,7 @@
 class_name RoomBuilder
 extends RefCounted
 ## Arma la geometría de una sala en coordenadas locales (origen en el centro del interior): piso,
-## paredes con huecos para las puertas, rocas y fosos. Interior de 240 x 144 y paredes de 16 px.
+## paredes con huecos para las puertas, rocas, fosos y trampas. Interior de 240 x 144 y paredes de 16 px.
 
 const HALF_INTERIOR: Vector2 = Vector2(120, 72)
 const WALL: float = 16.0
@@ -10,6 +10,7 @@ const DOOR_WIDTH: float = 32.0
 const ENTRY_INSET: float = 14.0
 const ROCK_SCENE: PackedScene = preload("res://world/rock.tscn")
 const PIT_SCENE: PackedScene = preload("res://world/pit.tscn")
+const TRAP_SCENE: PackedScene = preload("res://entities/traps/trap.tscn")
 
 
 static func style_floor(visual: PlaceholderShape, theme: FloorTheme) -> void:
@@ -76,6 +77,27 @@ static func build_obstacles(parent: Node2D, grid: RoomGrid, theme: FloorTheme) -
 					pit.position = RoomGrid.cell_center(cell)
 					(pit.get_node(^"Visual") as PlaceholderShape).color = theme.pit_color
 					parent.add_child(pit)
+
+
+## La trampa del piso en cada "^". Las que se activan solas van en damero: las vecinas se turnan.
+static func build_traps(parent: Node2D, grid: RoomGrid, theme: FloorTheme) -> void:
+	if theme.trap == null:
+		return
+	for cell: Vector2i in grid.traps:
+		var trap := TRAP_SCENE.instantiate() as Trap
+		trap.setup(theme.trap, 0.5 * ((cell.x + cell.y) % 2), jet_direction(cell))
+		trap.position = RoomGrid.cell_center(cell)
+		parent.add_child(trap)
+
+
+## Hacia dónde escupe un chorro desde esa celda: hacia el medio de la sala, de costado (en la columna
+## del medio, para arriba o para abajo).
+static func jet_direction(cell: Vector2i) -> Vector2:
+	if cell.x < RoomGrid.CENTER.x:
+		return Vector2.RIGHT
+	if cell.x > RoomGrid.CENTER.x:
+		return Vector2.LEFT
+	return Vector2.DOWN if cell.y < RoomGrid.CENTER.y else Vector2.UP
 
 
 static func _wall_segment(rect: Rect2, theme: FloorTheme) -> StaticBody2D:

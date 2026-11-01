@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="TrapData" format=3]
+
+[ext_resource type="Script" path="res://data/trap_data.gd" id="1_trap"]
+
+[resource]
+script = ExtResource("1_trap")
+id = &"chorro"
+display_name = "Chorro de fuego"
+look = 3
+trigger = 0
+rest_time = 2.0
+warn_time = 0.6
+active_time = 0.8
+radius = 5.0
+length = 48.0
+enemy_damage = 10.0
+applies_status = true
+status = 0
+color = Color(1, 0.5412, 0.2392, 1)
+sfx_id = &"trap_fire"

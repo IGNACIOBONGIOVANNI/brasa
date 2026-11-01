@@ -1,7 +1,7 @@
 class_name RoomGrid
 extends RefCounted
 ## Una sala parseada de su plantilla de texto (ver RoomTemplateParser): qué hay en cada celda del
-## interior (15 x 9 tiles de 16 px) y dónde aparecen enemigos y pickups.
+## interior (15 x 9 tiles de 16 px) y dónde aparecen enemigos, pickups y trampas.
 
 enum Cell { FLOOR, ROCK, PIT }
 
@@ -29,6 +29,8 @@ var enemies: Array[EnemyMarker] = []
 var pickups: Array[PickupMarker] = []
 ## Lugares para pedestales con item.
 var item_spots: Array[Vector2i] = []
+## Celdas con trampa (se puede caminar por arriba).
+var traps: Array[Vector2i] = []
 var errors: PackedStringArray = []
 
 
@@ -94,7 +96,7 @@ func reachable_from(from: Vector2i) -> Dictionary[Vector2i, bool]:
 
 
 ## Celda caminable más cercana a `pos` (para soltar recompensas o aparecer en el centro), sin
-## contar los lugares de pedestales: así nadie aparece arriba de un item. Con `enemy_clearance` > 0
+## contar los lugares de pedestales ni las trampas: así nadie aparece arriba de un item o de una trampa. Con `enemy_clearance` > 0
 ## además se aleja esa cantidad de celdas (contando diagonales) de cada enemigo de la plantilla; si
 ## no hay ninguna así, se ignora esa condición.
 func nearest_walkable(pos: Vector2i, enemy_clearance: int = 0) -> Vector2i:
@@ -104,7 +106,7 @@ func nearest_walkable(pos: Vector2i, enemy_clearance: int = 0) -> Vector2i:
 		for x: int in WIDTH:
 			var cell := Vector2i(x, y)
 			var distance: int = (cell - pos).length_squared()
-			if is_walkable(cell) and not item_spots.has(cell) and distance < best_distance \
+			if is_walkable(cell) and not item_spots.has(cell) and not traps.has(cell) and distance < best_distance \
 					and _far_from_enemies(cell, enemy_clearance):
 				best = cell
 				best_distance = distance

@@ -1,6 +1,6 @@
 extends GutTest
 ## Contenido (.tres): enemigos, patrones, sonidos, plantillas de sala, pickups, items, armas, pisos,
-## reglas de sala, personajes y logros cargan bien y son coherentes entre sí.
+## reglas de sala, trampas, personajes y logros cargan bien y son coherentes entre sí.
 
 const ENEMIES_DIR: String = "res://content/enemies/"
 const PATTERNS_DIR: String = "res://content/patterns/"
@@ -16,6 +16,7 @@ const META: MetaConfig = preload("res://content/meta/meta_config.tres")
 const CHARACTERS_DIR: String = "res://content/characters/"
 const ACHIEVEMENTS_DIR: String = "res://content/achievements/"
 const RULES_DIR: String = "res://content/rules/"
+const TRAPS_DIR: String = "res://content/traps/"
 ## Salas especiales que un piso puede sumar con FloorTheme.extra_rooms.
 const EXTRA_KINDS: Array[RoomSlot.Kind] = [RoomSlot.Kind.CHALLENGE, RoomSlot.Kind.ALTAR, RoomSlot.Kind.WELL]
 ## Distancia mínima (en celdas, contando diagonales) entre un enemigo y la entrada de una puerta.
@@ -28,7 +29,7 @@ const CODE_SFX: Array[StringName] = [
 	&"weapon_swap", &"active_use", &"active_ready", &"pickup_heart", &"boss_phase", &"boss_die",
 	&"exit_open", &"ui_select", &"pause", &"achievement", &"lightning", &"heartbeat", &"boss_intro",
 	&"victory", &"defeat", &"medkit", &"revive", &"hop", &"beam", &"burrow", &"summon", &"lob",
-	&"shield_block", &"rail_charge", &"rule", &"altar", &"well",
+	&"shield_block", &"rail_charge", &"rule", &"altar", &"well", &"trap_warn",
 ]
 
 
@@ -322,6 +323,40 @@ func test_rules_are_valid_and_all_listed() -> void:
 		assert_true(changes, "%s: cambia algo" % rule.id)
 	for resource: Resource in _load_all(RULES_DIR):
 		assert_true(listed.has(resource.resource_path), "%s está en run_config.tres" % resource.resource_path)
+
+
+func test_each_floor_has_its_own_trap_and_rooms_with_traps() -> void:
+	var looks: Dictionary[TrapData.Look, bool] = {}
+	var used: Dictionary[String, bool] = {}
+	var sfx: Array[StringName] = _sfx_ids()
+	for i: int in RUN.floors.size():
+		var theme: FloorTheme = RUN.floors[i]
+		var trap: TrapData = theme.trap
+		assert_not_null(trap, "%s: tiene trampa" % theme.id)
+		if trap == null:
+			continue
+		used[trap.resource_path] = true
+		assert_false(looks.has(trap.look), "%s: su trampa se ve distinta a las de otros pisos" % theme.id)
+		looks[trap.look] = true
+		assert_ne(trap.display_name, "", "%s: la trampa tiene nombre" % theme.id)
+		assert_gt(trap.player_damage, 0.0, "%s: lastima al jugador" % trap.id)
+		assert_gt(trap.enemy_damage, 0.0, "%s: lastima a los enemigos" % trap.id)
+		assert_gt(trap.warn_time, 0.0, "%s: avisa antes" % trap.id)
+		assert_gt(trap.active_time, 0.0, "%s: dura algo" % trap.id)
+		assert_gt(trap.radius, 0.0, "%s: tiene área" % trap.id)
+		if trap.look == TrapData.Look.NOZZLE:
+			assert_gt(trap.length, 0.0, "%s: el chorro tiene largo" % trap.id)
+		assert_has(sfx, trap.sfx_id, "%s: su sonido existe" % trap.id)
+		var own_with_traps: int = 0
+		for template: RoomTemplate in theme.templates:
+			var grid: RoomGrid = RoomTemplateParser.parse(template.layout)
+			if not grid.traps.is_empty():
+				assert_eq(template.kind, RoomSlot.Kind.NORMAL, "%s: las trampas van en salas normales" % template.id)
+				if template.resource_path.begins_with("res://content/rooms/floor_%d/" % (i + 1)):
+					own_with_traps += 1
+		assert_gt(own_with_traps, 0, "%s: tiene salas propias con trampas" % theme.id)
+	for resource: Resource in _load_all(TRAPS_DIR):
+		assert_true(used.has(resource.resource_path), "%s la usa algún piso" % resource.resource_path)
 
 
 func test_bosses_have_valid_phases() -> void:

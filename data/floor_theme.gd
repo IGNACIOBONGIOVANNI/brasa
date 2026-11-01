@@ -25,6 +25,10 @@ extends Resource
 ## Probabilidad de que una sala normal (lejos del inicio) tenga una regla de RunConfig.room_rules.
 @export_range(0.0, 1.0) var rule_chance: float = 0.0
 
+@export_group("Trampas")
+## La trampa del piso: va en cada "^" de las plantillas (null = las salas con "^" quedan sin trampas).
+@export var trap: TrapData
+
 @export_group("Dificultad")
 ## Multiplicador de la vida de los enemigos y jefes del piso.
 @export var enemy_health_mult: float = 1.0

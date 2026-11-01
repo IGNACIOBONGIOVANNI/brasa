@@ -168,6 +168,8 @@ func _params(rng: RandomNumberGenerator) -> FloorParams:
 
 func _enter(cell: Vector2i) -> void:
 	current_cell = cell
+	for built: Vector2i in _rooms:
+		_rooms[built].set_present(built == cell)
 	visited[cell] = true
 	if layout.get_slot(cell).kind == RoomSlot.Kind.SECRET:
 		discovered_secrets[cell] = true
