@@ -60,6 +60,8 @@
 [ext_resource type="Resource" path="res://content/enemies/hollin.tres" id="e_hollin"]
 [ext_resource type="Resource" path="res://content/enemies/escudero.tres" id="e_escudero"]
 [ext_resource type="Resource" path="res://content/enemies/fogonero.tres" id="e_fogonero"]
+[ext_resource type="AudioStream" path="res://content/music/floor_4.wav" id="m_music"]
+[ext_resource type="AudioStream" path="res://content/music/boss.wav" id="m_boss"]
 
 [resource]
 script = ExtResource("1_theme")
@@ -70,6 +72,8 @@ ambient_light = Color(0.66, 0.46, 0.4, 1)
 mote_color = Color(1, 0.62, 0.25, 0.9)
 mote_velocity = Vector2(3, -22)
 mote_amount = 30
+music = ExtResource("m_music")
+boss_music = ExtResource("m_boss")
 room_count_min = 10
 room_count_max = 12
 min_boss_distance = 5

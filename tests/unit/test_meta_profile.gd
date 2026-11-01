@@ -199,11 +199,15 @@ func test_window_scale_round_trip_and_clamp() -> void:
 
 func test_options_round_trip_and_clamp() -> void:
 	_profile.volume = 0.4
+	_profile.music_volume = 0.3
 	_profile.fullscreen = true
 	var copy: MetaProfile = MetaProfile.from_dict(JSON.parse_string(JSON.stringify(_profile.to_dict())))
 	assert_almost_eq(copy.volume, 0.4, 0.0001)
+	assert_almost_eq(copy.music_volume, 0.3, 0.0001)
 	assert_true(copy.fullscreen)
-	var bad: MetaProfile = MetaProfile.from_dict({"options": {"volume": 7, "fullscreen": "sí"}})
+	var bad: MetaProfile = MetaProfile.from_dict({"options": {"volume": 7, "music_volume": -2, "fullscreen": "sí"}})
 	assert_eq(bad.volume, 1.0, "recortado a 1")
+	assert_eq(bad.music_volume, 0.0, "recortado a 0")
 	assert_false(bad.fullscreen, "solo true cuenta")
 	assert_eq(MetaProfile.from_dict({}).volume, 1.0, "sin opciones: volumen al máximo")
+	assert_eq(MetaProfile.from_dict({}).music_volume, MetaProfile.DEFAULT_MUSIC_VOLUME, "guardados viejos: la música por defecto")

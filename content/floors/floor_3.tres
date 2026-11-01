@@ -50,6 +50,8 @@
 [ext_resource type="Resource" path="res://content/enemies/nido.tres" id="e_nido"]
 [ext_resource type="Resource" path="res://content/enemies/topo.tres" id="e_topo"]
 [ext_resource type="Resource" path="res://content/enemies/hollin.tres" id="e_hollin"]
+[ext_resource type="AudioStream" path="res://content/music/floor_3.wav" id="m_music"]
+[ext_resource type="AudioStream" path="res://content/music/boss.wav" id="m_boss"]
 
 [resource]
 script = ExtResource("1_theme")
@@ -60,6 +62,8 @@ ambient_light = Color(0.46, 0.56, 0.42, 1)
 mote_color = Color(0.7, 0.95, 0.5, 0.6)
 mote_velocity = Vector2(4, -8)
 mote_amount = 26
+music = ExtResource("m_music")
+boss_music = ExtResource("m_boss")
 room_count_min = 10
 room_count_max = 12
 min_boss_distance = 4

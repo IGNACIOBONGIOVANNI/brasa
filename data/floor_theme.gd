@@ -41,6 +41,11 @@ extends Resource
 @export var mote_velocity: Vector2 = Vector2(3, -4)
 @export var mote_amount: int = 22
 
+@export_group("Música")
+## Tema del piso y el que suena mientras hay un jefe vivo (se generan con tools/compose_music.gd).
+@export var music: AudioStream
+@export var boss_music: AudioStream
+
 @export_group("Paleta")
 @export var floor_color: Color = Color(0.169, 0.137, 0.2)
 @export var floor_checker_color: Color = Color(0.188, 0.157, 0.227)

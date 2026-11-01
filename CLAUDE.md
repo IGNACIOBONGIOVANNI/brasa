@@ -5,8 +5,9 @@ estructura de los roguelites de salas + bullet hell, con contenido 100 % origina
 [docs/LORE.md](docs/LORE.md).
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 13 (armas y estados) terminado: lanzagranadas, bazuca, franco tirador y caño de riel;
-estados fuego, veneno, corrupción y apagado (por items o por arma). Antes: hito 12 (8 enemigos nuevos),
+**Estado:** Hito 14 (música) terminado: banda sonora chiptune original (menú, un tema por piso y el del
+jefe) generada por código con `ChipTune`, con volumen propio en Opciones. Antes: hito 13 (lanzagranadas,
+bazuca, franco tirador, caño de riel y estados fuego, veneno, corrupción y apagado), hito 12 (8 enemigos nuevos),
 tirar la bomba manteniendo, hito 11 (luz y efectos), hito 10 (calidades C a S++), hito 9 (lore, título
 "Brasa"), hito 8 (texto, armas, Mochila). El usuario va a
 mandar objetos propios con la ficha de [docs/OBJETOS.md](docs/OBJETOS.md). Cualquier trabajo nuevo, solo con OK del
@@ -45,6 +46,7 @@ Todos los flags están confirmados con `--help` en 4.7.2. `sed 's/\x1b\[[0-9;]*m
 | Exportar el .exe | `"$G" --headless --path . --export-release "Windows Desktop" builds/Brasa.exe` |
 | Exportar build debug (con consola) | `"$G" --headless --path . --export-debug "Windows Desktop" builds/debug/Brasa.exe` |
 | Probar la build debug exportada | `builds/debug/Brasa.console.exe -- --demo-input --seed=1234 --quit-frames=900` |
+| Generar la música (todos o algunos temas) | `"$G" --headless --path . -s res://tools/compose_music.gd [-- floor_1 boss]` y después `--import` |
 | Medir el balance (bot) | `"$G" --headless --fixed-fps 60 --path . res://debug/balance_probe.tscn -- --seed=1234` |
 | Comparar un arma (bot) | `... balance_probe.tscn -- --seed=1234 --floors=2 --weapon=haz` |
 
@@ -256,7 +258,8 @@ core/rng/                   RngStreams: streams con seed derivada
 core/combat/                ShotSpec, HealthMath, PatternMath, HitInfo, WeaponSlot (munición y recarga),
                             PhaseMath (fase del jefe según su vida)
 core/input/                 InputBuffer
-core/audio/                 SfxSynth (sintetizador de sonidos placeholder)
+core/audio/                 SfxSynth (sintetizador de sonidos placeholder), ChipTune (música: notación MML y
+                            sintetizador de 8 bits)
 core/floor_gen/             FloorGenerator, FloorLayout, RoomSlot, FloorParams, TemplatePicker, MinimapModel
 core/rooms/                 RoomTemplateParser (texto → RoomGrid)
 core/loot/                  RoomReward (premio por limpiar sala)
@@ -276,7 +279,8 @@ content/                    weapons/ (pistola, trabuco, metralla, haz, órbita, 
                             sfx/sfx_library, rooms/floor_1/ (18), floor_2/ (7), floor_3/ (7), floor_4/ (8),
                             floors/ (Sótano, Cloacas, Raíces, Forja), run/run_config,
                             pickups/ (coin, heart, bomb, key), characters/ (brasa, musgo, ceniza),
-                            achievements/ (7), meta/meta_config
+                            achievements/ (7), meta/meta_config, music/ (menu, floor_1..4, boss: .wav
+                            generados, no editar a mano)
 items/                      ItemHook (base), HookContext, hooks/ (diente de leche, rencor, estallido,
                             caparazón, relámpago, botiquín, eco, esquirlas, segunda chispa)
 components/                 Weapon, LaserBeam, OrbitRing, RailGun, AimSight, Health, Hurtbox (con escudo y
@@ -306,16 +310,17 @@ ui/hud/                     hud.tscn/.gd, hearts_display, pulse_display, counter
 ui/minimap/                 minimap.gd
 debug/                      demo_input.gd, balance_probe.tscn/.gd (bot que mide cuánto dura una run)
 main/                       main.tscn/.gd (flujo de pantallas y salida prolija) → game.tscn/.gd (una run)
-tools/                      check_scripts.gd, setup_input_map.gd
+tools/                      check_scripts.gd, setup_input_map.gd, compose_music.gd (genera content/music/),
+                            music/soundtrack.gd (las partituras de la banda sonora)
 export_presets.cfg          preset "Windows Desktop" (builds/ está en .gitignore)
 tests/fixtures/             arena.tscn (sala fija con jugador, para tests de combate)
 tests/unit/                 rng_streams, shot_spec, health_math, pattern_math, input_buffer, sfx_synth, content,
                             floor_generator (500 seeds), room_template_parser, template_picker, minimap_model,
                             room_reward, stat_calculator, item_pool, weapon_slot, phase_math,
-                            save_schema, save_store, meta_profile, inventory_text, window_scales
+                            save_schema, save_store, meta_profile, inventory_text, window_scales, chip_tune
 tests/integration/          player_shooting, bullets, combat, main_flow, floor, rooms, items,
                             bullet_behaviors, weapons, boss, meta_flow, feedback, inventory, enemy_kinds,
-                            weapons_statuses
+                            weapons_statuses, music
 tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria
 docs/PLAN.md                plan, arquitectura e hitos
 docs/LORE.md                la historia y dónde está cada texto en el juego
@@ -453,10 +458,20 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   contenedores `Effects` y `Decals` de `game.tscn`.
 - **Audio:** `SfxLibrary` (`content/sfx/sfx_library.tres`) con un `SfxData` por id; si no tiene archivo,
   `SfxSynth` lo genera al arrancar. Pool de 16 reproductores; si están todos ocupados se omite el sonido.
+- **Música:** las partituras están en `tools/music/soundtrack.gd` (notación de `ChipTune`, explicada en
+  `core/audio/chip_tune.gd`: un texto por canal, pulsos, triángulo y batería de ruido) y
+  `tools/compose_music.gd` las pasa a `content/music/<id>.wav` con la marca de repetición (`smpl`), así
+  Godot las importa en loop. El juego solo carga los .wav: `Main.MENU_MUSIC` fuera de la run,
+  `FloorTheme.music` en cada piso y `FloorTheme.boss_music` mientras hay un jefe vivo (lo pone `Game`;
+  al morir se apaga). `AudioManager.play_music(stream, fundido)` pasa de un tema a otro con un fundido
+  cruzado (dos reproductores en el bus "Music", que crea al arrancar); pedir el que ya suena no lo
+  reinicia. En los tests la música no suena (`music_enabled = false` en el pre_run_hook):
+  `current_music()` dice qué se pidió. Un test compara el largo de cada .wav con su partitura: si se
+  cambia una, volver a generarla.
 - **Avisos:** `DangerOverlay` (en el HUD) pone bordes rojos al recibir daño y, con un corazón o menos,
   late con un sonido de corazón. Al aparecer un jefe: cartel con su nombre, sonido y sacudida. El
   resumen suena distinto al ganar o perder.
-- **Opciones:** volumen general, pantalla completa y resolución, en el perfil (clave `options` del guardado);
+- **Opciones:** volumen general, de la música, pantalla completa y resolución, en el perfil (clave `options` del guardado);
   `SaveManager.apply_options()` las aplica al abrir el guardado y al cambiarlas.
 - **HUD:** `ui/hud` (CanvasLayer), dibujado con `PixelBitmap` + `PixelIcons`. Arriba (sobre la pared):
   corazones, Pulsos, contadores y el activo con su carga; minimapa (`MinimapModel` → `Minimap`) arriba

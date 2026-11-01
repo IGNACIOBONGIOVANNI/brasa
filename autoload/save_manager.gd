@@ -2,7 +2,7 @@ extends Node
 ## El progreso entre runs: el MetaProfile y su archivo. Arranca en memoria (perfil nuevo, sin disco)
 ## hasta que Main llama a `open()` con la ruta del guardado. Guarda después de cada cambio: run
 ## terminada, compra en el Taller, personaje elegido, opciones. También aplica las opciones (volumen
-## del bus Master y pantalla completa).
+## del bus Master, de la música y pantalla completa).
 ## Los tests lo dejan siempre en memoria (tests/pre_run_hook.gd) para no tocar el guardado real.
 
 signal profile_changed
@@ -101,6 +101,12 @@ func set_volume(volume: float) -> void:
 	_changed()
 
 
+func set_music_volume(volume: float) -> void:
+	profile.music_volume = clampf(volume, 0.0, 1.0)
+	apply_options()
+	_changed()
+
+
 func mark_intro_seen() -> void:
 	if profile.intro_seen:
 		return
@@ -137,6 +143,7 @@ func window_size() -> Vector2i:
 func apply_options() -> void:
 	AudioServer.set_bus_mute(MASTER_BUS, profile.volume <= 0.0)
 	AudioServer.set_bus_volume_db(MASTER_BUS, linear_to_db(maxf(profile.volume, 0.0001)))
+	AudioManager.set_music_volume(profile.music_volume)
 	if DisplayServer.get_name() == "headless":
 		return
 	var current: DisplayServer.WindowMode = DisplayServer.window_get_mode()
@@ -177,6 +184,7 @@ func reset_progress() -> void:
 	var previous: MetaProfile = profile
 	profile = MetaProfile.new()
 	profile.volume = previous.volume
+	profile.music_volume = previous.music_volume
 	profile.fullscreen = previous.fullscreen
 	profile.window_scale = previous.window_scale
 	_changed()

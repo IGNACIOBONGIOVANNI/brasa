@@ -541,3 +541,29 @@ corrupción y "apagado" (ya que el juego trata de brasas).
   Ballesta 2:41, Franco tirador 2:29 (estaba en 1:39: bajó de daño ×4,5 a ×3,8 y de cadencia ×0,4 a
   ×0,38), Metralla 2:28, Lanzagranadas 2:18, Haz 2:03. El riel no se puede medir con el bot (nunca
   suelta el gatillo).
+
+## Hito 14 — música (2026-10-31)
+
+Pedido del usuario: "algún soundtrack piola tipo retro".
+
+- **Chiptune hecho por código, todo original.** Como los efectos (SfxSynth), la música sale de un
+  sintetizador propio (`ChipTune`) que imita un chip de 8 bits: dos pulsos (12,5/25/50/75 %), un
+  triángulo de 16 escalones y batería de ruido (registro de desplazamiento), con arpegios rápidos,
+  vibrato y eco. Las partituras están en una notación tipo MML (la clásica de la música de chip), un
+  texto por canal, con barras de compás que se controlan (si un canal se desfasa, el tema no se genera).
+- **Se generan antes, no al jugar.** `tools/compose_music.gd` renderiza los .wav (22 050 Hz, 16 bits,
+  mono; ~11 MB en total en el repo, comprimidos con QOA al importar) y el juego solo los carga: lo más
+  simple en tiempo de juego, sin hilos ni demoras al arrancar. Generar los seis tarda ~8 s. El .wav lleva
+  la marca de repetición ("smpl") y Godot lo importa en loop solo. Lo que suena después del final (ecos,
+  platillos) se suma al principio: la vuelta no corta.
+- **Volumen parejo:** cada tema se lleva al mismo nivel promedio (RMS 0,2) con un limitador suave, así
+  al pasar del piso al jefe no hay saltos. La música va 9 dB debajo de los efectos.
+- **Seis temas:** menú "Brasa" (la menor, 92 BPM, arpa con eco), Sótano (re menor, 128), Cloacas (mi
+  menor funky, 116), Raíces (sol dórico con flauta y toms en tresillo, 132), Forja (do menor armónico,
+  bajo al galope y yunques, 148) y Jefe (mi frigio, 168). Un solo tema de jefe para los cuatro jefes.
+- **Cuándo suena cada uno:** el del menú en todas las pantallas fuera de la run (en el resumen entra
+  despacio, 3 s, después del sonido de victoria o derrota); el del piso al empezar cada piso; el del jefe
+  al aparecer el jefe y, al vencerlo, vuelve el del piso; al morir se apaga en 1,2 s. Fundido cruzado
+  de 1 s entre temas. La música sigue con el juego en pausa.
+- **Opción "Música"** (de a 10 %, 80 % por defecto) aparte del volumen general; los guardados viejos
+  toman el valor por defecto. Bus "Music" creado por código (no hace falta un layout de buses).

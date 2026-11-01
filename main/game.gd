@@ -6,6 +6,8 @@ extends Node2D
 ## El mundo (salas, entidades, balas, efectos y cámara) vive en el SubViewport `world`, que se dibuja
 ## a 320x180 y se agranda con píxeles enteros; el HUD y los menús van afuera, a la resolución de la
 ## ventana, así el texto se ve nítido.
+## Con piso, también pone la música: el tema del piso, el del jefe mientras hay uno vivo y silencio
+## al morir.
 
 ## Desde la pausa: volver al menú o salir del juego (los atiende Main).
 signal menu_requested
@@ -17,6 +19,8 @@ const PEDESTAL_SCENE: PackedScene = preload("res://entities/pickups/item_pedesta
 const DEV_RESOURCES: int = 5
 ## Dónde aparece el pedestal de debug respecto del jugador.
 const DEV_PEDESTAL_OFFSET: Vector2 = Vector2(0, -28)
+## Al morir la música se apaga en este tiempo.
+const DEATH_MUSIC_FADE: float = 1.2
 
 @onready var world: SubViewport = $WorldView/World
 @onready var player: Player = $WorldView/World/Entities/Player
@@ -35,6 +39,9 @@ func _ready() -> void:
 		_hud.bind_floor(floor_controller)
 		EventBus.floor_changed.connect(_apply_floor_mood)
 		_apply_floor_mood(floor_controller.floor_index)
+		EventBus.boss_spawned.connect(_on_boss_spawned)
+		EventBus.boss_defeated.connect(_on_boss_defeated)
+		EventBus.player_died.connect(_on_player_died)
 	if _pause != null:
 		_pause.menu_requested.connect(menu_requested.emit)
 		_pause.quit_requested.connect(quit_requested.emit)
@@ -67,13 +74,26 @@ func spawn_enemy(data: EnemyData, at: Vector2) -> Enemy:
 	return enemy
 
 
-## Penumbra y partículas de ambiente del piso.
+## Penumbra, partículas de ambiente y música del piso.
 func _apply_floor_mood(index: int) -> void:
 	var theme: FloorTheme = floor_controller.run.floors[index]
 	if _ambient != null:
 		_ambient.color = theme.ambient_light
 	if _motes != null:
 		_motes.configure(theme)
+	AudioManager.play_music(theme.music)
+
+
+func _on_boss_spawned(_boss: Node2D) -> void:
+	AudioManager.play_music(floor_controller.theme.boss_music)
+
+
+func _on_boss_defeated(_boss: Node2D) -> void:
+	AudioManager.play_music(floor_controller.theme.music)
+
+
+func _on_player_died() -> void:
+	AudioManager.stop_music(DEATH_MUSIC_FADE)
 
 
 func _open_inventory_from_pause() -> void:

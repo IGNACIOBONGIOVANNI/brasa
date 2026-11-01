@@ -3,7 +3,8 @@ extends Node
 ## Raíz del juego y flujo de pantallas: menú principal → (la primera vez, la intro) → elegir
 ## personaje → run → resumen (al morir o ganar, con lo ganado) → menú u otra run. Desde el menú
 ## también se va al Taller, a los logros y a las opciones (que pueden volver a mostrar la intro).
-## Abre el guardado al arrancar y cierra el juego prolijo (corta el audio antes de salir).
+## Abre el guardado al arrancar y cierra el juego prolijo (corta el audio antes de salir). Fuera de
+## la run suena el tema del menú (la run pone el de cada piso).
 ## Argumentos de usuario: --skip-menu o --demo-input arrancan directo en una run; --save=RUTA usa
 ## otro guardado; con --demo-input (y sin --save) el progreso queda solo en memoria.
 
@@ -15,6 +16,9 @@ const OPTIONS_SCENE: PackedScene = preload("res://ui/menus/options_menu.tscn")
 const INTRO_SCENE: PackedScene = preload("res://ui/menus/intro_screen.tscn")
 const GAME_SCENE: PackedScene = preload("res://main/game.tscn")
 const SUMMARY_SCENE: PackedScene = preload("res://ui/menus/run_summary.tscn")
+const MENU_MUSIC: AudioStream = preload("res://content/music/menu.wav")
+## En el resumen el tema del menú entra despacio, después del sonido de victoria o derrota.
+const SUMMARY_MUSIC_FADE: float = 3.0
 const SAVE_ARG: String = "--save="
 ## Chispas que da el comando de debug.
 const DEV_SPARKS: int = 100
@@ -130,6 +134,7 @@ func start_run(character: CharacterData = null) -> void:
 func finish_run(victory: bool) -> void:
 	if game == null:
 		return
+	AudioManager.play_music(MENU_MUSIC, SUMMARY_MUSIC_FADE)
 	var rewards: MetaProfile.RunRewards = SaveManager.record_run(RunState.make_record(victory))
 	var summary := SUMMARY_SCENE.instantiate() as RunSummary
 	summary.retry_requested.connect(start_run)
@@ -157,6 +162,8 @@ func _set_screen(next: Node) -> void:
 		screen.queue_free()
 	game = next as Game
 	screen = next
+	if game == null:
+		AudioManager.play_music(MENU_MUSIC)
 	add_child(next)
 
 

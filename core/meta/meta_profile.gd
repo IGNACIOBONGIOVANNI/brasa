@@ -1,11 +1,14 @@
 class_name MetaProfile
 extends RefCounted
 ## El progreso entre runs (lo que se guarda): chispas, items y personajes desbloqueados, logros, el
-## último personaje elegido, los totales de todas las runs y las opciones (volumen, pantalla completa, resolución). Pasa a y desde el diccionario del
+## último personaje elegido, los totales de todas las runs y las opciones (volumen, música, pantalla completa, resolución). Pasa a y desde el diccionario del
 ## guardado; al leer tolera claves que falten y tipos raros (quedan en su valor por defecto).
 
 
 ## Lo que dejó una run terminada (para el resumen).
+const DEFAULT_MUSIC_VOLUME: float = 0.8
+
+
 class RunRewards:
 	var sparks: int = 0
 	var achievements: Array[AchievementData] = []
@@ -21,6 +24,8 @@ var wins: int = 0
 var total_kills: int = 0
 ## Volumen general, de 0 a 1.
 var volume: float = 1.0
+## Volumen de la música, de 0 a 1 (encima del general).
+var music_volume: float = DEFAULT_MUSIC_VOLUME
 var fullscreen: bool = false
 ## Tamaño de la ventana en múltiplos de 320x180 (ver WindowScales).
 var window_scale: int = WindowScales.DEFAULT_SCALE
@@ -94,7 +99,7 @@ func to_dict() -> Dictionary:
 		"achievements": _ids(achievements),
 		"last_character": String(last_character),
 		"totals": {"runs": runs, "wins": wins, "kills": total_kills},
-		"options": {"volume": volume, "fullscreen": fullscreen, "window_scale": window_scale},
+		"options": {"volume": volume, "music_volume": music_volume, "fullscreen": fullscreen, "window_scale": window_scale},
 		"intro_seen": intro_seen,
 	}
 
@@ -118,6 +123,9 @@ static func from_dict(data: Dictionary) -> MetaProfile:
 		var volume_value: Variant = (options as Dictionary).get("volume")
 		if typeof(volume_value) == TYPE_FLOAT or typeof(volume_value) == TYPE_INT:
 			profile.volume = clampf(float(volume_value), 0.0, 1.0)
+		var music_value: Variant = (options as Dictionary).get("music_volume")
+		if typeof(music_value) == TYPE_FLOAT or typeof(music_value) == TYPE_INT:
+			profile.music_volume = clampf(float(music_value), 0.0, 1.0)
 		var fullscreen_value: Variant = (options as Dictionary).get("fullscreen")
 		profile.fullscreen = typeof(fullscreen_value) == TYPE_BOOL and fullscreen_value
 		var scale_value: Variant = (options as Dictionary).get("window_scale")

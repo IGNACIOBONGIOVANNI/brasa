@@ -219,6 +219,10 @@ bolas en arco) y dos salas nuevas por piso.
 riel; estados fuego, veneno, corrupción y apagado, que dan cuatro items nuevos (y el lanzagranadas
 trae fuego).
 
+**Hito 14 — Música** (pedido del usuario: "algún soundtrack piola tipo retro"): seis temas chiptune
+originales (menú, uno por piso y el del jefe) escritos en una notación tipo MML y generados por código,
+con fundidos entre temas y volumen de la música en Opciones.
+
 ## 6. Cosas a tener en cuenta desde ya
 
 - **Export templates.** Para el hito 7 hacen falta las plantillas de exportación de 4.7.2 instaladas
