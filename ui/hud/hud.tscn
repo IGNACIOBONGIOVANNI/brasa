@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://ui/hud/boss_bar.gd" id="10_boss_bar"]
 [ext_resource type="Script" path="res://ui/hud/danger_overlay.gd" id="11_danger"]
 [ext_resource type="Script" path="res://ui/hud/rule_display.gd" id="12_rule"]
+[ext_resource type="Script" path="res://ui/hud/mech_display.gd" id="13_mech"]
 
 [node name="Hud" type="CanvasLayer"]
 layer = 10
@@ -126,3 +127,13 @@ offset_right = 234.0
 offset_bottom = 14.0
 mouse_filter = 2
 script = ExtResource("12_rule")
+
+[node name="Mech" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 62.0
+offset_top = 12.0
+offset_right = 116.0
+offset_bottom = 17.0
+mouse_filter = 2
+script = ExtResource("13_mech")

@@ -118,10 +118,11 @@ func _problems(layout: FloorLayout, params: FloorParams) -> PackedStringArray:
 
 
 func test_extra_rooms_are_distinct_and_capped() -> void:
-	var candidates: Array[RoomSlot.Kind] = [RoomSlot.Kind.CHALLENGE, RoomSlot.Kind.ALTAR, RoomSlot.Kind.WELL]
+	var candidates: Array[RoomSlot.Kind] = [RoomSlot.Kind.CHALLENGE, RoomSlot.Kind.ALTAR, RoomSlot.Kind.WELL,
+			RoomSlot.Kind.HANGAR]
 	var rng := RandomNumberGenerator.new()
 	var all_seen: Dictionary[RoomSlot.Kind, bool] = {}
-	for seed_value: int in 60:
+	for seed_value: int in 80:
 		rng.seed = seed_value
 		var picked: Array[RoomSlot.Kind] = FloorGenerator.pick_extra_rooms(candidates, 2, rng)
 		assert_eq(picked.size(), 2)

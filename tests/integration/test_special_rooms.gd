@@ -10,7 +10,8 @@ const PRUEBA: RoomTemplate = preload("res://content/rooms/floor_1/prueba.tres")
 const ALTAR: RoomTemplate = preload("res://content/rooms/floor_1/altar.tres")
 const POZO: RoomTemplate = preload("res://content/rooms/floor_1/pozo.tres")
 const FURIA: RoomRule = preload("res://content/rules/furia.tres")
-const EXTRA_KINDS: Array[RoomSlot.Kind] = [RoomSlot.Kind.CHALLENGE, RoomSlot.Kind.ALTAR, RoomSlot.Kind.WELL]
+const EXTRA_KINDS: Array[RoomSlot.Kind] = [RoomSlot.Kind.CHALLENGE, RoomSlot.Kind.ALTAR, RoomSlot.Kind.WELL,
+		RoomSlot.Kind.HANGAR]
 
 var _game: Game
 var _floor: FloorController

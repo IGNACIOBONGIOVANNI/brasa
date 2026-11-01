@@ -81,6 +81,10 @@ script = ExtResource("15_orbit")
 script = ExtResource("6_health")
 invulnerability_after_hit = 1.0
 
+[node name="MechArmor" type="Node" parent="."]
+script = ExtResource("6_health")
+invulnerability_after_hit = 0.4
+
 [node name="HurtboxComponent" type="Area2D" parent="." node_paths=PackedStringArray("health")]
 collision_layer = 64
 collision_mask = 0

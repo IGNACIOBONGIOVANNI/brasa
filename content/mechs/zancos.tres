@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="MechData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://data/mech_data.gd" id="1_mech"]
+[ext_resource type="Script" path="res://data/weapon_data.gd" id="2_weapon"]
+
+[sub_resource type="Resource" id="Weapon"]
+script = ExtResource("2_weapon")
+id = &"mech_zancos"
+display_name = "Ametralladora de zancos"
+fire_mode = 0
+damage_mult = 0.6
+fire_rate_mult = 2.6
+shot_speed_mult = 1.2
+knockback = 40.0
+shake_trauma = 0.06
+sfx_id = &"shoot"
+bullet_radius = 2.0
+bullet_color = Color(0.6824, 0.9412, 1, 1)
+gun_color = Color(0.2275, 0.2902, 0.3333, 1)
+gun_length = 8.0
+icon = PackedStringArray("#########", "..#######", "#########", "..#......", "..#......")
+icon_color = Color(0.4784, 0.8196, 1, 1)
+
+[resource]
+script = ExtResource("1_mech")
+id = &"zancos"
+display_name = "Zancos"
+description = "Liviano y rápido: balas sin parar, pero se rompe fácil."
+armor = 8.0
+move_speed = 100.0
+weapon = SubResource("Weapon")
+body_color = Color(0.3608, 0.4784, 0.5608, 1)
+accent_color = Color(0.4784, 0.8196, 1, 1)

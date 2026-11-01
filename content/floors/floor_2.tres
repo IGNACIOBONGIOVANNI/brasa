@@ -52,6 +52,7 @@
 [ext_resource type="Resource" path="res://content/rooms/floor_1/sotano_trampa.tres" id="rt1"]
 [ext_resource type="Resource" path="res://content/rooms/floor_2/cloaca_vapores.tres" id="rt2"]
 [ext_resource type="Resource" path="res://content/rooms/floor_2/cloaca_rejillas.tres" id="rt3"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/galpon.tres" id="rg0"]
 
 [resource]
 script = ExtResource("1_theme")
@@ -76,10 +77,10 @@ wall_color = Color(0.19, 0.29, 0.25, 1)
 outline_color = Color(0.06, 0.1, 0.08, 1)
 rock_color = Color(0.32, 0.42, 0.36, 1)
 pit_color = Color(0.02, 0.05, 0.04, 1)
-templates = Array[ExtResource("2_template_script")]([ExtResource("r0"), ExtResource("r1"), ExtResource("r2"), ExtResource("r3"), ExtResource("r4"), ExtResource("r5"), ExtResource("r6"), ExtResource("r7"), ExtResource("r8"), ExtResource("r9"), ExtResource("r10"), ExtResource("r11"), ExtResource("r12"), ExtResource("r13"), ExtResource("r14"), ExtResource("r15"), ExtResource("r16"), ExtResource("r17"), ExtResource("r18"), ExtResource("r19"), ExtResource("rn0"), ExtResource("rn1"), ExtResource("rn2"), ExtResource("rn3"), ExtResource("rs0"), ExtResource("rs1"), ExtResource("rs2"), ExtResource("rs3"), ExtResource("rt0"), ExtResource("rt1"), ExtResource("rt2"), ExtResource("rt3")])
+templates = Array[ExtResource("2_template_script")]([ExtResource("r0"), ExtResource("r1"), ExtResource("r2"), ExtResource("r3"), ExtResource("r4"), ExtResource("r5"), ExtResource("r6"), ExtResource("r7"), ExtResource("r8"), ExtResource("r9"), ExtResource("r10"), ExtResource("r11"), ExtResource("r12"), ExtResource("r13"), ExtResource("r14"), ExtResource("r15"), ExtResource("r16"), ExtResource("r17"), ExtResource("r18"), ExtResource("r19"), ExtResource("rn0"), ExtResource("rn1"), ExtResource("rn2"), ExtResource("rn3"), ExtResource("rs0"), ExtResource("rs1"), ExtResource("rs2"), ExtResource("rs3"), ExtResource("rt0"), ExtResource("rt1"), ExtResource("rt2"), ExtResource("rt3"), ExtResource("rg0")])
 enemies = Array[ExtResource("3_enemy_script")]([ExtResource("e_carnero"), ExtResource("e_vigia"), ExtResource("e_farol"), ExtResource("e_centinela"), ExtResource("e_rey_carnero"), ExtResource("e_grasa"), ExtResource("e_mecha"), ExtResource("e_murcielago"), ExtResource("e_nido")])
 pickups = Array[ExtResource("4_pickup_script")]([ExtResource("p_coin"), ExtResource("p_heart"), ExtResource("p_bomb"), ExtResource("p_key")])
-extra_rooms = Array[int]([6, 7, 8])
+extra_rooms = Array[int]([6, 7, 8, 9])
 extra_room_count = 2
 rule_chance = 0.25
 trap = ExtResource("trap")

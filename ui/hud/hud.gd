@@ -4,13 +4,15 @@ extends CanvasLayer
 ## llaves y el activo con su carga. Arriba a la derecha: el minimapa. Abajo (sobre la pared): los
 ## items pasivos a la izquierda y el arma con su munición a la derecha. El cartel (item agarrado,
 ## piso nuevo, jefe que aparece o regla de la sala), la regla mientras dura el combate, la barra del
-## jefe y los bordes rojos de peligro (golpe y vida baja).
+## jefe, los bordes rojos de peligro (golpe y vida baja) y, arriba de un armazón, su blindaje (y su
+## arma abajo a la derecha).
 
 ## Con esta vida o menos (en medios corazones) suena el latido.
 const LOW_HEALTH: float = 2.0
 const BOSS_INTRO_TRAUMA: float = 0.35
 
 var _floor: FloorController
+var _player: Player
 var _last_health: float = -1.0
 
 @onready var _hearts: HeartsDisplay = $Hearts
@@ -24,9 +26,13 @@ var _last_health: float = -1.0
 @onready var _minimap: Minimap = $Minimap
 @onready var _danger: DangerOverlay = $Danger
 @onready var _rule: RuleDisplay = $Rule
+@onready var _mech: MechDisplay = $Mech
 
 
 func bind_player(player: Player) -> void:
+	_player = player
+	player.mech_changed.connect(_on_mech_changed)
+	player.mech_armor.health_changed.connect(_mech.set_armor)
 	player.health.health_changed.connect(_on_health_changed)
 	_on_health_changed(player.health.current, player.health.max_health)
 	RunState.blanks_changed.connect(_pulses.set_count)
@@ -95,7 +101,18 @@ func _refresh_active() -> void:
 
 
 func _refresh_weapon() -> void:
-	_weapon.set_slot(RunState.current_weapon_slot())
+	if _player != null and _player.is_piloting():
+		_weapon.set_slot(_player.weapon.slot)
+	else:
+		_weapon.set_slot(RunState.current_weapon_slot())
+
+
+func _on_mech_changed(mech: MechData) -> void:
+	_mech.set_mech(mech)
+	if mech != null:
+		_mech.set_armor(_player.mech_armor.current, _player.mech_armor.max_health)
+		_banner.show_text(mech.display_name, mech.description, ItemBanner.SHOW_TIME, mech.accent_color)
+	_refresh_weapon()
 
 
 func _refresh_minimap() -> void:

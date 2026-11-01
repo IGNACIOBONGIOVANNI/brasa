@@ -3,8 +3,8 @@ extends Node
 ## Arma y maneja los pisos de la run (RunConfig): genera cada layout (FloorGenerator, TemplatePicker y
 ## RulePicker con el stream FLOOR del piso; las especiales extra salen de FloorTheme.extra_rooms),
 ## construye cada sala la primera vez que se entra (después quedan armadas, con sus rocas rotas y sus
-## pickups), sortea los items del tesoro, la tienda, la secreta, el jefe, la Prueba y el Altar
-## (stream LOOT), mueve la cámara de sala en sala al cruzar una puerta, destapa las puertas a la
+## pickups), sortea los items del tesoro, la tienda, la secreta, el jefe, la Prueba y el Altar y el
+## armazón del Galpón (stream LOOT), mueve la cámara de sala en sala al cruzar una puerta, destapa las puertas a la
 ## secreta con explosiones, abre la tienda con una llave y guarda lo que muestra el minimapa.
 ## Al vencer al jefe pone la salida: trampilla al piso siguiente o, en el último, la que gana la run.
 
@@ -19,6 +19,9 @@ const SECRET_REVEAL_MARGIN: float = 16.0
 ## Pedestales de la tienda y del altar.
 const SHOP_OFFERS: int = 3
 const ALTAR_OFFERS: int = 2
+const PARKED_MECH_SCENE: PackedScene = preload("res://entities/mechs/parked_mech.tscn")
+## Dónde aparece el armazón del menú de debug respecto del jugador.
+const DEV_MECH_OFFSET: Vector2 = Vector2(0, -30)
 
 @export var run: RunConfig
 @export var rooms_root: Node2D
@@ -215,6 +218,9 @@ func _roll_offers() -> void:
 	for cell: Vector2i in layout.cells_of_kind(RoomSlot.Kind.ALTAR):
 		for _i: int in ALTAR_OFFERS:
 			layout.get_slot(cell).offers.append(RunState.item_pool.draw(ItemData.POOL_BOSS, loot))
+	if not run.mechs.is_empty():
+		for cell: Vector2i in layout.cells_of_kind(RoomSlot.Kind.HANGAR):
+			layout.get_slot(cell).mech = run.mechs[loot.randi_range(0, run.mechs.size() - 1)]
 
 
 ## Al vencer al jefe aparece la salida: al piso siguiente, o la que gana la run en el último.
@@ -307,10 +313,20 @@ func _register_dev_commands() -> void:
 	Debug.add_command(self, "Ir a la Prueba (si hay)", _go_to_kind.bind(RoomSlot.Kind.CHALLENGE))
 	Debug.add_command(self, "Ir al Altar (si hay)", _go_to_kind.bind(RoomSlot.Kind.ALTAR))
 	Debug.add_command(self, "Ir al Pozo (si hay)", _go_to_kind.bind(RoomSlot.Kind.WELL))
+	Debug.add_command(self, "Ir al Galpón (si hay)", _go_to_kind.bind(RoomSlot.Kind.HANGAR))
+	for mech: MechData in run.mechs:
+		Debug.add_command(self, "Mechas/%s" % mech.display_name, spawn_mech.bind(mech))
 	Debug.add_command(self, "Volver al inicio", _go_to_kind.bind(RoomSlot.Kind.START))
 	Debug.add_command(self, "Revelar mapa", _reveal_map)
 	Debug.add_command(self, "Limpiar sala", _clear_current_room)
 	Debug.add_command(self, "Siguiente piso (o ganar)", _on_exit_entered)
+
+
+## Un armazón parado arriba del jugador (menú de debug).
+func spawn_mech(mech: MechData) -> ParkedMech:
+	var parked := Fx.spawn(get_tree(), PARKED_MECH_SCENE, player.global_position + DEV_MECH_OFFSET, Fx.ENTITIES_GROUP) as ParkedMech
+	parked.setup(mech)
+	return parked
 
 
 func _go_to_kind(kind: RoomSlot.Kind) -> void:

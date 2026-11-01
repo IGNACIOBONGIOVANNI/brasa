@@ -13,8 +13,13 @@
 [ext_resource type="Resource" path="res://content/rules/apagon.tres" id="rule_apagon"]
 [ext_resource type="Resource" path="res://content/rules/sin_pulso.tres" id="rule_sin_pulso"]
 [ext_resource type="Resource" path="res://content/rules/fragil.tres" id="rule_fragil"]
+[ext_resource type="Script" path="res://data/mech_data.gd" id="8_mech_script"]
+[ext_resource type="Resource" path="res://content/mechs/caldera.tres" id="mech_caldera"]
+[ext_resource type="Resource" path="res://content/mechs/zancos.tres" id="mech_zancos"]
+[ext_resource type="Resource" path="res://content/mechs/fuelle.tres" id="mech_fuelle"]
 
 [resource]
 script = ExtResource("1_run")
 floors = Array[ExtResource("2_theme_script")]([ExtResource("3_floor_1"), ExtResource("4_floor_2"), ExtResource("5_floor_3"), ExtResource("6_floor_4")])
 room_rules = Array[ExtResource("7_rule_script")]([ExtResource("rule_furia"), ExtResource("rule_coraza"), ExtResource("rule_contrarreloj"), ExtResource("rule_apagon"), ExtResource("rule_sin_pulso"), ExtResource("rule_fragil")])
+mechs = Array[ExtResource("8_mech_script")]([ExtResource("mech_caldera"), ExtResource("mech_zancos"), ExtResource("mech_fuelle")])

@@ -24,10 +24,11 @@ func _physics_process(delta: float) -> void:
 	_invulnerable_left = maxf(0.0, _invulnerable_left - delta)
 
 
-## Cambia el máximo y llena la vida (los enemigos se configuran así desde su EnemyData).
-func setup(new_max: float) -> void:
+## Cambia el máximo y llena la vida (los enemigos se configuran así desde su EnemyData). Con `start`
+## (0 o más) arranca con esa vida en vez de llena (el blindaje de un armazón usado).
+func setup(new_max: float, start: float = -1.0) -> void:
 	max_health = new_max
-	current = new_max
+	current = new_max if start < 0.0 else clampf(start, 0.0, new_max)
 	health_changed.emit(current, max_health)
 
 

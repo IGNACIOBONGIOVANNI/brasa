@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="MechData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://data/mech_data.gd" id="1_mech"]
+[ext_resource type="Script" path="res://data/weapon_data.gd" id="2_weapon"]
+
+[sub_resource type="Resource" id="Weapon"]
+script = ExtResource("2_weapon")
+id = &"mech_caldera"
+display_name = "Cañón de caldera"
+fire_mode = 0
+damage_mult = 2.2
+fire_rate_mult = 0.5
+shot_speed_mult = 0.85
+blast_radius = 18.0
+knockback = 160.0
+shake_trauma = 0.35
+sfx_id = &"rocket"
+bullet_radius = 4.0
+bullet_color = Color(1, 0.702, 0.3608, 1)
+gun_color = Color(0.2902, 0.2471, 0.2275, 1)
+gun_length = 9.0
+icon = PackedStringArray("..#######", "#########", "#########", "..#......", ".........")
+icon_color = Color(1, 0.5412, 0.2392, 1)
+
+[resource]
+script = ExtResource("1_mech")
+id = &"caldera"
+display_name = "Caldera"
+description = "Pesado y duro. Su cañón tira bombas que revientan."
+armor = 16.0
+move_speed = 55.0
+weapon = SubResource("Weapon")
+body_color = Color(0.4784, 0.3529, 0.2745, 1)
+accent_color = Color(1, 0.5412, 0.2392, 1)

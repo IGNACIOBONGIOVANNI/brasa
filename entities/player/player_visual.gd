@@ -3,9 +3,10 @@ class_name PlayerVisual
 extends Node2D
 ## Placeholder del jugador dibujado por código: sombra, cuerpo, ojos y arma que sigue la mira (con
 ## el color y largo del arma equipada). También dibuja el rol (bolita que gira, sin arma), la muerte
-## (tirado, ojos en cruz) y el escudo del Caparazón.
+## (tirado, ojos en cruz), el escudo del Caparazón y, si maneja un armazón, el armazón con la chispa
+## en la cabina (MechDrawing).
 ## Se reemplaza por un sprite animado manteniendo set_aim(), play_fire(), set_rolling(), set_dead(),
-## set_gun(), set_body_color() y show_shield().
+## set_gun(), set_body_color(), show_shield(), set_mech() y set_walking().
 
 const FLASH_TIME: float = 0.05
 const RECOIL_PIXELS: float = 2.0
@@ -14,6 +15,8 @@ const RECOIL_RECOVERY: float = 20.0
 ## Radianes por segundo que gira la "bolita" al rodar.
 const ROLL_SPIN_SPEED: float = 26.0
 const SHIELD_COLOR: Color = Color("7ad1ff")
+## Pasos por segundo de las patas del armazón.
+const MECH_STEPS_PER_SECOND: float = 6.0
 
 @export var body_color: Color = Color("e8c170")
 @export var outline_color: Color = Color("1b1420")
@@ -29,6 +32,10 @@ var _roll_spin: float = 0.0
 var _dead: bool = false
 var _shield_left: float = 0.0
 var _time: float = 0.0
+var _mech: MechData
+var _mech_armor: float = 1.0
+var _walking: bool = false
+var _walk_time: float = 0.0
 
 
 ## El color del personaje elegido.
@@ -41,6 +48,17 @@ func set_gun(color: Color, length: float) -> void:
 	gun_color = color
 	gun_length = length
 	queue_redraw()
+
+
+## El armazón que maneja (null = a pie) y cuánto blindaje le queda (0 a 1).
+func set_mech(mech: MechData, armor_fraction: float) -> void:
+	_mech = mech
+	_mech_armor = armor_fraction
+	queue_redraw()
+
+
+func set_walking(walking: bool) -> void:
+	_walking = walking
 
 
 func show_shield(seconds: float) -> void:
@@ -76,6 +94,10 @@ func _process(delta: float) -> void:
 	if _shield_left > 0.0:
 		_shield_left = maxf(0.0, _shield_left - delta)
 		queue_redraw()
+	if _mech != null:
+		if _walking:
+			_walk_time += delta
+		queue_redraw()
 	if _rolling:
 		_roll_spin += ROLL_SPIN_SPEED * delta
 		queue_redraw()
@@ -92,6 +114,9 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO)
 	if _dead:
 		_draw_dead()
+	elif _mech != null:
+		MechDrawing.draw(self, _mech, aim_direction, int(_walk_time * MECH_STEPS_PER_SECOND) % 2, body_color,
+				gun_color, gun_length, _recoil, _mech_armor, _time)
 	elif _rolling:
 		_draw_rolling()
 	else:

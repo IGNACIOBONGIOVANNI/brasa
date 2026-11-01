@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="MechData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://data/mech_data.gd" id="1_mech"]
+[ext_resource type="Script" path="res://data/weapon_data.gd" id="2_weapon"]
+
+[sub_resource type="Resource" id="Weapon"]
+script = ExtResource("2_weapon")
+id = &"mech_fuelle"
+display_name = "Lanzallamas de fuelle"
+fire_mode = 1
+projectiles = 3
+spread_degrees = 26.0
+damage_mult = 0.5
+fire_rate_mult = 2.2
+range_mult = 0.45
+shot_speed_mult = 0.8
+burn_chance = 0.35
+knockback = 30.0
+shake_trauma = 0.05
+sfx_id = &"laser"
+bullet_radius = 3.0
+bullet_color = Color(1, 0.702, 0.3608, 1)
+gun_color = Color(0.3529, 0.2275, 0.1647, 1)
+gun_length = 7.0
+icon = PackedStringArray("....###..", "########.", "#########", "########.", "....###..")
+icon_color = Color(1, 0.8235, 0.4784, 1)
+
+[resource]
+script = ExtResource("1_mech")
+id = &"fuelle"
+display_name = "Fuelle"
+description = "Lanzallamas de fragua: de cerca, todo se prende."
+armor = 12.0
+move_speed = 72.0
+weapon = SubResource("Weapon")
+body_color = Color(0.4196, 0.2902, 0.3529, 1)
+accent_color = Color(1, 0.8235, 0.4784, 1)

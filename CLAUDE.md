@@ -5,10 +5,10 @@ estructura de los roguelites de salas + bullet hell, con contenido 100 % origina
 [docs/LORE.md](docs/LORE.md).
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 17 (trampas) terminado: cada piso tiene su trampa (Pinchos, Vapor, Vaina de esporas,
-Chorro de fuego) en algunas salas, y lastima al jugador y a los enemigos. Sigue, ya pedido por el
-usuario: hito 18 (mechas que el jugador maneja). Antes: hito 16 (seis reglas de sala y las salas
-Prueba, Altar y Pozo), hito 15 (cuatro partidas con su progreso),
+**Estado:** Hito 18 (mechas) terminado: tres armazones (Caldera, Zancos, Fuelle) que el jugador
+encuentra en una sala especial nueva, el Galpón, y maneja (blindaje propio, su arma, rodar para
+saltar afuera). Antes: hito 17 (una trampa por piso que lastima a jugador y enemigos), hito 16 (seis
+reglas de sala y las salas Prueba, Altar y Pozo), hito 15 (cuatro partidas con su progreso),
 hito 14 (música chiptune generada con `ChipTune`), hito 13 (lanzagranadas,
 bazuca, franco tirador, caño de riel y estados fuego, veneno, corrupción y apagado), hito 12 (8 enemigos nuevos),
 tirar la bomba manteniendo, hito 11 (luz y efectos), hito 10 (calidades C a S++), hito 9 (lore, título
@@ -233,6 +233,8 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   tiene al menos una sala propia con trampas (lo exige un test).
 - Trampas: un `.tres` por trampa en `content/traps/` (`TrapData`), cada una en un `FloorTheme.trap`
   (lo exige un test, con un aspecto distinto por piso).
+- Armazones (mechas): un `.tres` por armazón en `content/mechs/` (`MechData`, con su `WeaponData`
+  adentro como sub-recurso, munición infinita) y en `run_config.mechs` (lo exige un test).
 - Reglas de sala: un `.tres` por regla en `content/rules/` (`RoomRule`) y en
   `run_config.room_rules` (lo exige un test).
 - Items: un `.tres` por item en `content/items/` y en `catalog.tres` (lo exige un test), con su
@@ -290,13 +292,15 @@ core/meta/                  MetaProfile (progreso de una partida), MetaRules (ch
                             de progreso), RunRecord, GameOptions (opciones de todas las partidas)
 data/                       StatBlock, StatModifier, WeaponData, ItemData, ItemCatalog, EnemyData, BossPhase,
                             BulletPatternData, SfxData, SfxLibrary, RoomTemplate, FloorTheme, PickupData,
-                            RunConfig, CharacterData, AchievementData, MetaConfig, RoomRule, TrapData
+                            RunConfig, CharacterData, AchievementData, MetaConfig, RoomRule, TrapData,
+                            MechData
 content/                    weapons/ (pistola, trabuco, metralla, haz, órbita, ballesta, lanzagranadas, bazuca,
                             franco tirador, caño de riel), items/ (37 +
                             catalog), enemies/ (carnero, vigia, farol, centinela, espora, fundidor, grasa
                             (→ grasita → gotita), mecha, murcielago, nido (→ cria), topo, hollin, escudero,
                             fogonero; jefes campanario, rey_carnero, raigon y yunque), patterns/ (29),
-                            sfx/sfx_library, rooms/floor_1/ (23), floor_2/ (10), floor_3/ (10), floor_4/ (11),
+                            sfx/sfx_library, rooms/floor_1/ (24), floor_2/ (10), floor_3/ (10), floor_4/ (11),
+                            mechs/ (caldera, zancos, fuelle),
                             floors/ (Sótano, Cloacas, Raíces, Forja), run/run_config, rules/ (furia,
                             coraza, contrarreloj, apagon, sin_pulso, fragil), traps/ (pinchos, vapor,
                             vaina, chorro),
@@ -318,6 +322,8 @@ entities/pickups/           pickup.tscn/.gd, pickup_visual.gd, item_pedestal.tsc
 entities/bomb/              bomb.tscn/.gd
 entities/exit/              trapdoor.tscn/.gd (trampilla al piso siguiente o salida final)
 entities/traps/             trap.tscn/.gd + trap_visual.gd (trampas de los pisos)
+entities/mechs/             parked_mech.tscn/.gd + parked_mech_visual.gd (armazón parado), mech_drawing.gd
+                            (dibujo compartido con PlayerVisual)
 world/                      floor_controller, room.tscn/.gd, room_builder, door.tscn/.gd, door_visual,
                             rock.tscn/.gd, pit.tscn, test_room.tscn (sala fija de la arena de tests)
 fx/                         game_camera, hit_stop, fx (spawner), flash.gdshader, pixel_bitmap, pixel_icons,
@@ -332,7 +338,7 @@ ui/menus/                   main_menu, intro_screen, character_select, workshop_
                             menu_builder (arman la UI por código)
 ui/hud/                     hud.tscn/.gd, hearts_display, pulse_display, counters_display, active_display,
                             items_display, weapon_display, item_banner, boss_bar, danger_overlay,
-                            rule_display (la regla de la sala)
+                            rule_display (la regla de la sala), mech_display (blindaje del armazón)
 ui/minimap/                 minimap.gd
 debug/                      demo_input.gd, balance_probe.tscn/.gd (bot que mide cuánto dura una run)
 main/                       main.tscn/.gd (flujo de pantallas y salida prolija) → game.tscn/.gd (una run)
@@ -347,7 +353,7 @@ tests/unit/                 rng_streams, shot_spec, health_math, pattern_math, i
                             game_options, save_slots, rule_picker
 tests/integration/          player_shooting, bullets, combat, main_flow, floor, rooms, items,
                             bullet_behaviors, weapons, boss, meta_flow, feedback, inventory, enemy_kinds,
-                            weapons_statuses, music, save_slots_flow, special_rooms, traps
+                            weapons_statuses, music, save_slots_flow, special_rooms, traps, mechs
 tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria, la música apagada y GameRNG con una seed fija
 docs/PLAN.md                plan, arquitectura e hitos
 docs/LORE.md                la historia y dónde está cada texto en el juego
@@ -397,8 +403,21 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
 - **Salas especiales nuevas (`RoomSlot.Kind`, al final del enum):** CHALLENGE (Prueba: pelea opcional
   en dos oleadas, siempre con regla; al ganar aparece un pedestal del pool tesoro), ALTAR (dos items
   del pool jefe que cuestan un corazón cada uno, `ItemPedestal.health_price` con
-  `HealthComponent.spend`, que nunca mata; al llevarse uno el otro desaparece) y WELL (`Well`, Pozo de
-  brasas: si falta vida o Pulsos, cura todo y devuelve los Pulsos, una vez).
+  `HealthComponent.spend`, que nunca mata; al llevarse uno el otro desaparece), WELL (`Well`, Pozo de
+  brasas: si falta vida o Pulsos, cura todo y devuelve los Pulsos, una vez) y HANGAR (Galpón: un
+  armazón parado, sorteado de `RunConfig.mechs` con el stream LOOT en `RoomSlot.mech`).
+- **Armazones (mechas):** `MechData` (blindaje, velocidad, su arma, colores). Parado es un
+  `ParkedMech` (Area2D en la capa pickup): tocarlo llama `Player.board(data, blindaje)`; recién
+  bajado espera `REBOARD_DELAY` y a que el jugador se aleje. Arriba: `Player.mech` no es null, el
+  hurtbox apunta a `Player.mech_armor` (otro `HealthComponent`, con i-frames cortos) en vez de la vida,
+  `Player.move_speed()` es la del armazón, el `WeaponComponent` usa un `WeaponSlot` con su arma (los
+  stats del jugador siguen sumando), no se cambia de arma y los golpes empujan menos. Rodar es
+  `Player.eject()` (deja un `ParkedMech` con el blindaje que quedaba, en el contenedor de entidades) y
+  después rueda. Sin blindaje revienta (`_on_mech_destroyed`: lastima a los enemigos cerca, el jugador
+  queda a pie e invulnerable `MECH_BREAK_IFRAMES`). `Player.mech_changed` avisa al HUD (barra
+  `MechDisplay`, cartel con el nombre y el arma abajo a la derecha). `PlayerVisual.set_mech` lo dibuja
+  con `MechDrawing` (la chispa en la cabina). Se lleva entre salas y pisos; uno parado se pierde al
+  bajar de piso.
 - **Trampas:** `TrapData` (`content/traps/`), una por piso en `FloorTheme.trap`; `RoomBuilder.build_traps`
   pone una `Trap` en cada `^` de la plantilla (nodo `Traps` de la sala). Etapas REST → WARN (se ve
   venir, suena `trap_warn`) → ACTIVE (lastima con `HurtboxComponent.receive_hit` a cada hurtbox que toque,
@@ -566,7 +585,8 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   registra la escena (`Debug.add_command(dueño, texto, callable)`; un texto "Grupo/Nombre" va a un
   submenú; pausa el juego): ir al jefe, tesoro, tienda, secreta o inicio, revelar mapa, limpiar sala,
   siguiente piso (o ganar), curar, invulnerable, Pulsos, +5 recursos, cargar activo, morir, "Items"
-  (un pedestal gratis con cualquier item del catálogo, arriba del jugador) y "Progreso" (+100
+  (un pedestal gratis con cualquier item del catálogo, arriba del jugador), "Mechas" (un armazón
+  parado arriba del jugador), ir a la Prueba, el Altar, el Pozo o el Galpón y "Progreso" (+100
   chispas, desbloquear todo, borrar progreso; andan también en los menús).
 - **Coordenadas de una sala:** origen en el centro del interior; interior 240x144 (15x9 tiles de 16 px),
   paredes de 16 px. La celda (i, j) tiene centro en `(-112 + 16i, -64 + 16j)` (`RoomGrid.cell_center`).

@@ -1,6 +1,6 @@
 extends GutTest
 ## Contenido (.tres): enemigos, patrones, sonidos, plantillas de sala, pickups, items, armas, pisos,
-## reglas de sala, trampas, personajes y logros cargan bien y son coherentes entre sí.
+## reglas de sala, trampas, armazones, personajes y logros cargan bien y son coherentes entre sí.
 
 const ENEMIES_DIR: String = "res://content/enemies/"
 const PATTERNS_DIR: String = "res://content/patterns/"
@@ -17,8 +17,10 @@ const CHARACTERS_DIR: String = "res://content/characters/"
 const ACHIEVEMENTS_DIR: String = "res://content/achievements/"
 const RULES_DIR: String = "res://content/rules/"
 const TRAPS_DIR: String = "res://content/traps/"
+const MECHS_DIR: String = "res://content/mechs/"
 ## Salas especiales que un piso puede sumar con FloorTheme.extra_rooms.
-const EXTRA_KINDS: Array[RoomSlot.Kind] = [RoomSlot.Kind.CHALLENGE, RoomSlot.Kind.ALTAR, RoomSlot.Kind.WELL]
+const EXTRA_KINDS: Array[RoomSlot.Kind] = [RoomSlot.Kind.CHALLENGE, RoomSlot.Kind.ALTAR, RoomSlot.Kind.WELL,
+		RoomSlot.Kind.HANGAR]
 ## Distancia mínima (en celdas, contando diagonales) entre un enemigo y la entrada de una puerta.
 const ENEMY_DOOR_DISTANCE: int = 3
 ## Sonidos que el código pide por id (además de los sfx_id de armas, patrones y pickups).
@@ -30,6 +32,7 @@ const CODE_SFX: Array[StringName] = [
 	&"exit_open", &"ui_select", &"pause", &"achievement", &"lightning", &"heartbeat", &"boss_intro",
 	&"victory", &"defeat", &"medkit", &"revive", &"hop", &"beam", &"burrow", &"summon", &"lob",
 	&"shield_block", &"rail_charge", &"rule", &"altar", &"well", &"trap_warn",
+	&"mech_board", &"mech_eject", &"mech_break",
 ]
 
 
@@ -257,6 +260,8 @@ func test_treasure_and_shop_have_pedestal_spots() -> void:
 			assert_eq(spots, 1, "%s: un pedestal (en el jefe y la Prueba aparece al ganar)" % template.id)
 		elif template.kind == RoomSlot.Kind.WELL:
 			assert_eq(spots, 1, "%s: el lugar del pozo" % template.id)
+		elif template.kind == RoomSlot.Kind.HANGAR:
+			assert_eq(spots, 1, "%s: el lugar del armazón" % template.id)
 		elif template.kind == RoomSlot.Kind.SHOP:
 			assert_eq(spots, FloorController.SHOP_OFFERS, "%s: un pedestal por oferta" % template.id)
 		elif template.kind == RoomSlot.Kind.ALTAR:
@@ -357,6 +362,31 @@ func test_each_floor_has_its_own_trap_and_rooms_with_traps() -> void:
 		assert_gt(own_with_traps, 0, "%s: tiene salas propias con trampas" % theme.id)
 	for resource: Resource in _load_all(TRAPS_DIR):
 		assert_true(used.has(resource.resource_path), "%s la usa algún piso" % resource.resource_path)
+
+
+func test_mechs_are_valid_and_all_listed() -> void:
+	var listed: Dictionary[String, bool] = {}
+	var ids: Dictionary[StringName, bool] = {}
+	assert_gte(RUN.mechs.size(), 3, "al menos tres armazones")
+	var speeds: Dictionary[float, bool] = {}
+	for mech: MechData in RUN.mechs:
+		listed[mech.resource_path] = true
+		assert_false(ids.has(mech.id), "armazón %s repetido" % mech.id)
+		ids[mech.id] = true
+		assert_ne(mech.display_name, "", "%s: tiene nombre" % mech.id)
+		assert_ne(mech.description, "", "%s: tiene descripción" % mech.id)
+		assert_gt(mech.armor, 0.0, "%s: tiene blindaje" % mech.id)
+		assert_gt(mech.move_speed, 0.0, "%s: camina" % mech.id)
+		speeds[mech.move_speed] = true
+		assert_not_null(mech.weapon, "%s: tiene arma" % mech.id)
+		if mech.weapon != null:
+			assert_lt(mech.weapon.ammo, 0, "%s: munición infinita" % mech.id)
+			assert_eq(mech.weapon.icon.size(), 5, "%s: ícono del arma de 5 filas" % mech.id)
+			for row: String in mech.weapon.icon:
+				assert_eq(row.length(), 9, "%s: ícono de 9 columnas" % mech.id)
+	assert_eq(speeds.size(), RUN.mechs.size(), "cada uno camina distinto")
+	for resource: Resource in _load_all(MECHS_DIR):
+		assert_true(listed.has(resource.resource_path), "%s está en run_config.tres" % resource.resource_path)
 
 
 func test_bosses_have_valid_phases() -> void:

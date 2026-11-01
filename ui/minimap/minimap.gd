@@ -22,6 +22,7 @@ const ICON_COLORS: Dictionary[RoomSlot.Kind, Color] = {
 	RoomSlot.Kind.CHALLENGE: Color("e07a3a"),
 	RoomSlot.Kind.ALTAR: Color("b03a62"),
 	RoomSlot.Kind.WELL: Color("ffb35c"),
+	RoomSlot.Kind.HANGAR: Color("8fa3b8"),
 }
 
 var _states: Dictionary[Vector2i, MinimapModel.CellState] = {}

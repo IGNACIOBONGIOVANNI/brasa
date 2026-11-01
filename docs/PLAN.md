@@ -236,7 +236,9 @@ y Pozo (cura una vez).
 que lastiman al jugador y a los enemigos: pinchos (Sótano), vapor que envenena (Cloacas), vainas de
 esporas que revientan al acercarse (Raíces) y chorros de fuego (Forja).
 
-**Hito 18 — Mechas** (pedido del usuario): vehículos tipo mecha que el jugador encuentra y maneja.
+**Hito 18 — Mechas** (pedido del usuario): tres armazones (pesado con cañón explosivo, liviano y
+rápido, lanzallamas) que aparecen en una sala especial nueva, el Galpón. Se suben tocándolos, tienen
+blindaje propio y su arma, y se baja rodando; si el blindaje se acaba, revientan.
 
 ## 6. Cosas a tener en cuenta desde ya
 

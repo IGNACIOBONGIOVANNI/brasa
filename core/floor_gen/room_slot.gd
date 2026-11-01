@@ -4,8 +4,9 @@ extends RefCounted
 
 ## Las especiales nuevas van al final para no cambiar los números guardados en las plantillas.
 ## CHALLENGE (Prueba): pelea opcional con regla y un item de premio. ALTAR: dos items que se pagan
-## con vida (se lleva uno). WELL (Pozo): cura y devuelve los Pulsos una vez.
-enum Kind { NORMAL, START, BOSS, TREASURE, SHOP, SECRET, CHALLENGE, ALTAR, WELL }
+## con vida (se lleva uno). WELL (Pozo): cura y devuelve los Pulsos una vez. HANGAR (Galpón): un
+## armazón (mecha) para manejar.
+enum Kind { NORMAL, START, BOSS, TREASURE, SHOP, SECRET, CHALLENGE, ALTAR, WELL, HANGAR }
 
 var cell: Vector2i
 var kind: Kind = Kind.NORMAL
@@ -15,6 +16,8 @@ var distance: int = 0
 var template: RoomTemplate
 ## Regla de la sala (null = ninguna). La asigna RulePicker.
 var rule: RoomRule
+## El armazón del Galpón, sorteado al generar el piso.
+var mech: MechData
 ## Items de los pedestales (tesoro, tienda, secreta, jefe, prueba y altar), sorteados al generar el piso.
 var offers: Array[ItemData] = []
 

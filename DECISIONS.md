@@ -648,3 +648,30 @@ jugador y al enemigo".
   hay trampas en salas especiales ni frente a las puertas, y nadie aparece arriba de una.
 - **Solo funciona la sala actual:** las trampas de las salas que quedan atrás se frenan y, al volver,
   arrancan quietas un momento (no te reciben con un pinchazo).
+
+## Hito 18 — mechas (2026-11-01)
+
+Pedido del usuario: "vehículos para el jugador tipo mechas".
+
+- **Tres armazones distintos de manejar:** Caldera (pesado: 16 de blindaje, lento, cañón que tira
+  bombas que explotan), Zancos (liviano: 8 de blindaje, el más rápido, ametralladora) y Fuelle (medio:
+  12 de blindaje, lanzallamas de corto alcance que prende fuego). El arma tiene munición infinita y
+  usa los stats del jugador, así los items siguen valiendo.
+- **Dónde aparecen:** en una sala especial nueva, el **Galpón**, que entra en el sorteo de especiales
+  extra de cada piso junto con Prueba, Altar y Pozo (en el piso 1 sale una de las cuatro; en los
+  demás, dos). El armazón de cada Galpón se sortea con la seed. Puerta y minimapa en gris acero.
+- **Subirse y bajarse sin botones nuevos:** tocar un armazón parado lo sube (como un pickup); el botón
+  de rodar lo hace saltar afuera rodando, y el armazón queda parado con el blindaje que le quedaba
+  (hay que alejarse antes de poder volver a subir). Se eligió así para no sumar un botón: todos los
+  del teclado y del joystick ya tienen uso.
+- **Blindaje en vez de vida:** mientras maneja, los golpes (balas, contacto, explosiones, trampas) le
+  sacan blindaje al armazón y no corazones; empujan mucho menos. Si el blindaje llega a cero el
+  armazón revienta, lastima a los bichos que estén cerca y Brasa queda a pie, sana e invulnerable un
+  momento. La barra de blindaje sale arriba, debajo de los contadores, y el arma del armazón abajo a
+  la derecha.
+- **Mientras maneja** no se puede cambiar de arma; el Pulso, las bombas y el activo sí funcionan.
+  No se puede rodar (rodar es bajarse). El armazón acompaña entre salas y pisos; uno que quedó
+  parado se pierde al bajar de piso.
+- **Se ven:** casco con franja de su color, dos patas que se alternan al caminar, la chispa en la
+  cabina y el arma siguiendo la mira; con poco blindaje echa humo. Parado, la cabina está vacía y
+  titila una luz.

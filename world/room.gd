@@ -6,7 +6,7 @@ extends Node2D
 ## una moneda. En el tesoro, la tienda, la secreta y el Altar pone los pedestales con los items
 ## sorteados del piso (en el Altar se pagan con vida y al llevarse uno los otros desaparecen); en el
 ## Pozo, el pozo; en la sala del jefe y en la Prueba el pedestal aparece recién al ganar (la salida
-## del jefe la pone FloorController).
+## del jefe la pone FloorController). En el Galpón, el armazón parado.
 ## Trampas: las arma RoomBuilder (la del piso en cada "^"); solo funcionan en la sala actual
 ## (set_present) y al volver arrancan de nuevo.
 ## Regla (RoomSlot.rule): se anuncia por EventBus.room_rule_changed al cerrarse las puertas, cambia la
@@ -25,6 +25,7 @@ const PEDESTAL_SCENE: PackedScene = preload("res://entities/pickups/item_pedesta
 const DOOR_SCENE: PackedScene = preload("res://world/door.tscn")
 const EXIT_SCENE: PackedScene = preload("res://entities/exit/trapdoor.tscn")
 const WELL_SCENE: PackedScene = preload("res://entities/pickups/well.tscn")
+const PARKED_MECH_SCENE: PackedScene = preload("res://entities/mechs/parked_mech.tscn")
 ## Lo que cuesta cada item del Altar, en medios corazones.
 const ALTAR_HEALTH_PRICE: int = 2
 ## Dónde se buscan lugares para los pickups extra de la regla, alrededor del centro.
@@ -81,6 +82,11 @@ func setup(room_slot: RoomSlot, theme: FloorTheme, neighbors: Dictionary[Vector2
 		var well := WELL_SCENE.instantiate() as Well
 		well.position = RoomGrid.cell_center(grid.item_spots[0])
 		($Pickups as Node2D).add_child(well)
+	elif slot.kind == RoomSlot.Kind.HANGAR and slot.mech != null and not grid.item_spots.is_empty():
+		var parked := PARKED_MECH_SCENE.instantiate() as ParkedMech
+		parked.setup(slot.mech)
+		parked.position = RoomGrid.cell_center(grid.item_spots[0])
+		($Pickups as Node2D).add_child(parked)
 	elif slot.kind != RoomSlot.Kind.BOSS and slot.kind != RoomSlot.Kind.CHALLENGE:
 		_spawn_offers()
 

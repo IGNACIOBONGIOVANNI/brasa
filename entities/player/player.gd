@@ -3,8 +3,16 @@ extends CharacterBody2D
 ## Jugador. Lee el input (con buffer) y delega en su StateMachine: Move (caminar, apuntar,
 ## disparar, Pulso, bomba, recargar, cambiar de arma, usar el activo), Roll (rodar con i-frames)
 ## y Dead. Su personaje, stats, items y armas salen de RunState.
+## Armazones (mechas): `board()` lo sube (lo llama ParkedMech al tocarlo). Mientras maneja, los golpes
+## le sacan blindaje (`mech_armor`, el hurtbox apunta ahí) en vez de vida, camina a la velocidad del
+## armazón, dispara su arma y no cambia de arma; rodar lo hace saltar afuera (`eject`: el armazón queda
+## parado con lo que le quedaba) y si el blindaje llega a cero revienta, lastima a los enemigos cerca
+## y lo deja invulnerable un momento.
 ## Se apunta con el último dispositivo usado: mover el mouse vuelve a la mira por mouse,
 ## inclinar el stick derecho la pasa al stick.
+
+## Subió o bajó de un armazón (null al bajar).
+signal mech_changed(mech: MechData)
 
 const GROUP: StringName = &"player"
 const STICK_AIM_DEADZONE: float = 0.35
@@ -38,6 +46,14 @@ const STEP_DISTANCE: float = 14.0
 ## Cuánto se aviva la luz con cada disparo.
 const FIRE_LIGHT_PULSE: float = 0.35
 const PULSE_LIGHT_COLOR: Color = Color("bfe9ff")
+const PARKED_MECH_SCENE: PackedScene = preload("res://entities/mechs/parked_mech.tscn")
+## Arriba de un armazón los golpes empujan mucho menos.
+const MECH_KNOCKBACK: float = 0.25
+## Cuando el armazón revienta: radio y daño a los enemigos, e invulnerabilidad del jugador.
+const MECH_BLAST_RADIUS: float = 40.0
+const MECH_BLAST_DAMAGE: float = 12.0
+const MECH_BREAK_IFRAMES: float = 1.2
+const MECH_BREAK_TRAUMA: float = 0.8
 
 @export var acceleration: float = 1000.0
 @export var friction: float = 1200.0
@@ -59,6 +75,8 @@ var _step_left: float = STEP_DISTANCE
 var _bomb_hold: float = -1.0
 ## Regla de la sala Sin Pulso.
 var _pulse_locked: bool = false
+## El armazón que maneja (null = a pie).
+var mech: MechData
 
 @onready var visual: PlayerVisual = $Visual
 @onready var weapon: WeaponComponent = $WeaponComponent
@@ -70,6 +88,7 @@ var _pulse_locked: bool = false
 @onready var hooks: ItemHookRunner = $ItemHookRunner
 @onready var light: FlickerLight = $Light
 @onready var bomb_aim: BombAim = $BombAim
+@onready var mech_armor: HealthComponent = $MechArmor
 
 
 func _ready() -> void:
@@ -81,6 +100,8 @@ func _ready() -> void:
 	RunState.weapons_changed.connect(_sync_weapon)
 	RunState.stats_changed.connect(_on_stats_changed)
 	EventBus.room_rule_changed.connect(_on_room_rule_changed)
+	mech_armor.died.connect(_on_mech_destroyed)
+	mech_armor.health_changed.connect(_on_mech_armor_changed)
 	_sync_weapon()
 	_on_stats_changed(RunState.stats)
 	machine.start()
@@ -102,6 +123,51 @@ func _physics_process(delta: float) -> void:
 
 func is_dead() -> bool:
 	return health.is_dead()
+
+
+func is_piloting() -> bool:
+	return mech != null
+
+
+## A pie, la de los stats; arriba de un armazón, la suya.
+func move_speed() -> float:
+	return mech.move_speed if mech != null else RunState.stats.move_speed
+
+
+## Se sube a un armazón con `armor_left` de blindaje.
+func board(data: MechData, armor_left: float) -> void:
+	if mech != null or is_dead():
+		return
+	mech = data
+	mech_armor.setup(data.armor, armor_left)
+	hurtbox.health = mech_armor
+	cancel_bomb()
+	weapon.slot = WeaponSlot.new(data.weapon)
+	visual.set_mech(data, mech_armor.current / mech_armor.max_health)
+	visual.set_gun(data.weapon.gun_color, data.weapon.gun_length)
+	AudioManager.play_sfx(&"mech_board")
+	mech_changed.emit(data)
+
+
+## Salta afuera (al rodar): el armazón queda parado acá con el blindaje que le quedaba.
+func eject() -> void:
+	if mech == null:
+		return
+	var parked := Fx.spawn(get_tree(), PARKED_MECH_SCENE, global_position, Fx.ENTITIES_GROUP) as ParkedMech
+	parked.setup(mech, mech_armor.current, true)
+	leave_mech()
+	AudioManager.play_sfx(&"mech_eject")
+
+
+## Baja del armazón sin dejarlo en ningún lado (cuando revienta o al morir).
+func leave_mech() -> void:
+	if mech == null:
+		return
+	mech = null
+	hurtbox.health = health
+	visual.set_mech(null, 0.0)
+	_sync_weapon()
+	mech_changed.emit(null)
 
 
 func read_move_input() -> Vector2:
@@ -164,7 +230,7 @@ func try_shoot(delta: float) -> void:
 func try_weapon_actions() -> void:
 	if input_buffer.consume(&"reload"):
 		weapon.reload()
-	if input_buffer.consume(&"swap_weapon") and RunState.select_next_weapon():
+	if input_buffer.consume(&"swap_weapon") and not is_piloting() and RunState.select_next_weapon():
 		AudioManager.play_sfx(&"weapon_swap")
 	if input_buffer.consume(&"use_active"):
 		_use_active()
@@ -259,10 +325,10 @@ func bomb_target() -> Vector2:
 
 
 func _on_hurt(info: HitInfo) -> void:
-	knockback.apply(info.direction, info.knockback)
+	knockback.apply(info.direction, info.knockback * (MECH_KNOCKBACK if is_piloting() else 1.0))
 	flash.flash(HURT_FLASH_TIME)
 	if not health.is_dead():
-		flash.blink(health.invulnerability_after_hit)
+		flash.blink((mech_armor if is_piloting() else health).invulnerability_after_hit)
 	EventBus.shake_requested.emit(HURT_TRAUMA)
 	EventBus.hitstop_requested.emit(HURT_HITSTOP)
 	EventBus.player_damaged.emit(info.damage)
@@ -295,8 +361,37 @@ func _use_active() -> void:
 
 
 func _sync_weapon() -> void:
+	if is_piloting():
+		return
 	weapon.slot = RunState.current_weapon_slot()
 	visual.set_gun(weapon.weapon().gun_color, weapon.weapon().gun_length)
+
+
+## Sin blindaje el armazón revienta: lastima a los enemigos cerca y el jugador queda a pie, invulnerable
+## un momento.
+func _on_mech_destroyed() -> void:
+	var color: Color = mech.accent_color if mech != null else Color.WHITE
+	for node: Node in get_tree().get_nodes_in_group(Enemy.GROUP):
+		var enemy := node as Enemy
+		var offset: Vector2 = enemy.global_position - global_position
+		if offset.length() <= MECH_BLAST_RADIUS and not enemy.is_hidden():
+			enemy.hurtbox.receive_hit(HitInfo.create(MECH_BLAST_DAMAGE, offset, PULSE_PUSH_FORCE))
+	var burst := Fx.spawn(get_tree(), BURST_SCENE, global_position + Vector2(0, -4)) as CPUParticles2D
+	burst.color = color
+	burst.amount = 24
+	var glow := Fx.spawn(get_tree(), LIGHT_FLASH_SCENE, global_position) as LightFlash
+	glow.color = color
+	glow.texture_scale = 3.0
+	EventBus.shake_requested.emit(MECH_BREAK_TRAUMA)
+	AudioManager.play_sfx(&"mech_break")
+	leave_mech()
+	health.grant_invulnerability(MECH_BREAK_IFRAMES)
+	flash.blink(MECH_BREAK_IFRAMES)
+
+
+func _on_mech_armor_changed(current: float, max_value: float) -> void:
+	if is_piloting():
+		visual.set_mech(mech, current / max_value if max_value > 0.0 else 0.0)
 
 
 ## Regla de la sala: Frágil (más daño) y Sin Pulso. null al terminar el combate.

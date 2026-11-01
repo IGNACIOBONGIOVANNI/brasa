@@ -65,6 +65,10 @@ encender y bajar otra vez.
   viejas; en las Cloacas las rejillas largan **vapor** podrido; en las Raíces las **vainas de esporas**
   revientan cuando algo pasa cerca; en la Forja las boquillas de los hornos escupen **chorros de
   fuego**. No distinguen: lastiman igual a los bichos.
+- **Armazones:** cuando la fragua se apagó, el herrero mandó abajo armazones de hierro para
+  traer el fuego de vuelta. Sin una chispa adentro no se mueven, así que quedaron parados en los
+  **Galpones**, esperando. Brasa cabe en la cabina: la **Caldera** (pesada, con un cañón que tira bombas),
+  los **Zancos** (livianos y rápidos) y el **Fuelle** (escupe llamas).
 - **Reglas:** abajo el fuego suelto pone sus propias reglas en algunas salas (Furia, Coraza,
   Contrarreloj, Apagón, Sin Pulso, Frágil); aguantarlas tiene premio.
 

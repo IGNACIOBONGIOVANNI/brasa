@@ -18,7 +18,7 @@ extends Resource
 @export var enemies: Array[EnemyData] = []
 
 @export_group("Salas especiales y reglas")
-## Especiales que puede tener el piso además de tesoro, tienda y secreta (Prueba, Altar, Pozo).
+## Especiales que puede tener el piso además de tesoro, tienda y secreta (Prueba, Altar, Pozo, Galpón).
 @export var extra_rooms: Array[RoomSlot.Kind] = []
 ## Cuántas de esas salen en cada piso (distintas).
 @export var extra_room_count: int = 0
