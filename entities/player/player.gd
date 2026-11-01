@@ -57,6 +57,8 @@ var _roll_cooldown_left: float = 0.0
 var _step_left: float = STEP_DISTANCE
 ## Segundos que se viene manteniendo el botón de bomba (negativo = no se está apretando).
 var _bomb_hold: float = -1.0
+## Regla de la sala Sin Pulso.
+var _pulse_locked: bool = false
 
 @onready var visual: PlayerVisual = $Visual
 @onready var weapon: WeaponComponent = $WeaponComponent
@@ -78,6 +80,7 @@ func _ready() -> void:
 	visual.set_body_color(RunState.character.body_color)
 	RunState.weapons_changed.connect(_sync_weapon)
 	RunState.stats_changed.connect(_on_stats_changed)
+	EventBus.room_rule_changed.connect(_on_room_rule_changed)
 	_sync_weapon()
 	_on_stats_changed(RunState.stats)
 	machine.start()
@@ -180,7 +183,7 @@ func start_roll_cooldown() -> void:
 func try_pulse() -> void:
 	if not input_buffer.consume(&"blank"):
 		return
-	if not RunState.use_blank():
+	if _pulse_locked or not RunState.use_blank():
 		AudioManager.play_sfx(&"empty")
 		return
 	for node: Node in get_tree().get_nodes_in_group(Bullet.GROUP):
@@ -294,6 +297,12 @@ func _use_active() -> void:
 func _sync_weapon() -> void:
 	weapon.slot = RunState.current_weapon_slot()
 	visual.set_gun(weapon.weapon().gun_color, weapon.weapon().gun_length)
+
+
+## Regla de la sala: Frágil (más daño) y Sin Pulso. null al terminar el combate.
+func _on_room_rule_changed(rule: RoomRule) -> void:
+	hurtbox.damage_multiplier = rule.damage_taken_mult if rule != null else 1.0
+	_pulse_locked = rule != null and rule.no_pulse
 
 
 ## Un item de vida máxima agranda (y llena) los contenedores.

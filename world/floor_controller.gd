@@ -1,8 +1,9 @@
 class_name FloorController
 extends Node
-## Arma y maneja los pisos de la run (RunConfig): genera cada layout (FloorGenerator + TemplatePicker
-## con el stream FLOOR del piso), construye cada sala la primera vez que se entra (después quedan
-## armadas, con sus rocas rotas y sus pickups), sortea los items del tesoro, la tienda y el jefe
+## Arma y maneja los pisos de la run (RunConfig): genera cada layout (FloorGenerator, TemplatePicker y
+## RulePicker con el stream FLOOR del piso; las especiales extra salen de FloorTheme.extra_rooms),
+## construye cada sala la primera vez que se entra (después quedan armadas, con sus rocas rotas y sus
+## pickups), sortea los items del tesoro, la tienda, la secreta, el jefe, la Prueba y el Altar
 ## (stream LOOT), mueve la cámara de sala en sala al cruzar una puerta, destapa las puertas a la
 ## secreta con explosiones, abre la tienda con una llave y guarda lo que muestra el minimapa.
 ## Al vencer al jefe pone la salida: trampilla al piso siguiente o, en el último, la que gana la run.
@@ -15,8 +16,9 @@ const ROOM_STRIDE: Vector2 = Vector2(320, 192)
 const TRANSITION_TIME: float = 0.3
 ## Margen extra (además del radio de la explosión) para destapar una puerta oculta.
 const SECRET_REVEAL_MARGIN: float = 16.0
-## Pedestales de la tienda.
+## Pedestales de la tienda y del altar.
 const SHOP_OFFERS: int = 3
+const ALTAR_OFFERS: int = 2
 
 @export var run: RunConfig
 @export var rooms_root: Node2D
@@ -63,8 +65,9 @@ func load_floor(index: int) -> void:
 	_clear_world()
 	GameRNG.set_floor(index)
 	var rng: RandomNumberGenerator = GameRNG.stream(RngStreams.FLOOR)
-	layout = FloorGenerator.generate(rng, _params())
+	layout = FloorGenerator.generate(rng, _params(rng))
 	TemplatePicker.assign(layout, theme.templates, rng, theme.difficulty_bonus)
+	RulePicker.assign(layout, run.room_rules, theme.rule_chance, rng)
 	_roll_offers()
 	var room: Room = _ensure_room(layout.start)
 	player.global_position = room.to_global(room.spawn_point())
@@ -98,6 +101,7 @@ func _clear_world() -> void:
 	discovered_secrets.clear()
 	_opened_edges.clear()
 	map_revealed = false
+	EventBus.room_rule_changed.emit(null)
 	for container: Node in [rooms_root, entities]:
 		for child: Node in container.get_children():
 			if child != player:
@@ -153,11 +157,12 @@ func move_to(cell: Vector2i, direction: Vector2i = Vector2i.ZERO) -> void:
 	_enter(cell)
 
 
-func _params() -> FloorParams:
+func _params(rng: RandomNumberGenerator) -> FloorParams:
 	var params := FloorParams.new()
 	params.room_count_min = theme.room_count_min
 	params.room_count_max = theme.room_count_max
 	params.min_boss_distance = theme.min_boss_distance
+	params.extra_rooms = FloorGenerator.pick_extra_rooms(theme.extra_rooms, theme.extra_room_count, rng)
 	return params
 
 
@@ -190,8 +195,8 @@ func _ensure_room(cell: Vector2i) -> Room:
 	return room
 
 
-## Un pedestal en el tesoro, tres en la tienda, uno en la secreta y el premio del jefe, sorteados al
-## generar el piso.
+## Un pedestal en el tesoro, tres en la tienda, uno en la secreta, el premio del jefe, el de la Prueba
+## y dos en el Altar, sorteados al generar el piso.
 func _roll_offers() -> void:
 	var loot: RandomNumberGenerator = GameRNG.stream(RngStreams.LOOT)
 	for cell: Vector2i in layout.cells_of_kind(RoomSlot.Kind.TREASURE):
@@ -203,6 +208,11 @@ func _roll_offers() -> void:
 		layout.get_slot(cell).offers.append(RunState.item_pool.draw(ItemData.POOL_SECRET, loot))
 	for cell: Vector2i in layout.cells_of_kind(RoomSlot.Kind.BOSS):
 		layout.get_slot(cell).offers.append(RunState.item_pool.draw(ItemData.POOL_BOSS, loot))
+	for cell: Vector2i in layout.cells_of_kind(RoomSlot.Kind.CHALLENGE):
+		layout.get_slot(cell).offers.append(RunState.item_pool.draw(ItemData.POOL_TREASURE, loot))
+	for cell: Vector2i in layout.cells_of_kind(RoomSlot.Kind.ALTAR):
+		for _i: int in ALTAR_OFFERS:
+			layout.get_slot(cell).offers.append(RunState.item_pool.draw(ItemData.POOL_BOSS, loot))
 
 
 ## Al vencer al jefe aparece la salida: al piso siguiente, o la que gana la run en el último.
@@ -292,6 +302,9 @@ func _register_dev_commands() -> void:
 	Debug.add_command(self, "Ir al tesoro", _go_to_kind.bind(RoomSlot.Kind.TREASURE))
 	Debug.add_command(self, "Ir a la tienda", _go_to_kind.bind(RoomSlot.Kind.SHOP))
 	Debug.add_command(self, "Ir a la secreta", _go_to_kind.bind(RoomSlot.Kind.SECRET))
+	Debug.add_command(self, "Ir a la Prueba (si hay)", _go_to_kind.bind(RoomSlot.Kind.CHALLENGE))
+	Debug.add_command(self, "Ir al Altar (si hay)", _go_to_kind.bind(RoomSlot.Kind.ALTAR))
+	Debug.add_command(self, "Ir al Pozo (si hay)", _go_to_kind.bind(RoomSlot.Kind.WELL))
 	Debug.add_command(self, "Volver al inicio", _go_to_kind.bind(RoomSlot.Kind.START))
 	Debug.add_command(self, "Revelar mapa", _reveal_map)
 	Debug.add_command(self, "Limpiar sala", _clear_current_room)

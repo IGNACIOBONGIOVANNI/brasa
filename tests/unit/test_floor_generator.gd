@@ -1,6 +1,7 @@
 extends GutTest
 ## FloorGenerator sobre 500 seeds: conectividad, cantidad de salas, jefe lejos y en un callejón,
-## salas especiales presentes y reglas de la secreta. Misma seed = mismo piso.
+## salas especiales presentes (también las extra de cada piso, en callejones) y reglas de la secreta.
+## Misma seed = mismo piso.
 
 const SEEDS: int = 500
 ## Seeds por cada piso de la run (con los parámetros de su tema).
@@ -60,6 +61,9 @@ func test_every_floor_of_the_run_generates() -> void:
 		params.min_boss_distance = theme.min_boss_distance
 		var failures: int = 0
 		for seed_value: int in SEEDS_PER_FLOOR:
+			var rng := RandomNumberGenerator.new()
+			rng.seed = seed_value
+			params.extra_rooms = FloorGenerator.pick_extra_rooms(theme.extra_rooms, theme.extra_room_count, rng)
 			var layout: FloorLayout = _generate(seed_value, params)
 			if layout == null or not _problems(layout, params).is_empty():
 				failures += 1
@@ -69,11 +73,13 @@ func test_every_floor_of_the_run_generates() -> void:
 func _problems(layout: FloorLayout, params: FloorParams) -> PackedStringArray:
 	var problems := PackedStringArray()
 	var normal_rooms: int = layout.slots.size() - 1
-	if normal_rooms < params.room_count_min or normal_rooms > params.room_count_max:
+	var counted: int = normal_rooms - params.extra_rooms.size()
+	if counted < params.room_count_min or counted > params.room_count_max:
 		problems.append("%d salas sin contar la secreta" % normal_rooms)
 	if layout.get_slot(layout.start).kind != RoomSlot.Kind.START:
 		problems.append("el inicio no es START")
-	for kind: RoomSlot.Kind in [RoomSlot.Kind.BOSS, RoomSlot.Kind.TREASURE, RoomSlot.Kind.SHOP, RoomSlot.Kind.SECRET]:
+	var unique: Array[RoomSlot.Kind] = [RoomSlot.Kind.BOSS, RoomSlot.Kind.TREASURE, RoomSlot.Kind.SHOP, RoomSlot.Kind.SECRET]
+	for kind: RoomSlot.Kind in unique + params.extra_rooms:
 		if layout.cells_of_kind(kind).size() != 1:
 			problems.append("%d salas de tipo %d" % [layout.cells_of_kind(kind).size(), kind])
 	if not problems.is_empty():
@@ -91,7 +97,8 @@ func _problems(layout: FloorLayout, params: FloorParams) -> PackedStringArray:
 	var boss_distance: int = layout.get_slot(boss).distance
 	if boss_distance < params.min_boss_distance:
 		problems.append("jefe a %d pasos" % boss_distance)
-	for kind: RoomSlot.Kind in [RoomSlot.Kind.BOSS, RoomSlot.Kind.TREASURE, RoomSlot.Kind.SHOP]:
+	var dead_end_kinds: Array[RoomSlot.Kind] = [RoomSlot.Kind.BOSS, RoomSlot.Kind.TREASURE, RoomSlot.Kind.SHOP]
+	for kind: RoomSlot.Kind in dead_end_kinds + params.extra_rooms:
 		if layout.neighbors(layout.first_of_kind(kind), false).size() != 1:
 			problems.append("la sala %d no es un callejón" % kind)
 	for cell: Vector2i in reachable:
@@ -108,6 +115,21 @@ func _problems(layout: FloorLayout, params: FloorParams) -> PackedStringArray:
 		if not layout.is_inside(cell):
 			problems.append("sala fuera de la grilla")
 	return problems
+
+
+func test_extra_rooms_are_distinct_and_capped() -> void:
+	var candidates: Array[RoomSlot.Kind] = [RoomSlot.Kind.CHALLENGE, RoomSlot.Kind.ALTAR, RoomSlot.Kind.WELL]
+	var rng := RandomNumberGenerator.new()
+	var all_seen: Dictionary[RoomSlot.Kind, bool] = {}
+	for seed_value: int in 60:
+		rng.seed = seed_value
+		var picked: Array[RoomSlot.Kind] = FloorGenerator.pick_extra_rooms(candidates, 2, rng)
+		assert_eq(picked.size(), 2)
+		assert_ne(picked[0], picked[1], "distintas")
+		for kind: RoomSlot.Kind in picked:
+			all_seen[kind] = true
+	assert_eq(all_seen.size(), candidates.size(), "todas pueden salir")
+	assert_eq(FloorGenerator.pick_extra_rooms(candidates, 9, rng).size(), candidates.size(), "no más que las que hay")
 
 
 func test_same_seed_gives_same_floor() -> void:

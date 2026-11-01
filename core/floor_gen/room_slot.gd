@@ -1,8 +1,11 @@
 class_name RoomSlot
 extends RefCounted
-## Una sala del layout de un piso: dónde está, de qué tipo es y qué plantilla usa.
+## Una sala del layout de un piso: dónde está, de qué tipo es, qué plantilla usa y su regla.
 
-enum Kind { NORMAL, START, BOSS, TREASURE, SHOP, SECRET }
+## Las especiales nuevas van al final para no cambiar los números guardados en las plantillas.
+## CHALLENGE (Prueba): pelea opcional con regla y un item de premio. ALTAR: dos items que se pagan
+## con vida (se lleva uno). WELL (Pozo): cura y devuelve los Pulsos una vez.
+enum Kind { NORMAL, START, BOSS, TREASURE, SHOP, SECRET, CHALLENGE, ALTAR, WELL }
 
 var cell: Vector2i
 var kind: Kind = Kind.NORMAL
@@ -10,7 +13,9 @@ var kind: Kind = Kind.NORMAL
 var distance: int = 0
 ## La asigna TemplatePicker después de generar el layout.
 var template: RoomTemplate
-## Items de los pedestales (tesoro y tienda), sorteados al generar el piso.
+## Regla de la sala (null = ninguna). La asigna RulePicker.
+var rule: RoomRule
+## Items de los pedestales (tesoro, tienda, secreta, jefe, prueba y altar), sorteados al generar el piso.
 var offers: Array[ItemData] = []
 
 

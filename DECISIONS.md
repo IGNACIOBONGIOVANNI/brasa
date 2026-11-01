@@ -594,3 +594,33 @@ con un marcador de 0 a 100 %.
 - **Corridas automáticas y tests nunca tocan la carpeta real:** `--demo-input` y `--save=` siguen sin
   partidas (en memoria o con un archivo suelto). En los tests `SaveManager` bloquea los archivos
   sueltos de `user://`; los de partidas usan una subcarpeta propia.
+
+## Hito 16 — reglas de sala y salas especiales (2026-11-01)
+
+Pedido del usuario: "más reglas a las [salas] y más salas especiales" (junto con trampas y mechas,
+que van en los hitos 17 y 18, uno por vez).
+
+- **"Reglas" se interpretó como reglas de sala:** condiciones que cambian una pelea mientras dura y
+  dan premio extra al limpiarla. Seis, simples de leer: Furia (enemigos ×1,35 más rápidos, también al
+  atacar), Coraza (×1,6 de vida), Contrarreloj (30 s para el premio; si se pasa, la sala sigue igual
+  pero sin premio extra), Apagón (la sala mucho más oscura), Sin Pulso y Frágil (cada golpe pega el
+  doble: un corazón entero). Premio: 1 o 2 pickups seguros del piso además del premio común.
+- **Dónde salen:** en salas normales a 2+ pasos del inicio con una probabilidad que sube por piso
+  (20 %, 25 %, 30 %, 35 %) y siempre en la Prueba. Las sortea el stream FLOOR al generar el piso (misma
+  seed, mismas reglas). Nunca en el jefe.
+- **Se avisan** con el cartel ("Regla: Furia" y qué hace) al cerrarse las puertas, y quedan escritas
+  arriba en el HUD (con los segundos que quedan en Contrarreloj) hasta limpiar la sala.
+- **Tres salas especiales nuevas,** cada una en un callejón como el tesoro y la tienda, sumando una
+  sala al piso: **Prueba** (pelea opcional en dos oleadas, siempre con regla, y un item del pool del
+  tesoro al ganar), **Altar** (dos items del pool del jefe que cuestan un corazón cada uno; nunca deja
+  sin vida, y al llevarse uno el otro desaparece) y **Pozo de brasas** (si falta vida o algún Pulso,
+  cura todo y los devuelve; una sola vez). El piso 1 tiene una de las tres y los otros, dos (al azar,
+  distintas). La Prueba tiene una plantilla por piso con sus enemigos; Altar y Pozo, una sola.
+- **Se reconocen de lejos:** marco de la puerta y punto del minimapa de su color (Prueba naranja,
+  Altar bordó, Pozo ámbar); el pedestal del Altar es de piedra rojiza y muestra corazones en vez de
+  monedas.
+- Los tipos nuevos van al final de `RoomSlot.Kind` para no cambiar los números de las plantillas.
+- **Tests más estables:** al correr todo junto aparecieron huérfanos sueltos en dos tests de enemigos
+  (un impacto de bala justo en el último frame) porque la IA usaba una seed distinta en cada corrida.
+  Ahora el `pre_run_hook` fija la seed de `GameRNG`, los tests de combate y de enemigos ponen la suya,
+  y los dos que terminaban con un enemigo disparando lo sacan con sus balas antes de cerrar.

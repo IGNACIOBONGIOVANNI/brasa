@@ -17,6 +17,14 @@ extends Resource
 ## Enemigos que pueden aparecer (también el jefe); la plantilla los nombra por su template_char.
 @export var enemies: Array[EnemyData] = []
 
+@export_group("Salas especiales y reglas")
+## Especiales que puede tener el piso además de tesoro, tienda y secreta (Prueba, Altar, Pozo).
+@export var extra_rooms: Array[RoomSlot.Kind] = []
+## Cuántas de esas salen en cada piso (distintas).
+@export var extra_room_count: int = 0
+## Probabilidad de que una sala normal (lejos del inicio) tenga una regla de RunConfig.room_rules.
+@export_range(0.0, 1.0) var rule_chance: float = 0.0
+
 @export_group("Dificultad")
 ## Multiplicador de la vida de los enemigos y jefes del piso.
 @export var enemy_health_mult: float = 1.0

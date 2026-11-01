@@ -3,13 +3,17 @@ class_name ItemPedestalVisual
 extends Node2D
 ## Placeholder del pedestal: bloque de piedra, el ícono del item flotando arriba con la letra de su
 ## calidad encima (S y S++ con un halo; S++ además con chispitas) y, si tiene precio, una moneda con
-## el número debajo.
+## el número debajo (o, en el Altar, un corazón por cada corazón que cuesta).
 
 const STONE_COLOR: Color = Color("6b6278")
 const STONE_TOP_COLOR: Color = Color("847a92")
 const OUTLINE_COLOR: Color = Color("120c16")
 const PRICE_COLOR: Color = Color("f2efe6")
 const COIN_COLOR: Color = Color("f2c14e")
+const HEART_COLOR: Color = Color("e0464e")
+## Altar: la piedra es más oscura y rojiza.
+const ALTAR_STONE_COLOR: Color = Color("5a3242")
+const ALTAR_STONE_TOP_COLOR: Color = Color("7a4456")
 const BOB_SPEED: float = 2.5
 ## Separación entre la letra de calidad y el ícono.
 const QUALITY_GAP: float = 2.0
@@ -21,12 +25,14 @@ const SPARKLE_SPEED: float = 1.6
 
 var _item: ItemData
 var _price: int = 0
+var _health_price: int = 0
 var _time: float = 0.0
 
 
-func set_item(item: ItemData, price: int) -> void:
+func set_item(item: ItemData, price: int, health_price: int = 0) -> void:
 	_item = item
 	_price = price
+	_health_price = health_price
 	queue_redraw()
 
 
@@ -42,8 +48,9 @@ func _draw() -> void:
 	draw_circle(Vector2.ZERO, 7.0, Color(0, 0, 0, 0.35))
 	draw_set_transform(Vector2.ZERO)
 	draw_rect(Rect2(-6, -3, 12, 8), OUTLINE_COLOR)
-	draw_rect(Rect2(-5, -2, 10, 6), STONE_COLOR)
-	draw_rect(Rect2(-5, -2, 10, 2), STONE_TOP_COLOR)
+	var altar: bool = _health_price > 0
+	draw_rect(Rect2(-5, -2, 10, 6), ALTAR_STONE_COLOR if altar else STONE_COLOR)
+	draw_rect(Rect2(-5, -2, 10, 2), ALTAR_STONE_TOP_COLOR if altar else STONE_TOP_COLOR)
 	if _item != null:
 		var icon: PackedStringArray = _item.get_icon()
 		if not icon.is_empty():
@@ -62,6 +69,13 @@ func _draw() -> void:
 		PixelBitmap.paint_outlined(self, PixelIcons.COIN, origin, COIN_COLOR, OUTLINE_COLOR)
 		PixelIcons.paint_number(self, _price, digits, origin + Vector2(PixelIcons.size_of(PixelIcons.COIN).x + 2, 0),
 				PRICE_COLOR, OUTLINE_COLOR)
+	if altar:
+		var hearts: int = ceili(_health_price * 0.5)
+		var heart_width: float = PixelIcons.size_of(PixelIcons.HEART).x
+		var row_width: float = hearts * (heart_width + 1.0) - 1.0
+		for i: int in hearts:
+			var at := Vector2(roundf(-row_width * 0.5) + i * (heart_width + 1.0), 8)
+			PixelBitmap.paint_outlined(self, PixelIcons.HEART, at, HEART_COLOR, OUTLINE_COLOR)
 
 
 ## S y S++ tienen un aro de su color que late detrás del ícono; S++ además tiene chispitas que giran

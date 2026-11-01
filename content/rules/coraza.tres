@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RoomRule" format=3]
+
+[ext_resource type="Script" path="res://data/room_rule.gd" id="1_rule"]
+
+[resource]
+script = ExtResource("1_rule")
+id = &"coraza"
+display_name = "Coraza"
+description = "Los bichos aguantan más golpes."
+color = Color(0.6039, 0.5765, 0.651, 1)
+enemy_health_mult = 1.6
+bonus_rewards = 2

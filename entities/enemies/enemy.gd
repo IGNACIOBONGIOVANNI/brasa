@@ -41,6 +41,8 @@ const GHOST_ALPHA: float = 0.3
 ## Multiplicadores del piso (los pone la sala antes de agregarlo al árbol).
 var health_multiplier: float = 1.0
 var bullet_speed_multiplier: float = 1.0
+## Ritmo de la regla de la sala (Furia): multiplica moverse, avisar y atacar.
+var pace: float = 1.0
 ## Movimiento y ataques actuales.
 var behavior: EnemyData
 ## Fase actual (jefes).
@@ -101,9 +103,14 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	# Apagado: todo lo suyo va más lento (moverse, avisar, atacar).
-	machine.physics_update(delta * status.speed_factor())
+	# Apagado y la regla de la sala cambian el ritmo de todo lo suyo (moverse, avisar, atacar).
+	machine.physics_update(delta * speed_factor())
 	_update_guard()
+
+
+## Apagado y el ritmo de la sala juntos.
+func speed_factor() -> float:
+	return status.speed_factor() * pace
 
 
 func is_boss() -> bool:
@@ -136,7 +143,7 @@ func move_toward_velocity(target_velocity: Vector2, delta: float) -> void:
 
 ## Mueve el cuerpo con move_velocity (más lento si está apagado) más el empujón de los golpes.
 func apply_velocity() -> void:
-	velocity = move_velocity * status.speed_factor() + knockback.velocity
+	velocity = move_velocity * speed_factor() + knockback.velocity
 	move_and_slide()
 
 
@@ -162,6 +169,7 @@ func spawn_child(child_data: EnemyData, at: Vector2) -> Enemy:
 	child.data = child_data
 	child.health_multiplier = health_multiplier
 	child.bullet_speed_multiplier = bullet_speed_multiplier
+	child.pace = pace
 	var offset: Vector2 = at - global_position
 	child._birth_push = offset.normalized() if offset != Vector2.ZERO else Vector2.DOWN
 	_children.append(child.get_instance_id())

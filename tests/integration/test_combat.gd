@@ -6,6 +6,7 @@ const GAME_SCENE: PackedScene = preload("res://tests/fixtures/arena.tscn")
 const BULLET_SCENE: PackedScene = preload("res://entities/bullets/bullet.tscn")
 const CARNERO: EnemyData = preload("res://content/enemies/carnero.tres")
 const VIGIA: EnemyData = preload("res://content/enemies/vigia.tres")
+const SEED: int = 1234
 const USED_ACTIONS: Array[StringName] = [&"dodge", &"blank", &"move_right", &"shoot", &"aim_right"]
 
 var _game: Game
@@ -14,6 +15,8 @@ var _states: Array[StringName] = []
 
 
 func before_each() -> void:
+	# Seed fija: la IA de los enemigos usa el stream COMBAT.
+	GameRNG.start_run(SEED)
 	RunState.start_run()
 	_game = GAME_SCENE.instantiate() as Game
 	add_child_autofree(_game)
@@ -63,7 +66,8 @@ func test_hit_grants_iframes_and_updates_hud() -> void:
 	assert_eq(_player.health.current, 5.0)
 	var hearts := _game.get_node("Hud/Hearts") as HeartsDisplay
 	assert_eq(hearts.half_hearts, 5, "el HUD muestra 2 corazones y medio")
-	await wait_physics_frames(65)
+	# 1 s de i-frames más el hit-stop del golpe (ahí el tiempo no corre), con un margen.
+	await wait_physics_frames(70)
 	assert_true(_hit(1.0), "pasado 1 s vuelve a recibir daño")
 	# Las partículas del golpe se agregan diferidas: un frame más para que no cuenten como huérfanas.
 	await wait_physics_frames(1)
@@ -189,6 +193,11 @@ func test_enemy_telegraphs_before_every_attack() -> void:
 			assert_eq(_states[i - 1], &"Telegraph", "antes del ataque %d hubo aviso" % attacks)
 	assert_gte(attacks, 2, "atacó varias veces en 5 s")
 	assert_gt(fired, 0, "disparó balas")
+	# Sigue disparando: se saca con sus balas para que ningún impacto quede fuera del test.
+	enemy.queue_free()
+	for node: Node in get_tree().get_nodes_in_group(Bullet.GROUP):
+		node.queue_free()
+	await wait_physics_frames(3)
 
 
 func test_charger_charges_toward_player() -> void:

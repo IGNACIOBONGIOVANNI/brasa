@@ -72,6 +72,15 @@ func set_max(new_max: float) -> void:
 	health_changed.emit(current, max_health)
 
 
+## Paga `amount` de vida (el Altar): solo si queda viva, sin i-frames ni golpe. Devuelve si pagó.
+func spend(amount: float) -> bool:
+	if is_dead() or current <= amount:
+		return false
+	current = HealthMath.damaged(current, amount)
+	health_changed.emit(current, max_health)
+	return true
+
+
 ## Invulnerable durante `seconds` (si ya lo era por más tiempo, queda el mayor).
 func grant_invulnerability(seconds: float) -> void:
 	_invulnerable_left = maxf(_invulnerable_left, seconds)

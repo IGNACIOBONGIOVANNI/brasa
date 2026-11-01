@@ -42,6 +42,7 @@ func _ready() -> void:
 		EventBus.boss_spawned.connect(_on_boss_spawned)
 		EventBus.boss_defeated.connect(_on_boss_defeated)
 		EventBus.player_died.connect(_on_player_died)
+		EventBus.room_rule_changed.connect(_on_room_rule_changed)
 	if _pause != null:
 		_pause.menu_requested.connect(menu_requested.emit)
 		_pause.quit_requested.connect(quit_requested.emit)
@@ -82,6 +83,13 @@ func _apply_floor_mood(index: int) -> void:
 	if _motes != null:
 		_motes.configure(theme)
 	AudioManager.play_music(theme.music)
+
+
+## Apagón: la sala queda más oscura mientras dura el combate.
+func _on_room_rule_changed(rule: RoomRule) -> void:
+	if _ambient != null:
+		var light: Color = floor_controller.theme.ambient_light
+		_ambient.color = light.darkened(rule.darkness) if rule != null else light
 
 
 func _on_boss_spawned(_boss: Node2D) -> void:

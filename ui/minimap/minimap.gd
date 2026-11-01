@@ -19,6 +19,9 @@ const ICON_COLORS: Dictionary[RoomSlot.Kind, Color] = {
 	RoomSlot.Kind.TREASURE: Color("f2c14e"),
 	RoomSlot.Kind.SHOP: Color("5fb36a"),
 	RoomSlot.Kind.SECRET: Color("a77bd8"),
+	RoomSlot.Kind.CHALLENGE: Color("e07a3a"),
+	RoomSlot.Kind.ALTAR: Color("b03a62"),
+	RoomSlot.Kind.WELL: Color("ffb35c"),
 }
 
 var _states: Dictionary[Vector2i, MinimapModel.CellState] = {}

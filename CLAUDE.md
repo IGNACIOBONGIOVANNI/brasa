@@ -5,9 +5,11 @@ estructura de los roguelites de salas + bullet hell, con contenido 100 % origina
 [docs/LORE.md](docs/LORE.md).
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 15 (partidas) terminado: cuatro espacios de guardado independientes, cada uno con su
-progreso de 0 a 100 %, y las opciones aparte (las mismas para todas). Antes: hito 14 (música chiptune
-generada con `ChipTune`), hito 13 (lanzagranadas,
+**Estado:** Hito 16 (reglas de sala y salas especiales) terminado: seis reglas que cambian algunas
+peleas (Furia, Coraza, Contrarreloj, Apagón, Sin Pulso, Frágil) y tres salas especiales nuevas (Prueba,
+Altar, Pozo). Siguen, ya pedidos por el usuario: hito 17 (trampas por piso, que lastiman a jugador y
+enemigos) e hito 18 (mechas que el jugador maneja). Antes: hito 15 (cuatro partidas con su progreso),
+hito 14 (música chiptune generada con `ChipTune`), hito 13 (lanzagranadas,
 bazuca, franco tirador, caño de riel y estados fuego, veneno, corrupción y apagado), hito 12 (8 enemigos nuevos),
 tirar la bomba manteniendo, hito 11 (luz y efectos), hito 10 (calidades C a S++), hito 9 (lore, título
 "Brasa"), hito 8 (texto, armas, Mochila). El usuario va a
@@ -224,7 +226,11 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   `_game.world`. Los del piso usan
   `main/game.tscn` con `GameRNG.start_run(seed)` antes de instanciarla.
 - Plantillas de sala: texto de 9 x 15 con la leyenda de `RoomTemplateParser`; cada `.tres` nuevo va
-  en `content/rooms/floor_N/` y en la lista `templates` del `FloorTheme` (lo exige un test).
+  en `content/rooms/floor_N/` y en la lista `templates` del `FloorTheme` (lo exige un test). Las
+  especiales usan `*` para lo que ponen: pedestales (tesoro 1, tienda 3, Altar 2, secreta 1, jefe y
+  Prueba 1, que aparece al ganar) o el pozo (Pozo 1). La Prueba tiene enemigos en dos oleadas.
+- Reglas de sala: un `.tres` por regla en `content/rules/` (`RoomRule`) y en
+  `run_config.room_rules` (lo exige un test).
 - Items: un `.tres` por item en `content/items/` y en `catalog.tres` (lo exige un test), con su
   `quality` (C, B, A, S o S++; un test exige muy pocos S y S++ y que la tienda no venda S++). Un item
   `locked` tiene que tener `unlock_cost` (se vende en el Taller) o salir de un logro. Los efectos
@@ -267,7 +273,8 @@ core/combat/                ShotSpec, HealthMath, PatternMath, HitInfo, WeaponSl
 core/input/                 InputBuffer
 core/audio/                 SfxSynth (sintetizador de sonidos placeholder), ChipTune (música: notación MML y
                             sintetizador de 8 bits)
-core/floor_gen/             FloorGenerator, FloorLayout, RoomSlot, FloorParams, TemplatePicker, MinimapModel
+core/floor_gen/             FloorGenerator, FloorLayout, RoomSlot, FloorParams, TemplatePicker, RulePicker,
+                            MinimapModel
 core/rooms/                 RoomTemplateParser (texto → RoomGrid)
 core/loot/                  RoomReward (premio por limpiar sala)
 core/stats/                 StatCalculator (base + ADD, × MULT, límites)
@@ -279,14 +286,15 @@ core/meta/                  MetaProfile (progreso de una partida), MetaRules (ch
                             de progreso), RunRecord, GameOptions (opciones de todas las partidas)
 data/                       StatBlock, StatModifier, WeaponData, ItemData, ItemCatalog, EnemyData, BossPhase,
                             BulletPatternData, SfxData, SfxLibrary, RoomTemplate, FloorTheme, PickupData,
-                            RunConfig, CharacterData, AchievementData, MetaConfig
+                            RunConfig, CharacterData, AchievementData, MetaConfig, RoomRule
 content/                    weapons/ (pistola, trabuco, metralla, haz, órbita, ballesta, lanzagranadas, bazuca,
                             franco tirador, caño de riel), items/ (37 +
                             catalog), enemies/ (carnero, vigia, farol, centinela, espora, fundidor, grasa
                             (→ grasita → gotita), mecha, murcielago, nido (→ cria), topo, hollin, escudero,
                             fogonero; jefes campanario, rey_carnero, raigon y yunque), patterns/ (29),
-                            sfx/sfx_library, rooms/floor_1/ (18), floor_2/ (7), floor_3/ (7), floor_4/ (8),
-                            floors/ (Sótano, Cloacas, Raíces, Forja), run/run_config,
+                            sfx/sfx_library, rooms/floor_1/ (21), floor_2/ (8), floor_3/ (8), floor_4/ (9),
+                            floors/ (Sótano, Cloacas, Raíces, Forja), run/run_config, rules/ (furia,
+                            coraza, contrarreloj, apagon, sin_pulso, fragil),
                             pickups/ (coin, heart, bomb, key), characters/ (brasa, musgo, ceniza),
                             achievements/ (7), meta/meta_config, music/ (menu, floor_1..4, boss: .wav
                             generados, no editar a mano)
@@ -300,7 +308,8 @@ entities/enemies/           enemy.tscn/.gd, enemy_visual.gd, states/ (idle, move
                             enemy_blast.gd (explosiones), lob_shell.tscn/.gd (bola en arco)
 entities/bullets/           bullet.tscn/.gd (rebote, perforación, teledirigido, explosivas), grenade.tscn/.gd,
                             player_blast.gd (explosiones de armas del jugador)
-entities/pickups/           pickup.tscn/.gd, pickup_visual.gd, item_pedestal.tscn/.gd, item_pedestal_visual.gd
+entities/pickups/           pickup.tscn/.gd, pickup_visual.gd, item_pedestal.tscn/.gd, item_pedestal_visual.gd,
+                            well.tscn/.gd + well_visual.gd (Pozo de brasas)
 entities/bomb/              bomb.tscn/.gd
 entities/exit/              trapdoor.tscn/.gd (trampilla al piso siguiente o salida final)
 world/                      floor_controller, room.tscn/.gd, room_builder, door.tscn/.gd, door_visual,
@@ -316,7 +325,8 @@ ui/menus/                   main_menu, intro_screen, character_select, workshop_
                             inventory_slot, run_summary, save_slots_menu (Partidas) + progress_meter,
                             menu_builder (arman la UI por código)
 ui/hud/                     hud.tscn/.gd, hearts_display, pulse_display, counters_display, active_display,
-                            items_display, weapon_display, item_banner, boss_bar, danger_overlay
+                            items_display, weapon_display, item_banner, boss_bar, danger_overlay,
+                            rule_display (la regla de la sala)
 ui/minimap/                 minimap.gd
 debug/                      demo_input.gd, balance_probe.tscn/.gd (bot que mide cuánto dura una run)
 main/                       main.tscn/.gd (flujo de pantallas y salida prolija) → game.tscn/.gd (una run)
@@ -328,11 +338,11 @@ tests/unit/                 rng_streams, shot_spec, health_math, pattern_math, i
                             floor_generator (500 seeds), room_template_parser, template_picker, minimap_model,
                             room_reward, stat_calculator, item_pool, weapon_slot, phase_math,
                             save_schema, save_store, meta_profile, inventory_text, window_scales, chip_tune,
-                            game_options, save_slots
+                            game_options, save_slots, rule_picker
 tests/integration/          player_shooting, bullets, combat, main_flow, floor, rooms, items,
                             bullet_behaviors, weapons, boss, meta_flow, feedback, inventory, enemy_kinds,
-                            weapons_statuses, music, save_slots_flow
-tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria y la música apagada
+                            weapons_statuses, music, save_slots_flow, special_rooms
+tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria, la música apagada y GameRNG con una seed fija
 docs/PLAN.md                plan, arquitectura e hitos
 docs/LORE.md                la historia y dónde está cada texto en el juego
 docs/OBJETOS.md             ficha para que el usuario mande objetos nuevos
@@ -356,9 +366,11 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   `FloorController`), cuenta `RunState.run_time`, tiene el `PauseMenu` (Esc) y registra comandos del F3.
 - **Pisos:** `FloorController` (en `game.tscn`) recorre los pisos de `RunConfig`. `load_floor(i)` borra
   el piso anterior, hace `GameRNG.set_floor(i)` y genera el layout con `FloorGenerator` (grilla 9x8,
-  árbol sin ciclos que crece desde el centro; jefe en el callejón más lejano, tesoro y tienda en otros
-  callejones, secreta en una celda vacía con 2+ vecinas sin tocar al jefe) y `TemplatePicker` (más
-  difícil cuanto más lejos, más `difficulty_bonus` del tema). Cada sala se arma la primera vez que se
+  árbol sin ciclos que crece desde el centro; jefe en el callejón más lejano, tesoro, tienda y las
+  especiales extra en otros callejones, secreta en una celda vacía con 2+ vecinas sin tocar al jefe),
+  `TemplatePicker` (más difícil cuanto más lejos, más `difficulty_bonus` del tema) y `RulePicker`.
+  Las especiales extra salen de `FloorTheme.extra_rooms` (`extra_room_count` distintas por piso, cada
+  una suma una sala; `FloorGenerator.pick_extra_rooms`). Cada sala se arma la primera vez que se
   entra y queda en el mundo, separada por `ROOM_STRIDE`. Cruzar una puerta pausa el juego, pone al
   jugador del otro lado y desliza la cámara 0.3 s. `move_to(celda)` sirve para saltar de sala (debug y
   tests). Al vencer al jefe aparece una `Trapdoor`: `advance_floor()` (fundido con `ScreenFade`) o, en
@@ -374,7 +386,22 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   rompibles) y fosos (capa pit: frenan cuerpos, no balas) desde el `RoomGrid` de la plantilla.
   Fases: UNVISITED → FIGHTING (puertas cerradas, oleadas por mayúsculas/minúsculas) → CLEARED
   (puertas abiertas, `RoomReward` con el stream LOOT). Los enemigos sueltan monedas a veces.
-  Puertas: `Door.Mode` OPEN / CLOSED / HIDDEN (secreta) / LOCKED (tienda).
+  Puertas: `Door.Mode` OPEN / CLOSED / HIDDEN (secreta) / LOCKED (tienda). El marco de la puerta y el
+  punto del minimapa tienen el color de la especial del otro lado.
+- **Salas especiales nuevas (`RoomSlot.Kind`, al final del enum):** CHALLENGE (Prueba: pelea opcional
+  en dos oleadas, siempre con regla; al ganar aparece un pedestal del pool tesoro), ALTAR (dos items
+  del pool jefe que cuestan un corazón cada uno, `ItemPedestal.health_price` con
+  `HealthComponent.spend`, que nunca mata; al llevarse uno el otro desaparece) y WELL (`Well`, Pozo de
+  brasas: si falta vida o Pulsos, cura todo y devuelve los Pulsos, una vez).
+- **Reglas de sala:** `RoomRule` (`content/rules/`, lista en `RunConfig.room_rules`). `RulePicker` las
+  sortea con el stream FLOOR: siempre en la Prueba y, con `FloorTheme.rule_chance`, en salas normales a 2+
+  pasos del inicio (`RoomSlot.rule`). Al cerrarse las puertas la sala avisa
+  `EventBus.room_rule_changed(regla)` (cartel y `RuleDisplay` en el HUD) y con null al limpiarse o
+  reiniciarse. Efectos: vida de los enemigos (`enemy_health_mult`) y su ritmo (`Enemy.pace`, que se
+  multiplica con el Apagado en `Enemy.speed_factor()`), daño recibido (`HurtboxComponent.damage_multiplier`
+  del jugador), Pulso bloqueado (`Player`), oscuridad (`Game` oscurece el `CanvasModulate`) y premio:
+  `bonus_rewards` pickups seguros al limpiar; con `time_limit`, solo si se limpió a tiempo
+  (`Room.rule_time_left()`, cuenta en `_physics_process`).
 - **Barreras:** `FloorController._barrier(a, b)` decide cada puerta: HIDDEN si toca la secreta, LOCKED
   si toca la tienda. Una explosión (`EventBus.exploded`) cerca de una HIDDEN la destapa; tocar una
   LOCKED desde adentro con una llave la abre. Se abren de los dos lados (`_open_edge`).

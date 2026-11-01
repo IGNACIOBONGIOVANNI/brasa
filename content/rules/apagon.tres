@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RoomRule" format=3]
+
+[ext_resource type="Script" path="res://data/room_rule.gd" id="1_rule"]
+
+[resource]
+script = ExtResource("1_rule")
+id = &"apagon"
+display_name = "Apagón"
+description = "La sala quedó a oscuras."
+color = Color(0.5412, 0.4824, 0.8471, 1)
+darkness = 0.65
+bonus_rewards = 1

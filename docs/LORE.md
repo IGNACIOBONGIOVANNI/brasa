@@ -56,6 +56,13 @@ encender y bajar otra vez.
 - **Hollín:** humo de la fragua apagada que todavía flota; a ratos es solo sombra.
 - **Escudero:** un aprendiz de herrero que se quedó con una tapa de olla como escudo.
 - **Fogonero:** el que alimentaba los hornos; sigue tirando paladas de brasas.
+- **Prueba:** salas donde los bichos se juntan a cuidar algo que robaron de la fragua; si los echás,
+  es tuyo.
+- **Altar:** la fragua apagada todavía pide calor: deja llevarse una de sus herramientas a cambio de un
+  poco del fuego de la chispa (un corazón).
+- **Pozo de brasas:** agua tibia que bajaba de la fragua; alcanza para recuperarse una vez.
+- **Reglas:** abajo el fuego suelto pone sus propias reglas en algunas salas (Furia, Coraza,
+  Contrarreloj, Apagón, Sin Pulso, Frágil); aguantarlas tiene premio.
 
 ## Título
 

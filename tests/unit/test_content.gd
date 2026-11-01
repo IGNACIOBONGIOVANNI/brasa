@@ -1,6 +1,6 @@
 extends GutTest
 ## Contenido (.tres): enemigos, patrones, sonidos, plantillas de sala, pickups, items, armas, pisos,
-## personajes y logros cargan bien y son coherentes entre sí.
+## reglas de sala, personajes y logros cargan bien y son coherentes entre sí.
 
 const ENEMIES_DIR: String = "res://content/enemies/"
 const PATTERNS_DIR: String = "res://content/patterns/"
@@ -15,6 +15,9 @@ const RUN: RunConfig = preload("res://content/run/run_config.tres")
 const META: MetaConfig = preload("res://content/meta/meta_config.tres")
 const CHARACTERS_DIR: String = "res://content/characters/"
 const ACHIEVEMENTS_DIR: String = "res://content/achievements/"
+const RULES_DIR: String = "res://content/rules/"
+## Salas especiales que un piso puede sumar con FloorTheme.extra_rooms.
+const EXTRA_KINDS: Array[RoomSlot.Kind] = [RoomSlot.Kind.CHALLENGE, RoomSlot.Kind.ALTAR, RoomSlot.Kind.WELL]
 ## Distancia mínima (en celdas, contando diagonales) entre un enemigo y la entrada de una puerta.
 const ENEMY_DOOR_DISTANCE: int = 3
 ## Sonidos que el código pide por id (además de los sfx_id de armas, patrones y pickups).
@@ -25,7 +28,7 @@ const CODE_SFX: Array[StringName] = [
 	&"weapon_swap", &"active_use", &"active_ready", &"pickup_heart", &"boss_phase", &"boss_die",
 	&"exit_open", &"ui_select", &"pause", &"achievement", &"lightning", &"heartbeat", &"boss_intro",
 	&"victory", &"defeat", &"medkit", &"revive", &"hop", &"beam", &"burrow", &"summon", &"lob",
-	&"shield_block", &"rail_charge",
+	&"shield_block", &"rail_charge", &"rule", &"altar", &"well",
 ]
 
 
@@ -124,6 +127,8 @@ func test_floor_has_templates_for_every_room() -> void:
 		if template.kind == RoomSlot.Kind.NORMAL:
 			difficulties[template.difficulty] = true
 			assert_gt(grid.enemies.size(), 0, "%s: las salas normales tienen enemigos" % template.id)
+		elif template.kind == RoomSlot.Kind.CHALLENGE:
+			assert_eq(grid.wave_count(), 2, "%s: la Prueba tiene dos oleadas" % template.id)
 		elif template.kind != RoomSlot.Kind.BOSS:
 			assert_eq(grid.enemies.size(), 0, "%s: las salas especiales no tienen enemigos" % template.id)
 	for kind: int in RoomSlot.Kind.size():
@@ -247,10 +252,14 @@ func test_weapons_are_valid_and_cover_every_mode() -> void:
 func test_treasure_and_shop_have_pedestal_spots() -> void:
 	for template: RoomTemplate in FLOOR_1.templates:
 		var spots: int = RoomTemplateParser.parse(template.layout).item_spots.size()
-		if template.kind in [RoomSlot.Kind.TREASURE, RoomSlot.Kind.BOSS, RoomSlot.Kind.SECRET]:
-			assert_eq(spots, 1, "%s: un pedestal (en el jefe aparece al vencerlo)" % template.id)
+		if template.kind in [RoomSlot.Kind.TREASURE, RoomSlot.Kind.BOSS, RoomSlot.Kind.SECRET, RoomSlot.Kind.CHALLENGE]:
+			assert_eq(spots, 1, "%s: un pedestal (en el jefe y la Prueba aparece al ganar)" % template.id)
+		elif template.kind == RoomSlot.Kind.WELL:
+			assert_eq(spots, 1, "%s: el lugar del pozo" % template.id)
 		elif template.kind == RoomSlot.Kind.SHOP:
 			assert_eq(spots, FloorController.SHOP_OFFERS, "%s: un pedestal por oferta" % template.id)
+		elif template.kind == RoomSlot.Kind.ALTAR:
+			assert_eq(spots, FloorController.ALTAR_OFFERS, "%s: un pedestal por oferta" % template.id)
 		else:
 			assert_eq(spots, 0, "%s: sin pedestales" % template.id)
 
@@ -277,6 +286,42 @@ func test_run_floors_are_complete() -> void:
 		assert_gt(current.enemy_health_mult, previous.enemy_health_mult, "el piso %d es más difícil" % (i + 1))
 		assert_gte(current.enemy_bullet_speed_mult, previous.enemy_bullet_speed_mult, "piso %d: balas" % (i + 1))
 		assert_gte(current.room_count_min, previous.room_count_min, "piso %d: salas" % (i + 1))
+
+
+func test_floors_choose_valid_extra_rooms_and_rules() -> void:
+	for theme: FloorTheme in RUN.floors:
+		var seen: Dictionary[RoomSlot.Kind, bool] = {}
+		for kind: RoomSlot.Kind in theme.extra_rooms:
+			assert_has(EXTRA_KINDS, kind, "%s: %d no es una especial extra" % [theme.id, kind])
+			assert_false(seen.has(kind), "%s: especial repetida" % theme.id)
+			seen[kind] = true
+		assert_between(theme.extra_room_count, 1, theme.extra_rooms.size(), "%s: cuántas especiales" % theme.id)
+		assert_gt(theme.rule_chance, 0.0, "%s: hay salas con regla" % theme.id)
+		var challenges: int = 0
+		for template: RoomTemplate in theme.templates:
+			if template.kind == RoomSlot.Kind.CHALLENGE:
+				challenges += 1
+				for marker: RoomGrid.EnemyMarker in RoomTemplateParser.parse(template.layout).enemies:
+					assert_not_null(theme.enemy_for_symbol(marker.symbol), "%s/%s: enemigo %s" % [theme.id, template.id, marker.symbol])
+		assert_gt(challenges, 0, "%s: tiene Prueba" % theme.id)
+
+
+func test_rules_are_valid_and_all_listed() -> void:
+	var listed: Dictionary[String, bool] = {}
+	var ids: Dictionary[StringName, bool] = {}
+	assert_gte(RUN.room_rules.size(), 6, "al menos seis reglas")
+	for rule: RoomRule in RUN.room_rules:
+		listed[rule.resource_path] = true
+		assert_false(ids.has(rule.id), "regla %s repetida" % rule.id)
+		ids[rule.id] = true
+		assert_ne(rule.display_name, "", "%s: tiene nombre" % rule.id)
+		assert_ne(rule.description, "", "%s: tiene descripción" % rule.id)
+		assert_gt(rule.bonus_rewards, 0, "%s: da premio extra" % rule.id)
+		var changes: bool = rule.enemy_health_mult != 1.0 or rule.enemy_pace != 1.0 or rule.damage_taken_mult != 1.0 \
+				or rule.no_pulse or rule.darkness > 0.0 or rule.time_limit > 0.0
+		assert_true(changes, "%s: cambia algo" % rule.id)
+	for resource: Resource in _load_all(RULES_DIR):
+		assert_true(listed.has(resource.resource_path), "%s está en run_config.tres" % resource.resource_path)
 
 
 func test_bosses_have_valid_phases() -> void:

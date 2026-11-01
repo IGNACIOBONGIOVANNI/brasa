@@ -22,6 +22,8 @@ signal player_died
 signal room_entered(cell: Vector2i)
 ## Murió el último enemigo de la sala y se abrieron las puertas.
 signal room_cleared(cell: Vector2i)
+## Empezó (o terminó, con null) el combate de una sala con regla.
+signal room_rule_changed(rule: RoomRule)
 ## Explotó una bomba (FloorController la usa para destapar puertas secretas).
 signal exploded(at: Vector2, radius: float)
 ## Apareció un jefe (el HUD muestra su barra de vida).

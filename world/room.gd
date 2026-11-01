@@ -3,8 +3,13 @@ extends Node2D
 ## Una sala del piso armada desde su plantilla. Maneja su combate: la primera vez que se entra, si
 ## hay enemigos, cierra las puertas y larga las oleadas; cuando muere el último enemigo de la
 ## última oleada abre las puertas y sortea un premio (stream LOOT). Los enemigos a veces sueltan
-## una moneda. En el tesoro y la tienda pone los pedestales con los items sorteados del piso; en la
-## sala del jefe, el pedestal aparece recién al vencerlo (la salida la pone FloorController).
+## una moneda. En el tesoro, la tienda, la secreta y el Altar pone los pedestales con los items
+## sorteados del piso (en el Altar se pagan con vida y al llevarse uno los otros desaparecen); en el
+## Pozo, el pozo; en la sala del jefe y en la Prueba el pedestal aparece recién al ganar (la salida
+## del jefe la pone FloorController).
+## Regla (RoomSlot.rule): se anuncia por EventBus.room_rule_changed al cerrarse las puertas, cambia la
+## vida y el ritmo de los enemigos y, al limpiar, suelta sus pickups extra (con Contrarreloj, solo si
+## se limpió a tiempo).
 
 signal door_entered(side: Vector2i)
 signal door_unlock_requested(side: Vector2i)
@@ -17,6 +22,12 @@ const PICKUP_SCENE: PackedScene = preload("res://entities/pickups/pickup.tscn")
 const PEDESTAL_SCENE: PackedScene = preload("res://entities/pickups/item_pedestal.tscn")
 const DOOR_SCENE: PackedScene = preload("res://world/door.tscn")
 const EXIT_SCENE: PackedScene = preload("res://entities/exit/trapdoor.tscn")
+const WELL_SCENE: PackedScene = preload("res://entities/pickups/well.tscn")
+## Lo que cuesta cada item del Altar, en medios corazones.
+const ALTAR_HEALTH_PRICE: int = 2
+## Dónde se buscan lugares para los pickups extra de la regla, alrededor del centro.
+const BONUS_OFFSETS: Array[Vector2i] = [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(0, -1),
+		Vector2i(-2, 1), Vector2i(2, 1)]
 const NEXT_WAVE_DELAY: float = 0.6
 const CLEAR_DELAY: float = 0.35
 const BOSS_HEART_OFFSET: Vector2 = Vector2(0, 32)
@@ -33,6 +44,8 @@ var _wave: int = 0
 var _enemies: Array[Enemy] = []
 ## Cambia cada vez que se reinicia el combate, así un timer viejo no larga una oleada fuera de tiempo.
 var _combat_id: int = 0
+## Segundos peleando con la regla (para Contrarreloj).
+var _rule_time: float = 0.0
 
 
 ## Arma la sala; llamar antes de agregarla al árbol. `neighbors`: tipo de la sala detrás de cada
@@ -60,19 +73,50 @@ func setup(room_slot: RoomSlot, theme: FloorTheme, neighbors: Dictionary[Vector2
 		doors[side] = door
 	for marker: RoomGrid.PickupMarker in grid.pickups:
 		spawn_pickup(theme.pickup_for_symbol(marker.symbol), RoomGrid.cell_center(marker.cell), false)
-	if slot.kind != RoomSlot.Kind.BOSS:
+	if slot.kind == RoomSlot.Kind.WELL and not grid.item_spots.is_empty():
+		var well := WELL_SCENE.instantiate() as Well
+		well.position = RoomGrid.cell_center(grid.item_spots[0])
+		($Pickups as Node2D).add_child(well)
+	elif slot.kind != RoomSlot.Kind.BOSS and slot.kind != RoomSlot.Kind.CHALLENGE:
 		_spawn_offers()
 
 
-## Pedestales con los items de la sala (gratis, salvo en la tienda).
+func _physics_process(delta: float) -> void:
+	if phase != Phase.FIGHTING or slot.rule == null:
+		return
+	var had_time: bool = rule_time_left() > 0.0
+	_rule_time += delta
+	if had_time and slot.rule.time_limit > 0.0 and rule_time_left() <= 0.0:
+		AudioManager.play_sfx(&"empty")
+
+
+## Segundos que quedan para el premio extra de Contrarreloj (INF si la regla no tiene límite).
+func rule_time_left() -> float:
+	if slot.rule == null or slot.rule.time_limit <= 0.0:
+		return INF
+	return maxf(0.0, slot.rule.time_limit - _rule_time)
+
+
+## Pedestales con los items de la sala: gratis, en la tienda con precio y en el Altar con vida.
 func _spawn_offers() -> void:
 	var for_sale: bool = slot.kind == RoomSlot.Kind.SHOP
+	var altar: bool = slot.kind == RoomSlot.Kind.ALTAR
 	for i: int in mini(grid.item_spots.size(), slot.offers.size()):
 		var pedestal := PEDESTAL_SCENE.instantiate() as ItemPedestal
 		var item: ItemData = slot.offers[i]
-		pedestal.set_item(item, item.shop_price() if for_sale else 0)
+		pedestal.set_item(item, item.shop_price() if for_sale else 0, ALTAR_HEALTH_PRICE if altar else 0)
 		pedestal.position = RoomGrid.cell_center(grid.item_spots[i])
+		if altar:
+			pedestal.item_taken.connect(_on_altar_taken.bind(pedestal), CONNECT_ONE_SHOT)
 		($Pickups as Node2D).add_child(pedestal)
+
+
+## En el Altar se elige uno: los demás pedestales desaparecen.
+func _on_altar_taken(chosen: ItemPedestal) -> void:
+	for node: Node in ($Pickups as Node2D).get_children():
+		var pedestal := node as ItemPedestal
+		if pedestal != null and pedestal != chosen:
+			pedestal.vanish()
 
 
 ## Pone la salida (trampilla o salida final) en el centro de la sala.
@@ -104,6 +148,10 @@ func enter() -> void:
 	phase = Phase.FIGHTING
 	_set_doors(Door.Mode.CLOSED)
 	AudioManager.play_sfx(&"door_close")
+	_rule_time = 0.0
+	if slot.rule != null:
+		EventBus.room_rule_changed.emit(slot.rule)
+		AudioManager.play_sfx(&"rule")
 	_spawn_wave(0, _combat_id)
 
 
@@ -118,6 +166,8 @@ func reset_combat() -> void:
 	_enemies.clear()
 	phase = Phase.UNVISITED
 	_set_doors(Door.Mode.OPEN)
+	if slot.rule != null:
+		EventBus.room_rule_changed.emit(null)
 
 
 ## Destapa una puerta oculta o abre una con candado: queda cerrada si se está peleando, si no abierta.
@@ -156,6 +206,9 @@ func _spawn_wave(index: int, combat_id: int) -> void:
 		enemy.data = _theme.enemy_for_symbol(marker.symbol)
 		enemy.health_multiplier = _theme.enemy_health_mult
 		enemy.bullet_speed_multiplier = _theme.enemy_bullet_speed_mult
+		if slot.rule != null:
+			enemy.health_multiplier *= slot.rule.enemy_health_mult
+			enemy.pace = slot.rule.enemy_pace
 		enemy.position = _entities.to_local(to_global(RoomGrid.cell_center(marker.cell)))
 		_entities.add_child(enemy)
 		_register_enemy(enemy)
@@ -195,7 +248,13 @@ func _clear(combat_id: int) -> void:
 	_set_doors(Door.Mode.OPEN)
 	AudioManager.play_sfx(&"door_open")
 	AudioManager.play_sfx(&"room_clear")
-	if slot.kind == RoomSlot.Kind.BOSS:
+	if slot.rule != null:
+		EventBus.room_rule_changed.emit(null)
+		if slot.rule.earns_bonus(_rule_time):
+			_spawn_bonus(slot.rule.bonus_rewards)
+	if slot.kind == RoomSlot.Kind.CHALLENGE:
+		_spawn_offers()
+	elif slot.kind == RoomSlot.Kind.BOSS:
 		# Premio del jefe: su item y un corazón seguro (debajo de donde aparece la salida).
 		_spawn_offers()
 		spawn_pickup(_theme.pickup_of_kind(PickupData.Kind.HEART), RoomGrid.cell_center(RoomGrid.CENTER) + BOSS_HEART_OFFSET, true)
@@ -205,6 +264,22 @@ func _clear(combat_id: int) -> void:
 			spawn_pickup(reward, spawn_point(), true)
 	EventBus.room_cleared.emit(slot.cell)
 	cleared.emit()
+
+
+## Pickups seguros de la regla, cada uno en un lugar libre distinto cerca del centro.
+func _spawn_bonus(count: int) -> void:
+	var center: Vector2i = grid.nearest_walkable(RoomGrid.CENTER)
+	var cells: Array[Vector2i] = []
+	for offset: Vector2i in BONUS_OFFSETS:
+		var cell: Vector2i = grid.nearest_walkable(RoomGrid.CENTER + offset)
+		if cell != center and not cells.has(cell):
+			cells.append(cell)
+	var loot: RandomNumberGenerator = GameRNG.stream(RngStreams.LOOT)
+	for i: int in count:
+		var reward: PickupData = RoomReward.roll(loot, _theme.pickups, 1.0)
+		if reward != null:
+			var cell: Vector2i = cells[i % cells.size()] if not cells.is_empty() else center
+			spawn_pickup(reward, RoomGrid.cell_center(cell), true)
 
 
 func _on_door_player_entered(side: Vector2i) -> void:

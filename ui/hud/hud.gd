@@ -3,7 +3,8 @@ extends CanvasLayer
 ## HUD de la run. Arriba a la izquierda (sobre la pared): corazones, cargas de Pulso, monedas/bombas/
 ## llaves y el activo con su carga. Arriba a la derecha: el minimapa. Abajo (sobre la pared): los
 ## items pasivos a la izquierda y el arma con su munición a la derecha. El cartel (item agarrado,
-## piso nuevo o jefe que aparece), la barra del jefe y los bordes rojos de peligro (golpe y vida baja).
+## piso nuevo, jefe que aparece o regla de la sala), la regla mientras dura el combate, la barra del
+## jefe y los bordes rojos de peligro (golpe y vida baja).
 
 ## Con esta vida o menos (en medios corazones) suena el latido.
 const LOW_HEALTH: float = 2.0
@@ -22,6 +23,7 @@ var _last_health: float = -1.0
 @onready var _boss_bar: BossBar = $BossBar
 @onready var _minimap: Minimap = $Minimap
 @onready var _danger: DangerOverlay = $Danger
+@onready var _rule: RuleDisplay = $Rule
 
 
 func bind_player(player: Player) -> void:
@@ -46,8 +48,25 @@ func bind_floor(floor_controller: FloorController) -> void:
 	_floor = floor_controller
 	_floor.map_changed.connect(_refresh_minimap)
 	EventBus.floor_changed.connect(_on_floor_changed)
+	EventBus.room_rule_changed.connect(_on_room_rule_changed)
 	_on_floor_changed(_floor.floor_index)
 	_refresh_minimap()
+
+
+func _process(_delta: float) -> void:
+	if _rule.visible and _floor != null and _floor.current_room() != null:
+		_rule.set_time_left(_floor.current_room().rule_time_left())
+
+
+## Texto de la regla que se ve arriba ("" si no hay).
+func rule_text() -> String:
+	return _rule.shown_text()
+
+
+func _on_room_rule_changed(rule: RoomRule) -> void:
+	_rule.set_rule(rule)
+	if rule != null:
+		_banner.show_text("Regla: %s" % rule.display_name, rule.description, ItemBanner.SHOW_TIME, rule.color)
 
 
 func _on_health_changed(current: float, max_value: float) -> void:

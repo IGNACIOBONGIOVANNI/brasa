@@ -1,13 +1,19 @@
 class_name ItemPedestal
 extends Area2D
-## Pedestal con un item: gratis en el tesoro, con precio en la tienda. Se agarra al tocarlo si
-## alcanzan las monedas. Si es un activo y el jugador ya tenía otro, el viejo queda en el pedestal
-## (gratis) y hay que salir y volver a entrar para agarrarlo; lo mismo después de no tener plata.
+## Pedestal con un item: gratis en el tesoro, con precio en monedas en la tienda o en vida en el
+## Altar (`health_price`, medios corazones: solo si no lo mata). Se agarra al tocarlo si alcanza.
+## Si es un activo y el jugador ya tenía otro, el viejo queda en el pedestal (gratis) y hay que
+## salir y volver a entrar para agarrarlo; lo mismo después de no alcanzar el precio.
+
+## Se agarró el item (el Altar saca los otros pedestales).
+signal item_taken
 
 const SPARKLE_SCENE: PackedScene = preload("res://fx/burst.tscn")
+const VANISH_SCENE: PackedScene = preload("res://fx/dust_puff.tscn")
 
 var item: ItemData
 var price: int = 0
+var health_price: int = 0
 ## Hasta que el jugador salga del pedestal no se intenta de nuevo.
 var _waiting_exit: bool = false
 
@@ -15,11 +21,18 @@ var _waiting_exit: bool = false
 
 
 ## Se puede llamar antes de agregarlo al árbol.
-func set_item(new_item: ItemData, new_price: int) -> void:
+func set_item(new_item: ItemData, new_price: int, new_health_price: int = 0) -> void:
 	item = new_item
 	price = new_price
+	health_price = new_health_price
 	if is_node_ready():
 		_refresh_visual()
+
+
+## Desaparece con una nube de polvo (los pedestales del Altar que no se eligieron).
+func vanish() -> void:
+	Fx.spawn(get_tree(), VANISH_SCENE, global_position)
+	queue_free()
 
 
 func _ready() -> void:
@@ -36,17 +49,20 @@ func _physics_process(_delta: float) -> void:
 		return
 	if _waiting_exit or item == null or player.is_dead():
 		return
-	_try_take()
+	_try_take(player)
 
 
-func _try_take() -> void:
-	if price > RunState.coins:
+func _try_take(player: Player) -> void:
+	if price > RunState.coins or (health_price > 0 and player.health.current <= health_price):
 		_waiting_exit = true
 		AudioManager.play_sfx(&"empty")
 		return
 	if price > 0:
 		RunState.add_coins(-price)
 		AudioManager.play_sfx(&"buy")
+	if health_price > 0:
+		player.health.spend(health_price)
+		AudioManager.play_sfx(&"altar")
 	var taken: ItemData = item
 	var previous: ItemData = RunState.add_item(taken)
 	EventBus.item_picked.emit(taken)
@@ -55,9 +71,11 @@ func _try_take() -> void:
 	sparkle.color = taken.get_icon_color()
 	item = previous
 	price = 0
+	health_price = 0
 	_waiting_exit = previous != null
 	_refresh_visual()
+	item_taken.emit()
 
 
 func _refresh_visual() -> void:
-	_visual.set_item(item, price)
+	_visual.set_item(item, price, health_price)

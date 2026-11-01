@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RoomRule" format=3]
+
+[ext_resource type="Script" path="res://data/room_rule.gd" id="1_rule"]
+
+[resource]
+script = ExtResource("1_rule")
+id = &"sin_pulso"
+display_name = "Sin Pulso"
+description = "Acá el Pulso no late."
+color = Color(0.3725, 0.702, 0.4157, 1)
+no_pulse = true
+bonus_rewards = 1

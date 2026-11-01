@@ -227,6 +227,16 @@ con fundidos entre temas y volumen de la música en Opciones.
 su progreso de 0 a 100 %, elegibles al arrancar; se pueden borrar y las opciones son las mismas para
 todos. El guardado anterior pasa a la partida 1.
 
+**Hito 16 — Reglas de sala y salas especiales** (pedido del usuario): reglas que cambian algunas peleas
+(enemigos más rápidos o duros, contrarreloj, apagón, sin Pulso, golpes dobles) con premio extra, y tres
+salas especiales nuevas: Prueba (pelea opcional con regla e item), Altar (items que se pagan con vida)
+y Pozo (cura una vez).
+
+**Hito 17 — Trampas por piso** (pedido del usuario): algunas salas tienen trampas propias de cada piso
+que lastiman al jugador y a los enemigos.
+
+**Hito 18 — Mechas** (pedido del usuario): vehículos tipo mecha que el jugador encuentra y maneja.
+
 ## 6. Cosas a tener en cuenta desde ya
 
 - **Export templates.** Para el hito 7 hacen falta las plantillas de exportación de 4.7.2 instaladas

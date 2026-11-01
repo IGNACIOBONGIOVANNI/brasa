@@ -4,16 +4,17 @@ extends RefCounted
 ##
 ## Crece desde la sala del centro con una cola: cada sala intenta abrir vecinas en orden al azar, y
 ## una celda solo se ocupa si no toca otra sala (así no hay ciclos ni bloques de salas pegadas).
-## Después: jefe en el callejón sin salida más lejano, tesoro y tienda en otros callejones, y la
-## secreta en una celda vacía con 2 o más vecinas que no toque al jefe. Si algo no se cumple,
-## reintenta con el mismo RNG (sigue siendo determinista).
+## Después: jefe en el callejón sin salida más lejano, tesoro, tienda y las especiales extra
+## (FloorParams.extra_rooms, cada una suma una sala) en otros callejones, y la secreta en una celda
+## vacía con 2 o más vecinas que no toque al jefe. Si algo no se cumple, reintenta con el mismo RNG
+## (sigue siendo determinista).
 
 const MAX_ATTEMPTS: int = 500
 
 
 static func generate(rng: RandomNumberGenerator, params: FloorParams) -> FloorLayout:
 	for _attempt: int in MAX_ATTEMPTS:
-		var room_count: int = rng.randi_range(params.room_count_min, params.room_count_max)
+		var room_count: int = rng.randi_range(params.room_count_min, params.room_count_max) + params.extra_rooms.size()
 		var layout: FloorLayout = _try_generate(rng, params, room_count)
 		if layout != null:
 			return layout
@@ -42,7 +43,7 @@ static func _try_generate(rng: RandomNumberGenerator, params: FloorParams, room_
 		return null
 	_compute_distances(layout)
 	var dead_ends: Array[Vector2i] = _dead_ends(layout)
-	if dead_ends.size() < 3:
+	if dead_ends.size() < 3 + params.extra_rooms.size():
 		return null
 	var boss: Vector2i = _farthest(layout, dead_ends)
 	if layout.get_slot(boss).distance < params.min_boss_distance:
@@ -51,6 +52,8 @@ static func _try_generate(rng: RandomNumberGenerator, params: FloorParams, room_
 	dead_ends.erase(boss)
 	layout.get_slot(_take_random(dead_ends, rng)).kind = RoomSlot.Kind.TREASURE
 	layout.get_slot(_take_random(dead_ends, rng)).kind = RoomSlot.Kind.SHOP
+	for kind: RoomSlot.Kind in params.extra_rooms:
+		layout.get_slot(_take_random(dead_ends, rng)).kind = kind
 	var secret: Vector2i = _pick_secret_cell(layout, boss, rng)
 	if secret == FloorLayout.NO_CELL:
 		return null
@@ -58,6 +61,15 @@ static func _try_generate(rng: RandomNumberGenerator, params: FloorParams, room_
 	secret_slot.distance = 1 + _min_neighbor_distance(layout, secret)
 	layout.slots[secret] = secret_slot
 	return layout
+
+
+## Elige `count` tipos distintos de `candidates` al azar (las especiales extra de un piso).
+static func pick_extra_rooms(candidates: Array[RoomSlot.Kind], count: int, rng: RandomNumberGenerator) -> Array[RoomSlot.Kind]:
+	var pool: Array[RoomSlot.Kind] = candidates.duplicate()
+	var result: Array[RoomSlot.Kind] = []
+	while result.size() < count and not pool.is_empty():
+		result.append(pool.pop_at(rng.randi_range(0, pool.size() - 1)))
+	return result
 
 
 ## Distancia en pasos desde el inicio (BFS sin pasar por la secreta).

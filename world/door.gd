@@ -18,6 +18,9 @@ const FRAME_COLORS: Dictionary[RoomSlot.Kind, Color] = {
 	RoomSlot.Kind.BOSS: Color("b33a3a"),
 	RoomSlot.Kind.TREASURE: Color("e2b84a"),
 	RoomSlot.Kind.SHOP: Color("5fb36a"),
+	RoomSlot.Kind.CHALLENGE: Color("e07a3a"),
+	RoomSlot.Kind.ALTAR: Color("b03a62"),
+	RoomSlot.Kind.WELL: Color("ffb35c"),
 }
 
 var side: Vector2i = Vector2i.UP

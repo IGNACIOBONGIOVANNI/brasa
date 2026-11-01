@@ -7,6 +7,7 @@ const GAME_SCENE: PackedScene = preload("res://tests/fixtures/arena.tscn")
 const ROOM_SCENE: PackedScene = preload("res://world/room.tscn")
 const BULLET_SCENE: PackedScene = preload("res://entities/bullets/bullet.tscn")
 const FLOOR_1: FloorTheme = preload("res://content/floors/floor_1.tres")
+const SEED: int = 1234
 ## Sala con una sola Grasa en el medio.
 const SLIME_ROOM: String = """
 ...............
@@ -25,6 +26,8 @@ var _player: Player
 
 
 func before_each() -> void:
+	# Seed fija: la IA de los enemigos (cooldowns, hacia dónde se mueven) usa el stream COMBAT.
+	GameRNG.start_run(SEED)
 	RunState.start_run()
 	_game = GAME_SCENE.instantiate() as Game
 	add_child_autofree(_game)
@@ -159,7 +162,11 @@ func test_mole_is_untouchable_underground_and_surfaces_to_attack() -> void:
 		await wait_physics_frames(1)
 		surfaced = surfaced or not mole.is_hidden()
 	assert_true(surfaced, "asomó para atacar")
-	await wait_physics_frames(2)
+	# Puede estar disparando: se saca con sus balas para que ningún impacto quede fuera del test.
+	mole.queue_free()
+	for node: Node in get_tree().get_nodes_in_group(Bullet.GROUP):
+		node.queue_free()
+	await wait_physics_frames(3)
 
 
 func test_wisp_turns_into_a_ghost_and_back() -> void:
