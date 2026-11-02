@@ -58,6 +58,7 @@
 script = ExtResource("1_theme")
 id = &"floor_2"
 display_name = "Cloacas"
+scenery = 2
 tagline = "Los carneros bajaron buscando calor y se quedaron."
 ambient_light = Color(0.42, 0.52, 0.56, 1)
 mote_color = Color(0.55, 0.78, 0.88, 0.6)

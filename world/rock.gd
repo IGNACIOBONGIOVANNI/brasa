@@ -19,6 +19,13 @@ func set_colors(fill: Color, outline: Color) -> void:
 	visual.outline_color = outline
 
 
+## Cómo se ve según el piso (cajón, tonel, fardo...) y una variante para que no sean todas iguales.
+func set_scenery(scenery: FloorTheme.Scenery, variant: int) -> void:
+	var visual := $Visual as SceneryShape
+	visual.scenery = scenery
+	visual.variant = variant
+
+
 func destroy() -> void:
 	if is_queued_for_deletion():
 		return

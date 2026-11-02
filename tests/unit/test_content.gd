@@ -589,6 +589,15 @@ func test_each_floor_has_its_own_mood() -> void:
 		assert_gt(theme.mote_color.a, 0.0, "%s: partículas visibles" % theme.id)
 
 
+## Hito 22: cada piso con su escenario (paredes, rocas, fosos y piso) y ninguno repetido.
+func test_each_floor_has_its_own_scenery() -> void:
+	var seen: Dictionary[FloorTheme.Scenery, bool] = {}
+	for theme: FloorTheme in _all_floors():
+		assert_ne(theme.scenery, FloorTheme.Scenery.PLAIN, "%s: tiene escenario" % theme.id)
+		assert_false(seen.has(theme.scenery), "%s: escenario propio" % theme.id)
+		seen[theme.scenery] = true
+
+
 func test_floor_names_are_unique() -> void:
 	var names: Dictionary[String, bool] = {}
 	for theme: FloorTheme in _all_floors():

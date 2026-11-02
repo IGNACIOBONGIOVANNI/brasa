@@ -83,6 +83,7 @@
 script = ExtResource("1_theme")
 id = &"floor_4"
 display_name = "Forja"
+scenery = 4
 tagline = "El Yunque se quedó con la última llama."
 ambient_light = Color(0.66, 0.46, 0.4, 1)
 mote_color = Color(1, 0.62, 0.25, 0.9)

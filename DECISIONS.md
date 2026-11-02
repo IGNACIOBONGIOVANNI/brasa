@@ -811,3 +811,40 @@ enemigos originales y alguna mecánica nueva".
 - **Lo que no**: logros nuevos del capítulo 2 (no había qué desbloquear), hielo resbaloso en el piso
   (el viento ya cumple el papel de lo nuevo del ambiente) y que los personajes del primer capítulo
   jueguen el segundo.
+
+## Hito 22 — escenario por piso (2026-11-02)
+
+Pedido del usuario: "que en el escenario o las paredes que delimitan el escenario haya árboles,
+cercas, etc.; pensá muchas opciones, mejor si está relacionado al nivel".
+
+- **Un escenario por piso** (`FloorTheme.scenery`), que cambia las paredes, las rocas, los fosos y
+  agrega detalles en el piso. La colisión no cambia: las paredes siguen siendo los mismos rectángulos y
+  las rocas y fosos ocupan su celda entera, así nada de lo jugable se mueve.
+  - Sótano: ladrillos con nichos de velas encendidas, grietas y telarañas en las esquinas; las rocas
+    son cajones; losas partidas y cera en el piso.
+  - Cloacas: ladrillos mojados con un caño a lo largo, verdín que chorrea y rejillas que gotean; las
+    rocas son toneles oxidados y los fosos agua honda; charcos en el piso.
+  - Raíces: tierra con raíces enredadas, árboles enormes en las esquinas, hongos que brillan y puntas
+    de raíz; las rocas son tocones; hojas y raicitas en el piso.
+  - Forja: chapas remachadas con grietas de lava que laten, bocas de horno y cadenas; las rocas son
+    bloques de hierro y los fosos metal fundido; hollín en el piso.
+  - Esquiladero: pared de tablas con postes de cerca, fardos en las esquinas, lana enganchada,
+    herraduras, tijeras colgadas y faroles; las rocas son fardos, los fosos tablas rotas y el piso
+    tablones con pasto suelto.
+  - Cantera: bloques de piedra tallada con andamios, picos, rollos de soga y faroles; las rocas son
+    bloques cortados y los fosos tienen grava en el borde.
+  - Ventisquero: una hilera de pinos nevados alrededor de la sala, montículos de nieve y carámbanos
+    colgando; las rocas son bloques de hielo, los fosos grietas con carámbanos y en el piso hay nieve y
+    huellas de pezuña.
+  - Cumbre: riscos con la punta nevada, una cerca de soga con banderines al viento, apachetas
+    (montoncitos de piedras) y árboles secos; las rocas son peñascos nevados y los fosos un abismo con
+    nubes.
+- **Lo que brilla no se oscurece** (velas, lava, hongos, faroles) y solo se anima en la sala actual:
+  las salas visitadas quedan en el mundo y animarlas a todas sería gastar de más.
+- **Los fosos tienen que leerse como fosos**: el agua, la lava y los pozos con raíces se probaron en
+  capturas y se ajustaron hasta que se distinguen bien del piso (y que ninguno parezca una trampa).
+- **La misma sala se ve siempre igual** (la variación sale de una semilla por sala, no del azar de la
+  run): no gasta los streams de `GameRNG` y no cambia nada al seguir una run guardada.
+- **Lo que no**: decoración que tape el piso o salga de las paredes hacia adentro más de un par de
+  píxeles (la sala tiene que leerse igual), y arte nuevo para las puertas (siguen como estaban, con
+  el color de la especial del otro lado).

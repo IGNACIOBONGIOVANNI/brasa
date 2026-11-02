@@ -1,7 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://world/rock.gd" id="1_rock"]
-[ext_resource type="Script" path="res://fx/placeholder_shape.gd" id="2_shape"]
+[ext_resource type="Script" path="res://world/scenery_shape.gd" id="2_shape"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rock"]
 size = Vector2(16, 16)

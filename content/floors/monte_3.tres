@@ -61,6 +61,7 @@
 script = ExtResource("1_theme")
 id = &"monte_3"
 display_name = "Ventisquero"
+scenery = 7
 tagline = "La nieve de arriba no se derrite nunca."
 ambient_light = Color(0.62, 0.7, 0.82, 1)
 mote_color = Color(0.95, 0.97, 1, 0.85)

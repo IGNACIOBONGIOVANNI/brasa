@@ -69,6 +69,10 @@ func setup(room_slot: RoomSlot, theme: FloorTheme, neighbors: Dictionary[Vector2
 	for side: Vector2i in neighbors:
 		sides.append(side)
 	RoomBuilder.build_walls($Walls as Node2D, sides, theme)
+	var salt: int = hash("%s/%s/%s" % [theme.id, slot.template.id, slot.cell])
+	var no_walls: Array[Rect2] = []
+	($FloorScenery as RoomScenery).setup(theme, no_walls, salt)
+	($WallScenery as RoomScenery).setup(theme, RoomBuilder.wall_layout(sides), salt)
 	RoomBuilder.build_obstacles($Obstacles as Node2D, grid, theme)
 	nav = RoomNav.from_grid(grid)
 	for child: Node in ($Obstacles as Node2D).get_children():
@@ -111,6 +115,7 @@ func _physics_process(delta: float) -> void:
 
 ## Las trampas solo andan en la sala donde está el jugador; al volver arrancan quietas.
 func set_present(present: bool) -> void:
+	($WallScenery as RoomScenery).set_animated(present)
 	var traps := $Traps as Node2D
 	traps.process_mode = Node.PROCESS_MODE_INHERIT if present else Node.PROCESS_MODE_DISABLED
 	if present:

@@ -42,6 +42,7 @@
 script = ExtResource("1_theme")
 id = &"monte_1"
 display_name = "Esquiladero"
+scenery = 5
 tagline = "Las tijeras de esquilar siguen cortando solas."
 ambient_light = Color(0.66, 0.58, 0.5, 1)
 mote_color = Color(0.96, 0.94, 0.88, 0.55)

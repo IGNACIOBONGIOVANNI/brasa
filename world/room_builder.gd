@@ -20,9 +20,16 @@ static func style_floor(visual: PlaceholderShape, theme: FloorTheme) -> void:
 
 
 static func build_walls(parent: Node2D, door_sides: Array[Vector2i], theme: FloorTheme) -> void:
+	for rect: Rect2 in wall_layout(door_sides):
+		parent.add_child(_wall_segment(rect, theme))
+
+
+## Todos los tramos de pared de una sala con puertas en `door_sides`.
+static func wall_layout(door_sides: Array[Vector2i]) -> Array[Rect2]:
+	var result: Array[Rect2] = []
 	for side: Vector2i in FloorLayout.DIRECTIONS:
-		for rect: Rect2 in wall_rects(side, door_sides.has(side)):
-			parent.add_child(_wall_segment(rect, theme))
+		result.append_array(wall_rects(side, door_sides.has(side)))
+	return result
 
 
 ## Tramos de pared de un lado, con un hueco en el medio si hay puerta. Las paredes de arriba y
@@ -71,11 +78,15 @@ static func build_obstacles(parent: Node2D, grid: RoomGrid, theme: FloorTheme) -
 					var rock := ROCK_SCENE.instantiate() as Rock
 					rock.position = RoomGrid.cell_center(cell)
 					rock.set_colors(theme.rock_color, theme.outline_color)
+					rock.set_scenery(theme.scenery, x * 7 + y * 3)
 					parent.add_child(rock)
 				RoomGrid.Cell.PIT:
 					var pit := PIT_SCENE.instantiate() as StaticBody2D
 					pit.position = RoomGrid.cell_center(cell)
-					(pit.get_node(^"Visual") as PlaceholderShape).color = theme.pit_color
+					var visual := pit.get_node(^"Visual") as SceneryShape
+					visual.color = theme.pit_color
+					visual.scenery = theme.scenery
+					visual.variant = x * 5 + y * 11
 					parent.add_child(pit)
 
 
@@ -110,10 +121,12 @@ static func _wall_segment(rect: Rect2, theme: FloorTheme) -> StaticBody2D:
 	box.size = rect.size
 	shape.shape = box
 	body.add_child(shape)
-	var visual := PlaceholderShape.new()
-	visual.shape = PlaceholderShape.Shape.RECT
-	visual.size = rect.size
-	visual.color = theme.wall_color
-	visual.outline_color = theme.outline_color
-	body.add_child(visual)
+	# Con escenario, las paredes las dibuja RoomScenery (todas juntas); si no, un bloque liso.
+	if theme.scenery == FloorTheme.Scenery.PLAIN:
+		var visual := PlaceholderShape.new()
+		visual.shape = PlaceholderShape.Shape.RECT
+		visual.size = rect.size
+		visual.color = theme.wall_color
+		visual.outline_color = theme.outline_color
+		body.add_child(visual)
 	return body

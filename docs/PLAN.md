@@ -246,6 +246,9 @@ avanzan por el piso, zarpazos en la oscuridad, mira láser que obliga a rodar, m
 barre) y la dificultad sube de un jefe al otro. Los enemigos que caminan rodean rocas y fosos, y los
 que embisten ya no se quedan embistiendo contra un foso o una pared.
 
+**Hito 22 — Escenario por piso** (pedido del usuario): las paredes que delimitan cada sala (y sus rocas,
+fosos y piso) con el aspecto del lugar: árboles, cercas y todo lo que tenga que ver con cada piso.
+
 **Hito 21 — Capítulo 2, "El monte"** (pedido del usuario): un segundo capítulo de cuatro pisos con un
 carnero jugable (Testa, que embiste en vez de rodar), jefes propios (uno es la venganza de un jefe del
 primero: el Rey Destronado), enemigos nuevos y una mecánica nueva (la embestida; también el viento).

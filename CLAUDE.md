@@ -5,7 +5,11 @@ estructura de los roguelites de salas + bullet hell, con contenido 100 % origina
 [docs/LORE.md](docs/LORE.md).
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 21 (capítulo 2, "El monte") terminado: un segundo capítulo de cuatro pisos
+**Estado:** Hito 22 (escenario por piso) terminado: cada piso tiene su escenario (`FloorTheme.scenery`):
+paredes con cosas del lugar (ladrillos con velas, caños, raíces con árboles, lava, cerca de tablas con
+fardos, andamios, pinos nevados, cerca de soga con banderines), rocas y fosos con su aspecto (cajones,
+toneles, tocones, fardos, hielo, agua, lava...) y detalles en el piso. Antes: hito 21 (capítulo 2, "El
+monte"): un segundo capítulo de cuatro pisos
 (Esquiladero, Cantera, Ventisquero, Cumbre) que se juega con Testa, un carnero que embiste en vez de
 rodar; se desbloquea al vencer al Yunque. Diez enemigos nuevos, cuatro trampas, cuatro jefes (Tijerón,
 el Rey Destronado, la venganza del Rey Carnero, Alud y Cierzo) con cinco tipos de movimiento nuevos y
@@ -250,6 +254,9 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   Prueba 1, que aparece al ganar) o el pozo (Pozo 1). La Prueba tiene enemigos en dos oleadas.
   `^` es una trampa (la del piso): solo en salas normales y nunca frente a una puerta. Cada piso
   tiene al menos una sala propia con trampas (lo exige un test).
+- Escenario: cada `FloorTheme` tiene su `scenery` (uno distinto por piso, lo exige un test); un piso
+  nuevo con otro aspecto suma un valor a `FloorTheme.Scenery` y sus dibujos en `SceneryDrawing`
+  (paredes, lo que brilla, piso, roca y foso).
 - Trampas: un `.tres` por trampa en `content/traps/` (`TrapData`), cada una en un `FloorTheme.trap`
   (lo exige un test, con un aspecto distinto por piso).
 - Armazones (mechas): un `.tres` por armazón en `content/mechs/` (`MechData`, con su `WeaponData`
@@ -363,7 +370,9 @@ entities/traps/             trap.tscn/.gd + trap_visual.gd (trampas de los pisos
 entities/mechs/             parked_mech.tscn/.gd + parked_mech_visual.gd (armazón parado), mech_drawing.gd
                             (dibujo compartido con PlayerVisual)
 world/                      floor_controller, room.tscn/.gd, room_builder, door.tscn/.gd, door_visual,
-                            rock.tscn/.gd, pit.tscn, test_room.tscn (sala fija de la arena de tests)
+                            rock.tscn/.gd, pit.tscn, test_room.tscn (sala fija de la arena de tests),
+                            scenery_drawing (cómo se ve cada escenario), room_scenery (paredes y piso de una
+                            sala), scenery_shape (rocas y fosos con el aspecto del piso)
 fx/                         game_camera, hit_stop, fx (spawner), flash.gdshader, pixel_bitmap, pixel_icons,
                             partículas (bullet_impact, burst, dust_puff, step_dust), floor_stain,
                             pulse_wave, placeholder_shape, screen_fade, unshaded.tres, glow_texture.tres,
@@ -393,7 +402,7 @@ tests/unit/                 rng_streams, shot_spec, health_math, pattern_math, i
 tests/integration/          player_shooting, bullets, combat, main_flow, floor, rooms, items,
                             bullet_behaviors, weapons, boss, meta_flow, feedback, inventory, enemy_kinds,
                             weapons_statuses, music, save_slots_flow, special_rooms, traps, mechs,
-                            boss_attacks, pathing, run_resume, chapters, mountain
+                            boss_attacks, pathing, run_resume, chapters, mountain, scenery
 tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria, la música apagada y GameRNG con una seed fija
 docs/PLAN.md                plan, arquitectura e hitos
 docs/LORE.md                la historia y dónde está cada texto en el juego
@@ -681,6 +690,16 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   `SparkSwarm` (3 chispas, 16 un jefe) que vuela hasta el jugador (solo visual). También: polvo al
   caminar (`Player.leave_steps`), fantasmas al rodar (`Afterimage`), estela en cada bala (`Line2D`
   `Trail`, 4 posiciones) y polvo en las puertas al abrirse o cerrarse.
+- **Escenario:** `FloorTheme.scenery` (PLAIN, BASEMENT, SEWER, ROOTS, FORGE, SHED, QUARRY, SNOWFIELD,
+  SUMMIT). Cada `Room` tiene dos `RoomScenery`: `FloorScenery` (detalles del piso: losas partidas,
+  charcos, tablones, nieve, huellas...) y `WallScenery` (las paredes enteras, dibujadas una vez sobre
+  los tramos de `RoomBuilder.wall_layout`, que con escenario quedan solo como cuerpos de choque), con
+  un hijo `Glow` sin sombra para lo que brilla o se mueve (velas, gotas, hongos, lava, faroles, chispas
+  de nieve, banderines), animado solo en la sala actual (`Room.set_present` → `set_animated`). Las
+  rocas y fosos usan `SceneryShape` (hereda de `PlaceholderShape`: con PLAIN es el bloque de siempre).
+  Todo lo dibuja `SceneryDrawing` con la paleta del piso; lo que varía sale de `SceneryDrawing.noise`
+  con una semilla por sala (`hash` de piso, plantilla y celda), así la sala se ve igual al volver o al
+  seguir una run guardada y no se gasta ningún stream de `GameRNG`.
 - **Capas de dibujo:** pisos, paredes y manchas (`Decals`) en z 0; pickups de las salas, entidades,
   balas y efectos en z 1, así las manchas nunca tapan un pedestal o la trampilla.
 - **Menús:** `MainMenu`, `PauseMenu` y `RunSummary` arman su UI por código con `MenuBuilder` y el

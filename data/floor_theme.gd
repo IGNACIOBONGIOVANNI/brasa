@@ -1,7 +1,10 @@
 class_name FloorTheme
 extends Resource
-## Todo lo que define un piso: cómo se genera, qué plantillas y enemigos usa, qué premios da y sus
-## colores.
+## Todo lo que define un piso: cómo se genera, qué plantillas y enemigos usa, qué premios da, sus
+## colores y su escenario.
+
+## Cómo se ven las paredes, las rocas, los fosos y el piso (SceneryDrawing). PLAIN = bloques lisos.
+enum Scenery { PLAIN, BASEMENT, SEWER, ROOTS, FORGE, SHED, QUARRY, SNOWFIELD, SUMMIT }
 
 @export var id: StringName = &""
 @export var display_name: String = ""
@@ -59,6 +62,7 @@ extends Resource
 @export var boss_music: AudioStream
 
 @export_group("Paleta")
+@export var scenery: Scenery = Scenery.PLAIN
 @export var floor_color: Color = Color(0.169, 0.137, 0.2)
 @export var floor_checker_color: Color = Color(0.188, 0.157, 0.227)
 @export var wall_color: Color = Color(0.29, 0.247, 0.333)

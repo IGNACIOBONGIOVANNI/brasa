@@ -52,6 +52,7 @@
 script = ExtResource("1_theme")
 id = &"monte_2"
 display_name = "Cantera"
+scenery = 6
 tagline = "El Rey Carnero volvió sin corona, y viene por la revancha."
 ambient_light = Color(0.74, 0.72, 0.68, 1)
 mote_color = Color(0.82, 0.78, 0.7, 0.5)
