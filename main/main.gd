@@ -7,8 +7,11 @@ extends Node
 ## Abre el guardado al arrancar y cierra el juego prolijo (corta el audio antes de salir). Fuera de
 ## la run suena el tema del menú (la run pone el de cada piso).
 ## Argumentos de usuario: --skip-menu o --demo-input arrancan directo en una run (--skip-menu en la
-## última partida); --save=RUTA usa un archivo suelto en vez de las partidas (vacío = memoria); con
-## --demo-input (y sin --save) el progreso queda solo en memoria.
+## última partida, siguiendo la run guardada si hay); --save=RUTA usa un archivo suelto en vez de las
+## partidas (vacío = memoria); con --demo-input (y sin --save) el progreso queda solo en memoria.
+## Run guardada (RunSnapshot, en SaveManager): la run se guarda sola (Game) y al salir al menú o del
+## juego; "Continuar la run" la sigue. Se borra al morir, al ganar, al abandonarla desde la pausa o al
+## empezar otra.
 
 const MENU_SCENE: PackedScene = preload("res://ui/menus/main_menu.tscn")
 const CHARACTER_SCENE: PackedScene = preload("res://ui/menus/character_select.tscn")
@@ -59,7 +62,10 @@ func _ready() -> void:
 	if "--skip-menu" in args or "--demo-input" in args:
 		if SaveManager.has_slots():
 			SaveManager.open_slot(SaveManager.last_slot())
-		start_run()
+		if SaveManager.has_saved_run():
+			continue_run()
+		else:
+			start_run()
 	elif SaveManager.has_slots():
 		show_slots()
 	else:
@@ -97,6 +103,7 @@ func show_slots() -> void:
 
 func show_menu() -> void:
 	var menu := MENU_SCENE.instantiate() as MainMenu
+	menu.continue_requested.connect(continue_run)
 	menu.play_requested.connect(_on_play_requested)
 	menu.workshop_requested.connect(show_workshop)
 	menu.achievements_requested.connect(show_achievements)
@@ -149,10 +156,28 @@ func start_run(character: CharacterData = null) -> void:
 	# Con --seed=N todas las runs usan esa seed; si no, cada run tiene una nueva.
 	GameRNG.start_run(RngStreams.seed_from_args(OS.get_cmdline_user_args(), RngStreams.random_seed()))
 	RunState.start_run(character, SaveManager.profile)
-	game = GAME_SCENE.instantiate() as Game
-	game.menu_requested.connect(show_menu)
-	game.quit_requested.connect(quit_game)
-	_set_screen(game)
+	SaveManager.clear_run()
+	_show_game(GAME_SCENE.instantiate() as Game)
+
+
+## Sigue la run guardada (si no se puede leer o ya no sirve, la borra y vuelve al menú).
+func continue_run() -> void:
+	var snapshot: RunSnapshot = RunSnapshot.from_dict(SaveManager.load_run())
+	if snapshot == null or not RunState.restore(snapshot, SaveManager.profile):
+		SaveManager.clear_run()
+		show_menu()
+		return
+	GameRNG.start_run(snapshot.run_seed)
+	var resumed := GAME_SCENE.instantiate() as Game
+	resumed.resume_from(snapshot)
+	_show_game(resumed)
+
+
+func _show_game(next: Game) -> void:
+	next.menu_requested.connect(_on_save_and_leave)
+	next.abandon_requested.connect(_on_abandon)
+	next.quit_requested.connect(quit_game)
+	_set_screen(next)
 
 
 ## Termina la run: la suma al progreso (chispas, logros) y muestra el resumen. Abandonarla desde la
@@ -161,6 +186,7 @@ func finish_run(victory: bool) -> void:
 	if game == null:
 		return
 	AudioManager.play_music(MENU_MUSIC, SUMMARY_MUSIC_FADE)
+	SaveManager.clear_run()
 	var rewards: MetaProfile.RunRewards = SaveManager.record_run(RunState.make_record(victory))
 	var summary := SUMMARY_SCENE.instantiate() as RunSummary
 	summary.retry_requested.connect(start_run)
@@ -169,11 +195,14 @@ func finish_run(victory: bool) -> void:
 	summary.show_summary(victory, rewards)
 
 
-## Cierra el juego: pausa, corta el audio, espera a que Godot lo libere y sale.
+## Cierra el juego: guarda la run si hay una (salvo en medio de una pelea), pausa, corta el audio,
+## espera a que Godot lo libere y sale.
 func quit_game() -> void:
 	if _quitting:
 		return
 	_quitting = true
+	if game != null:
+		game.suspend()
 	get_tree().paused = true
 	AudioManager.stop_all()
 	get_tree().create_timer(QUIT_AUDIO_DRAIN, true, false, true).timeout.connect(get_tree().quit)
@@ -217,7 +246,21 @@ func _on_play_requested() -> void:
 		show_intro(show_character_select)
 
 
+## Pausa → "Guardar y volver al menú".
+func _on_save_and_leave() -> void:
+	if game != null:
+		game.suspend()
+	show_menu()
+
+
+## Pausa → "Abandonar la run": no cuenta y la run guardada se pierde.
+func _on_abandon() -> void:
+	SaveManager.clear_run()
+	show_menu()
+
+
 func _on_player_died() -> void:
+	SaveManager.clear_run()
 	# Conectado al timer (no con await): si la run ya terminó por otro lado, se ignora.
 	var dying_game: Game = game
 	get_tree().create_timer(DEATH_DELAY).timeout.connect(func() -> void:

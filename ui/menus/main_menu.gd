@@ -1,9 +1,11 @@
 class_name MainMenu
 extends Control
-## Menú principal: título, la partida abierta con su progreso y sus chispas, Jugar (lleva a elegir
-## personaje), Taller, Logros, Opciones y Cambiar partida (si hay partidas) de a dos, Salir y un
-## recordatorio de los controles.
+## Menú principal: título, la partida abierta con su progreso y sus chispas, Continuar (si hay una run
+## guardada), Jugar (lleva a elegir personaje; con una run guardada dice "Nueva run" y pide
+## confirmación, porque la guardada se pierde), Taller, Logros, Opciones y Cambiar partida (si hay
+## partidas) de a dos, Salir y un recordatorio de los controles.
 
+signal continue_requested
 signal play_requested
 signal workshop_requested
 signal achievements_requested
@@ -18,7 +20,10 @@ const CONTROLS_FONT: int = 7
 const CONTROLS_HEIGHT: float = 34.0
 ## Ancho de cada botón de la grilla (los dos de una fila iguales).
 const GRID_BUTTON_WIDTH: float = 80.0
+const NEW_RUN_TEXT: String = "Nueva run"
+const NEW_RUN_CONFIRM_TEXT: String = "¿Otra? Se pierde la guardada"
 
+var _continue: Button
 var _play: Button
 var _slot: Label
 var _sparks: Label
@@ -38,7 +43,13 @@ func _ready() -> void:
 	_sparks = MenuBuilder.label("", 8, MenuBuilder.SPARK_COLOR)
 	status.add_child(_sparks)
 	box.add_child(status)
-	_play = MenuBuilder.button("Jugar", play_requested.emit)
+	if SaveManager.has_saved_run():
+		_continue = MenuBuilder.button("Continuar la run", continue_requested.emit)
+		box.add_child(_continue)
+		_play = MenuBuilder.button(NEW_RUN_TEXT, _on_new_run_pressed)
+		_play.focus_exited.connect(_cancel_new_run)
+	else:
+		_play = MenuBuilder.button("Jugar", play_requested.emit)
 	box.add_child(_play)
 	var grid := GridContainer.new()
 	grid.columns = 2
@@ -60,7 +71,24 @@ func _ready() -> void:
 	add_child(controls)
 	SaveManager.profile_changed.connect(_refresh)
 	_refresh()
-	MenuBuilder.focus_later(_play)
+	MenuBuilder.focus_later(_continue if _continue != null else _play)
+
+
+## true si "Nueva run" está esperando la confirmación.
+func is_confirming_new_run() -> bool:
+	return _play.text == NEW_RUN_CONFIRM_TEXT
+
+
+## Con una run guardada: la primera vez pregunta; la segunda empieza otra.
+func _on_new_run_pressed() -> void:
+	if is_confirming_new_run():
+		play_requested.emit()
+	else:
+		_play.text = NEW_RUN_CONFIRM_TEXT
+
+
+func _cancel_new_run() -> void:
+	_play.text = NEW_RUN_TEXT
 
 
 func _refresh() -> void:

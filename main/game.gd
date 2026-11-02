@@ -9,9 +9,14 @@ extends Node2D
 ## Con piso, también pone la música: el tema del piso, el del jefe mientras hay uno vivo y silencio
 ## al morir. La luz de la sala es la penumbra del piso, oscurecida por la regla (Apagón) o por un jefe
 ## que la apaga (EventBus.darkness_requested); gana la más oscura.
+## Guardado de la run (con piso): `save_run` guarda una foto (RunSnapshot) al entrar a cada sala, al
+## limpiarla y, con `suspend`, al salir; en medio de una pelea no (queda la de cuando se entró: al
+## seguir, la pelea se repite). Con `resume_from` arranca desde una foto.
 
-## Desde la pausa: volver al menú o salir del juego (los atiende Main).
+## Desde la pausa: guardar y volver al menú, abandonar la run o guardar y salir del juego (los
+## atiende Main).
 signal menu_requested
+signal abandon_requested
 signal quit_requested
 
 const ENEMY_SCENE: PackedScene = preload("res://entities/enemies/enemy.tscn")
@@ -33,6 +38,9 @@ const DEATH_MUSIC_FADE: float = 1.2
 @onready var _ambient: CanvasModulate = get_node_or_null(^"WorldView/World/Ambient") as CanvasModulate
 @onready var _motes: AmbientMotes = get_node_or_null(^"WorldView/World/GameCamera/Motes") as AmbientMotes
 
+## Run guardada desde la que arranca (null = run nueva).
+var resume: RunSnapshot
+var _run_over: bool = false
 var _rule_darkness: float = 0.0
 var _boss_darkness: float = 0.0
 var _light_tween: Tween
@@ -49,9 +57,17 @@ func _ready() -> void:
 		EventBus.player_died.connect(_on_player_died)
 		EventBus.room_rule_changed.connect(_on_room_rule_changed)
 		EventBus.darkness_requested.connect(_on_darkness_requested)
+		EventBus.room_entered.connect(_on_room_entered)
+		EventBus.room_cleared.connect(_on_room_cleared)
+		EventBus.run_ended.connect(_on_run_ended)
+		if resume != null:
+			_restore_player(resume)
+		# La primera sala ya se entró antes de conectar room_entered: se guarda acá.
+		save_run()
 	if _pause != null:
 		_pause.menu_requested.connect(menu_requested.emit)
 		_pause.quit_requested.connect(quit_requested.emit)
+		_pause.abandon_requested.connect(abandon_requested.emit)
 		_pause.inventory_requested.connect(_open_inventory_from_pause)
 	Debug.add_command(self, "Curar al jugador", _heal_player)
 	Debug.add_command(self, "Invulnerable si/no", _toggle_invulnerable)
@@ -62,6 +78,40 @@ func _ready() -> void:
 	var catalog := load(RunState.CATALOG_PATH) as ItemCatalog
 	for item: ItemData in catalog.items + [catalog.filler]:
 		Debug.add_command(self, "Items/%s" % item.display_name, spawn_item_pedestal.bind(item))
+
+
+## Sigue una run guardada: llamar antes de agregar la escena al árbol.
+func resume_from(snapshot: RunSnapshot) -> void:
+	resume = snapshot
+	($FloorController as FloorController).resume = snapshot
+
+
+## true si se puede guardar la run ahora: hay piso, el jugador vive, no terminó y no está cambiando
+## de sala o de piso.
+func can_save_run() -> bool:
+	return floor_controller != null and not _run_over and not player.is_dead() \
+			and not floor_controller.is_transitioning() and floor_controller.current_room() != null
+
+
+## Guarda la run tal como está. Devuelve si guardó.
+func save_run() -> bool:
+	if not can_save_run():
+		return false
+	var snapshot := RunSnapshot.new()
+	RunState.capture(snapshot)
+	floor_controller.capture(snapshot)
+	snapshot.health = player.health.current
+	snapshot.mech = player.mech.id if player.mech != null else &""
+	snapshot.mech_armor = player.mech_armor.current
+	SaveManager.save_run(snapshot.to_dict())
+	return true
+
+
+## Al salir de la run (al menú o del juego): guarda, salvo en medio de una pelea (ahí queda la foto de
+## cuando se entró a la sala, así la pelea se repite entera).
+func suspend() -> void:
+	if can_save_run() and floor_controller.current_room().phase != Room.Phase.FIGHTING:
+		save_run()
 
 
 ## Pone un pedestal gratis con `item` arriba del jugador (menú de debug).
@@ -84,6 +134,26 @@ func spawn_enemy(data: EnemyData, at: Vector2) -> Enemy:
 ## Cuánto está oscurecida la sala ahora (0 = la penumbra normal del piso).
 func darkness() -> float:
 	return maxf(_rule_darkness, _boss_darkness)
+
+
+## La vida y el armazón que tenía en la run guardada (el resto ya lo repusieron RunState y el piso).
+func _restore_player(snapshot: RunSnapshot) -> void:
+	player.health.setup(player.health.max_health, maxf(snapshot.health, 1.0))
+	for mech: MechData in floor_controller.run.mechs:
+		if mech.id == snapshot.mech:
+			player.board(mech, snapshot.mech_armor)
+
+
+func _on_room_entered(_cell: Vector2i) -> void:
+	save_run()
+
+
+func _on_room_cleared(_cell: Vector2i) -> void:
+	save_run()
+
+
+func _on_run_ended(_victory: bool) -> void:
+	_run_over = true
 
 
 ## Penumbra, partículas de ambiente y música del piso.

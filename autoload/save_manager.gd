@@ -6,6 +6,8 @@ extends Node
 ## elegido); las opciones, al cambiarlas. También aplica las opciones (volumen del bus Master, de la
 ## música, pantalla completa y resolución).
 ## Los tests lo dejan en memoria (tests/pre_run_hook.gd): la carpeta real nunca se toca.
+## Cada guardado tiene al lado su run a medias (RunSnapshot, `save_run` / `load_run` / `clear_run`):
+## slot_N_run.json, o en memoria si el perfil está en memoria.
 
 ## Cambió la partida abierta, su progreso o las opciones (los menús se rearman).
 signal profile_changed
@@ -30,6 +32,9 @@ var slots: SaveSlots = null
 ## Archivo del perfil abierto; vacío = solo en memoria.
 var path: String = ""
 var _store: SaveStore
+var _run_store: SaveStore
+## La run a medias cuando no hay archivo (memoria, tests).
+var _memory_run: Dictionary = {}
 var _options_store: SaveStore
 var _memory_only: bool = false
 var _catalog: ItemCatalog
@@ -127,8 +132,12 @@ func open(save_path: String) -> void:
 	slot = 0
 	path = "" if _memory_only and _is_real(save_path) else save_path
 	_store = null
+	_run_store = null
+	_memory_run = {}
 	if not path.is_empty():
 		_store = SaveStore.new(path)
+		_run_store = SaveStore.new(SaveSlots.run_path_for(path))
+		_run_store.steps.clear()
 		var data: Dictionary = _store.read()
 		match _store.status:
 			SaveStore.Status.CORRUPT:
@@ -136,6 +145,7 @@ func open(save_path: String) -> void:
 			SaveStore.Status.TOO_NEW:
 				push_warning("El guardado %s es de una versión más nueva del juego: no se va a guardar nada encima." % path)
 				_store = null
+				_run_store = null
 		if not data.is_empty():
 			profile = MetaProfile.from_dict(data)
 	profile_changed.emit()
@@ -157,6 +167,37 @@ func save() -> void:
 	var error: Error = _store.write(profile.to_dict())
 	if error != OK:
 		push_warning("No se pudo guardar el progreso en %s (error %d)." % [path, error])
+
+
+## true si la partida abierta tiene una run a medias.
+func has_saved_run() -> bool:
+	if _run_store == null:
+		return not _memory_run.is_empty()
+	return SaveSlots.has_file(_run_store.path)
+
+
+## Guarda la run a medias (RunSnapshot.to_dict) de la partida abierta.
+func save_run(data: Dictionary) -> void:
+	if _run_store == null:
+		_memory_run = data.duplicate(true)
+		return
+	var error: Error = _run_store.write(data)
+	if error != OK:
+		push_warning("No se pudo guardar la run en %s (error %d)." % [_run_store.path, error])
+
+
+## La run a medias guardada (vacío si no hay o no se puede leer).
+func load_run() -> Dictionary:
+	if _run_store == null:
+		return _memory_run.duplicate(true)
+	return _run_store.read()
+
+
+## Borra la run a medias (terminó, se abandonó o se empezó otra).
+func clear_run() -> void:
+	_memory_run = {}
+	if _run_store != null:
+		_run_store.delete()
 
 
 ## Suma la run terminada, guarda y devuelve lo ganado.

@@ -9,6 +9,8 @@ const OPTIONS_FILE: String = "options.json"
 const LEGACY_FILE: String = "save.json"
 ## El guardado viejo no se borra: queda con este agregado, por las dudas.
 const LEGACY_BACKUP_SUFFIX: String = ".bak"
+## La run a medias de un guardado va al lado: slot_1.json → slot_1_run.json.
+const RUN_SUFFIX: String = "_run.json"
 
 
 
@@ -34,6 +36,16 @@ func slot_path(slot: int) -> String:
 	return dir.path_join("slot_%d.json" % slot)
 
 
+## Archivo de la run a medias de la partida `slot`.
+func run_path(slot: int) -> String:
+	return run_path_for(slot_path(slot))
+
+
+## Archivo de la run a medias que va con el guardado `save_path`.
+static func run_path_for(save_path: String) -> String:
+	return save_path.get_basename() + RUN_SUFFIX
+
+
 func options_path() -> String:
 	return dir.path_join(OPTIONS_FILE)
 
@@ -52,8 +64,10 @@ func read(slot: int) -> Dictionary:
 	return SaveStore.new(slot_path(slot)).read()
 
 
+## Borra la partida y su run a medias.
 func delete(slot: int) -> void:
 	SaveStore.new(slot_path(slot)).delete()
+	SaveStore.new(run_path(slot)).delete()
 
 
 ## Si quedó un save.json de antes y ninguna partida tiene nada, lo pasa a la partida 1 y sus opciones

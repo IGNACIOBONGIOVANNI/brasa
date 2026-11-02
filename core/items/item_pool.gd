@@ -76,6 +76,20 @@ func mark_taken(item: ItemData) -> void:
 		_taken[item.id] = true
 
 
+## ids de los items que ya salieron (para guardar la run).
+func taken_ids() -> Array[StringName]:
+	var result: Array[StringName] = []
+	for id: StringName in _taken:
+		result.append(id)
+	return result
+
+
+## Saca del sorteo un item por su id (al seguir una run guardada).
+func mark_taken_id(id: StringName) -> void:
+	if _filler == null or id != _filler.id:
+		_taken[id] = true
+
+
 func remaining(pool: int) -> int:
 	var count: int = 0
 	for item: ItemData in _items:

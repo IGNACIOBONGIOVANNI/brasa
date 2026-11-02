@@ -133,7 +133,7 @@ func test_dying_also_counts() -> void:
 func test_abandoning_a_run_does_not_count() -> void:
 	_main.start_run()
 	await wait_physics_frames(2)
-	_main.game.menu_requested.emit()
+	_main.game.abandon_requested.emit()
 	assert_true(_main.screen is MainMenu)
 	assert_eq(SaveManager.profile.runs, 0)
 	await _settle()

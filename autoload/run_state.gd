@@ -3,6 +3,7 @@ extends Node
 ## meta-progresión), stats (los del personaje recalculados con los items), items pasivos, el activo y
 ## su carga, armas con su munición, el pool de items, cargas de Pulso y monedas, bombas y llaves.
 ## La vida vive en el HealthComponent del jugador.
+## Una run guardada a medias (RunSnapshot) se arma con `capture` y se repone con `restore`.
 
 signal stats_changed(stats: StatBlock)
 signal blanks_changed(count: int)
@@ -52,8 +53,9 @@ func _ready() -> void:
 
 
 ## Empieza una run con ese personaje (null = el de por defecto). Los items bloqueados entran al pool
-## solo si `profile` los tiene desbloqueados (null = perfil nuevo).
-func start_run(run_character: CharacterData = null, profile: MetaProfile = null) -> void:
+## solo si `profile` los tiene desbloqueados (null = perfil nuevo). Sin `start_item` no le da el item
+## inicial del personaje (al seguir una run guardada, que ya trae sus items).
+func start_run(run_character: CharacterData = null, profile: MetaProfile = null, start_item: bool = true) -> void:
 	character = run_character if run_character != null else MetaConfig.get_default().default_character()
 	base_stats = character.stats.duplicate() as StatBlock
 	floor_index = 0
@@ -79,8 +81,94 @@ func start_run(run_character: CharacterData = null, profile: MetaProfile = null)
 	items_changed.emit()
 	active_changed.emit()
 	weapons_changed.emit()
-	if character.start_item != null:
+	if start_item and character.start_item != null:
 		add_item(character.start_item)
+
+
+## Pasa lo de la run a la foto (lo del piso y el jugador lo agregan FloorController y Game).
+func capture(snapshot: RunSnapshot) -> void:
+	snapshot.run_seed = GameRNG.get_run_seed()
+	snapshot.character = character.id
+	snapshot.floor_index = floor_index
+	snapshot.run_time = run_time
+	snapshot.kills = kills
+	snapshot.bosses_defeated = bosses_defeated.duplicate()
+	snapshot.blanks = blanks
+	snapshot.coins = coins
+	snapshot.bombs = bombs
+	snapshot.keys = keys
+	snapshot.items.clear()
+	for item: ItemData in items:
+		snapshot.items.append(item.id)
+	snapshot.active_item = active_item.id if active_item != null else &""
+	snapshot.active_charge = active_charge
+	snapshot.weapon_paths.clear()
+	snapshot.weapon_magazines.clear()
+	snapshot.weapon_reserves.clear()
+	for slot: WeaponSlot in weapons:
+		snapshot.weapon_paths.append(slot.weapon.resource_path)
+		snapshot.weapon_magazines.append(slot.in_magazine)
+		snapshot.weapon_reserves.append(slot.reserve)
+	snapshot.current_weapon = current_weapon
+	snapshot.taken = item_pool.taken_ids()
+
+
+## Sigue una run guardada: el personaje, sus items, armas y recursos (el pool sin los que ya
+## salieron). false si el personaje ya no existe (la foto no sirve). Los items o armas que ya no
+## existan se saltean.
+func restore(snapshot: RunSnapshot, profile: MetaProfile) -> bool:
+	var run_character: CharacterData = MetaConfig.get_default().character_by_id(snapshot.character)
+	if run_character == null:
+		return false
+	start_run(run_character, profile, false)
+	var catalog := load(CATALOG_PATH) as ItemCatalog
+	floor_index = snapshot.floor_index
+	run_time = snapshot.run_time
+	kills = snapshot.kills
+	bosses_defeated = snapshot.bosses_defeated.duplicate()
+	for id: StringName in snapshot.items:
+		var item: ItemData = find_item(catalog, id)
+		if item != null and item.kind == ItemData.Kind.PASSIVE:
+			items.append(item)
+	active_item = find_item(catalog, snapshot.active_item)
+	active_charge = mini(snapshot.active_charge, active_item.max_charge) if active_item != null else 0
+	var restored: Array[WeaponSlot] = []
+	for i: int in snapshot.weapon_paths.size():
+		var data := load(snapshot.weapon_paths[i]) as WeaponData if ResourceLoader.exists(snapshot.weapon_paths[i]) else null
+		if data == null:
+			continue
+		var slot := WeaponSlot.new(data)
+		if i < snapshot.weapon_magazines.size():
+			slot.in_magazine = snapshot.weapon_magazines[i]
+		if i < snapshot.weapon_reserves.size():
+			slot.reserve = snapshot.weapon_reserves[i]
+		restored.append(slot)
+	if not restored.is_empty():
+		weapons = restored
+	current_weapon = clampi(snapshot.current_weapon, 0, weapons.size() - 1)
+	for id: StringName in snapshot.taken:
+		item_pool.mark_taken_id(id)
+	blanks = snapshot.blanks
+	coins = snapshot.coins
+	bombs = snapshot.bombs
+	keys = snapshot.keys
+	_recompute_stats()
+	blanks_changed.emit(blanks)
+	_inventory_changed()
+	items_changed.emit()
+	active_changed.emit()
+	weapons_changed.emit()
+	return true
+
+
+## El item del catálogo (o el de relleno) con ese id; null si no hay.
+static func find_item(catalog: ItemCatalog, id: StringName) -> ItemData:
+	if id == &"":
+		return null
+	for item: ItemData in catalog.items:
+		if item.id == id:
+			return item
+	return catalog.filler if catalog.filler != null and catalog.filler.id == id else null
 
 
 ## Items que lleva: pasivos, el activo y las armas además de la pistola.

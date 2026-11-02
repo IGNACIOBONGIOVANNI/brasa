@@ -12,6 +12,8 @@ extends Node2D
 ## Regla (RoomSlot.rule): se anuncia por EventBus.room_rule_changed al cerrarse las puertas, cambia la
 ## vida y el ritmo de los enemigos y, al limpiar, suelta sus pickups extra (con Contrarreloj, solo si
 ## se limpió a tiempo).
+## Run guardada: `capture` saca lo que cambió en la sala (limpia o no, pedestales, pickups, rocas rotas,
+## pozo, armazones parados) y `restore` lo repone en una sala recién armada.
 
 signal door_entered(side: Vector2i)
 signal door_unlock_requested(side: Vector2i)
@@ -132,13 +134,113 @@ func _spawn_offers() -> void:
 	var for_sale: bool = slot.kind == RoomSlot.Kind.SHOP
 	var altar: bool = slot.kind == RoomSlot.Kind.ALTAR
 	for i: int in mini(grid.item_spots.size(), slot.offers.size()):
-		var pedestal := PEDESTAL_SCENE.instantiate() as ItemPedestal
 		var item: ItemData = slot.offers[i]
-		pedestal.set_item(item, item.shop_price() if for_sale else 0, ALTAR_HEALTH_PRICE if altar else 0)
-		pedestal.position = RoomGrid.cell_center(grid.item_spots[i])
-		if altar:
-			pedestal.item_taken.connect(_on_altar_taken.bind(pedestal), CONNECT_ONE_SHOT)
-		($Pickups as Node2D).add_child(pedestal)
+		_make_pedestal(item, item.shop_price() if for_sale else 0, ALTAR_HEALTH_PRICE if altar else 0,
+				RoomGrid.cell_center(grid.item_spots[i]))
+
+
+## Un pedestal en `local_position`. Los que se pagan con vida son del Altar: al llevarse uno, los
+## otros desaparecen.
+func _make_pedestal(item: ItemData, price: int, health_price: int, local_position: Vector2) -> ItemPedestal:
+	var pedestal := PEDESTAL_SCENE.instantiate() as ItemPedestal
+	pedestal.set_item(item, price, health_price)
+	pedestal.position = local_position
+	if health_price > 0:
+		pedestal.item_taken.connect(_on_altar_taken.bind(pedestal), CONNECT_ONE_SHOT)
+	($Pickups as Node2D).add_child(pedestal)
+	return pedestal
+
+
+## Lo que cambió en la sala, para guardar la run.
+func capture() -> RunSnapshot.RoomState:
+	var state := RunSnapshot.RoomState.new()
+	state.cleared = phase == Phase.CLEARED
+	for child: Node in ($Pickups as Node2D).get_children():
+		if child.is_queued_for_deletion():
+			continue
+		var at: Vector2 = to_local((child as Node2D).global_position)
+		if child is ItemPedestal:
+			var pedestal := child as ItemPedestal
+			var saved_pedestal := RunSnapshot.PedestalState.new()
+			saved_pedestal.item = pedestal.item.id if pedestal.item != null else &""
+			saved_pedestal.price = pedestal.price
+			saved_pedestal.health_price = pedestal.health_price
+			saved_pedestal.position = at
+			state.pedestals.append(saved_pedestal)
+		elif child is Pickup:
+			var saved_pickup := RunSnapshot.PickupState.new()
+			saved_pickup.id = (child as Pickup).data.id
+			saved_pickup.position = at
+			state.pickups.append(saved_pickup)
+		elif child is ParkedMech:
+			state.mechs.append(capture_mech(child as ParkedMech))
+		elif child is Well:
+			state.well_dry = (child as Well).dry
+	var standing: Dictionary[Vector2i, bool] = {}
+	for child: Node in ($Obstacles as Node2D).get_children():
+		if child is Rock and not child.is_queued_for_deletion():
+			standing[RoomNav.cell_of((child as Rock).position)] = true
+	for y: int in RoomGrid.HEIGHT:
+		for x: int in RoomGrid.WIDTH:
+			var cell := Vector2i(x, y)
+			if grid.cell_at(cell) == RoomGrid.Cell.ROCK and not standing.has(cell):
+				state.broken_rocks.append(cell)
+	return state
+
+
+## Un armazón parado en esta sala (también los que quedaron en el contenedor de entidades).
+func capture_mech(parked: ParkedMech) -> RunSnapshot.MechState:
+	var saved := RunSnapshot.MechState.new()
+	saved.id = parked.data.id
+	saved.armor = parked.armor
+	saved.position = to_local(parked.global_position)
+	return saved
+
+
+## Deja la sala recién armada como estaba en la run guardada: saca los pedestales, pickups y
+## armazones de la plantilla y pone los guardados, rompe las rocas rotas, seca el pozo y, si se había
+## limpiado, no se vuelve a pelear. Llamar después de `setup`.
+func restore(state: RunSnapshot.RoomState, items: Dictionary[StringName, ItemData], mechs: Dictionary[StringName, MechData]) -> void:
+	var pickups := $Pickups as Node2D
+	for child: Node in pickups.get_children():
+		if child is ItemPedestal or child is Pickup or child is ParkedMech:
+			pickups.remove_child(child)
+			child.queue_free()
+	for saved_pedestal: RunSnapshot.PedestalState in state.pedestals:
+		var item: ItemData = items.get(saved_pedestal.item)
+		_make_pedestal(item, saved_pedestal.price, saved_pedestal.health_price, saved_pedestal.position)
+	for saved_pickup: RunSnapshot.PickupState in state.pickups:
+		var data: PickupData = _pickup_by_id(saved_pickup.id)
+		if data != null:
+			spawn_pickup(data, saved_pickup.position, false)
+	for saved_mech: RunSnapshot.MechState in state.mechs:
+		var mech: MechData = mechs.get(saved_mech.id)
+		if mech != null:
+			var parked := PARKED_MECH_SCENE.instantiate() as ParkedMech
+			parked.setup(mech, saved_mech.armor)
+			parked.position = saved_mech.position
+			pickups.add_child(parked)
+	var obstacles := $Obstacles as Node2D
+	for child: Node in obstacles.get_children():
+		var rock := child as Rock
+		if rock != null and state.broken_rocks.has(RoomNav.cell_of(rock.position)):
+			obstacles.remove_child(rock)
+			rock.queue_free()
+	for cell: Vector2i in state.broken_rocks:
+		nav.set_open(cell, true)
+	if state.well_dry:
+		for child: Node in pickups.get_children():
+			if child is Well:
+				(child as Well).set_dry()
+	if state.cleared:
+		phase = Phase.CLEARED
+
+
+func _pickup_by_id(id: StringName) -> PickupData:
+	for pickup: PickupData in _theme.pickups:
+		if pickup.id == id:
+			return pickup
+	return null
 
 
 ## En el Altar se elige uno: los demás pedestales desaparecen.

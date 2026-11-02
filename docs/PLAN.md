@@ -246,6 +246,10 @@ avanzan por el piso, zarpazos en la oscuridad, mira láser que obliga a rodar, m
 barre) y la dificultad sube de un jefe al otro. Los enemigos que caminan rodean rocas y fosos, y los
 que embisten ya no se quedan embistiendo contra un foso o una pared.
 
+**Hito 20 — Guardado de la run** (pedido del usuario): al salir desde la pausa o cerrar el juego, la run
+queda guardada en la sala donde estaba el jugador; "Continuar la run" la sigue. Si salió en medio de
+una pelea, la pelea se repite. También se guarda sola al entrar y al limpiar cada sala.
+
 ## 6. Cosas a tener en cuenta desde ya
 
 - **Export templates.** Para el hito 7 hacen falta las plantillas de exportación de 4.7.2 instaladas

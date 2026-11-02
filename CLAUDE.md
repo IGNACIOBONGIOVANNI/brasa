@@ -5,10 +5,10 @@ estructura de los roguelites de salas + bullet hell, con contenido 100 % origina
 [docs/LORE.md](docs/LORE.md).
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 19 (jefes) terminado: cada jefe tiene movimientos propios (`BossAttack`: cascotes,
-salto, embestidas, bombas de metralla, raíces, zarpazos en la oscuridad, mira láser, metal fundido,
-barrido) y la dificultad sube de uno al otro; los enemigos rodean rocas y fosos (`RoomNav`) y los que
-embisten no se quedan trabados contra un foso. Antes: hito 18 (tres armazones que el jugador maneja,
+**Estado:** Hito 20 (guardado de la run) terminado: la run se guarda sola (al entrar a cada sala, al
+limpiarla y al salir desde la pausa o cerrando la ventana) y "Continuar la run" la sigue en la misma
+sala; si se salió en medio de una pelea, la pelea se repite como al entrar. Antes: hito 19 (cada jefe
+con movimientos propios, `BossAttack`, y enemigos que rodean rocas y fosos, `RoomNav`), hito 18 (tres armazones que el jugador maneja,
 en el Galpón), hito 17 (una trampa por piso que lastima a jugador y enemigos), hito 16 (seis
 reglas de sala y las salas Prueba, Altar y Pozo), hito 15 (cuatro partidas con su progreso),
 hito 14 (música chiptune generada con `ChipTune`), hito 13 (lanzagranadas,
@@ -56,7 +56,8 @@ Todos los flags están confirmados con `--help` en 4.7.2. `sed 's/\x1b\[[0-9;]*m
 | Comparar un arma (bot) | `... balance_probe.tscn -- --seed=1234 --floors=2 --weapon=haz` |
 
 Argumentos de usuario del juego (van después de `--`): `--seed=N` fija la seed de todas las runs,
-`--skip-menu` arranca directo en una run (en la última partida abierta), `--demo-input` simula input (moverse en ocho, girar la mira,
+`--skip-menu` arranca directo en una run (en la última partida abierta; si tiene una run guardada, la
+sigue), `--demo-input` simula input (moverse en ocho, girar la mira,
 disparar, rodar, Pulso, bomba y "aceptar" en los menús cada 3 s; también salta el menú),
 `--debug-overlay` muestra el overlay, `--quit-frames=N` cierra el juego prolijo a los N frames y
 `--save=RUTA` usa un archivo suelto en vez de las partidas (por ejemplo `--save=user://prueba.json`;
@@ -65,7 +66,8 @@ Godot** (ver gotchas). Sin `--skip-menu`, `--demo-input` ni `--save=` el juego a
 partidas (con las reales: en corridas automáticas pasar siempre `--save=` o `--demo-input`).
 
 **Guardado:** en `user://` = `%APPDATA%\Godot\app_userdata\mi-roguelite\`: las cuatro partidas
-(`slot_1.json` a `slot_4.json`) y las opciones (`options.json`). El `save.json` de antes de las
+(`slot_1.json` a `slot_4.json`), la run a medias de cada una (`slot_N_run.json`, con `--save=RUTA` al
+lado: `RUTA_run.json`) y las opciones (`options.json`). El `save.json` de antes de las
 partidas pasa solo a la partida 1 la primera vez (queda una copia, `save.json.bak`). Con
 `--demo-input` (y sin `--save=`) el progreso queda solo en memoria, así las corridas automáticas no
 lo tocan. Los tests tampoco: el `pre_run_script` de `.gutconfig.json` (`tests/pre_run_hook.gd`) deja
@@ -293,7 +295,8 @@ core/loot/                  RoomReward (premio por limpiar sala)
 core/stats/                 StatCalculator (base + ADD, × MULT, límites)
 core/items/                 ItemPool (sorteo por pool y rareza, sin repetir)
 core/save/                  SaveSchema (versión y migraciones), SaveStore (JSON con escritura atómica),
-                            SaveSlots (las cuatro partidas, options.json y el paso del save.json viejo)
+                            SaveSlots (las cuatro partidas, options.json y el paso del save.json viejo),
+                            RunSnapshot (la foto de una run a medias)
 core/display/               WindowScales (resoluciones de ventana y nitidez del texto)
 core/meta/                  MetaProfile (progreso de una partida), MetaRules (chispas, logros y porcentaje
                             de progreso), RunRecord, GameOptions (opciones de todas las partidas)
@@ -360,11 +363,11 @@ tests/unit/                 rng_streams, shot_spec, health_math, pattern_math, i
                             floor_generator (500 seeds), room_template_parser, template_picker, minimap_model,
                             room_reward, stat_calculator, item_pool, weapon_slot, phase_math,
                             save_schema, save_store, meta_profile, inventory_text, window_scales, chip_tune,
-                            game_options, save_slots, rule_picker, room_nav
+                            game_options, save_slots, rule_picker, room_nav, run_snapshot
 tests/integration/          player_shooting, bullets, combat, main_flow, floor, rooms, items,
                             bullet_behaviors, weapons, boss, meta_flow, feedback, inventory, enemy_kinds,
                             weapons_statuses, music, save_slots_flow, special_rooms, traps, mechs,
-                            boss_attacks, pathing
+                            boss_attacks, pathing, run_resume
 tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria, la música apagada y GameRNG con una seed fija
 docs/PLAN.md                plan, arquitectura e hitos
 docs/LORE.md                la historia y dónde está cada texto en el juego
@@ -385,7 +388,9 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   `GameRNG.start_run`, `RunState.start_run(personaje, perfil)`, instancia `game.tscn`) → resumen
   (`finish_run`, 1.5 s después de `EventBus.player_died` o al recibir `EventBus.run_ended(true)`:
   suma la run al perfil y muestra lo ganado) → otra run (mismo personaje) o menú. Abandonar desde la
-  pausa no cuenta. Cierra con `quit_game()` (también al cerrar la ventana). `Game` conecta el HUD (y el minimapa si hay
+  pausa no cuenta. Cierra con `quit_game()` (también al cerrar la ventana), que antes guarda la run.
+  Con una run guardada el menú muestra "Continuar la run" (`continue_run`) y "Nueva run" (pide
+  confirmación). `Game` conecta el HUD (y el minimapa si hay
   `FloorController`), cuenta `RunState.run_time`, tiene el `PauseMenu` (Esc) y registra comandos del F3.
 - **Pisos:** `FloorController` (en `game.tscn`) recorre los pisos de `RunConfig`. `load_floor(i)` borra
   el piso anterior, hace `GameRNG.set_floor(i)` y genera el layout con `FloorGenerator` (grilla 9x8,
@@ -456,8 +461,24 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   muestra `BombAim` (arco y radio donde cae) y al soltar `Player.try_bomb` la tira (`Bomb.launch`,
   vuela 0,4 s en arco): con el mouse cae donde apunta, con el stick más lejos cuanto más se mantiene
   (32 a 120 px), siempre antes de una pared o roca. Rodar o morir cancela la puntería sin gastarla.
+- **Run guardada (seguir después):** `RunSnapshot` (`core/save/`) es la foto de una run a medias, todo
+  por id (o ruta, las armas): seed, personaje, piso, vida, Pulsos, monedas, bombas, llaves, items,
+  activo, armas con su munición, items ya salidos del pool, armazón que maneja, sala y lugar del
+  jugador, lo sorteado en cada sala, lo visto, las barreras abiertas y cada sala armada
+  (`RoomState`: limpia o no, pedestales, pickups, rocas rotas, pozo seco, armazones parados). El
+  layout no se guarda: sale igual de la seed. Se arma con `RunState.capture`, `FloorController.capture`
+  (cada sala con `Room.capture`) y `Game.save_run` (vida y armazón), y `SaveManager.save_run` la escribe
+  al lado de la partida (`SaveSlots.run_path_for`; en memoria si no hay archivo). `Game` guarda al
+  arrancar, en cada `room_entered` y `room_cleared`, y `Game.suspend` al salir (pausa o cerrar), salvo
+  en medio de una pelea: así queda la foto de cuando se entró y al seguir la pelea se repite entera
+  (sin farmear). `Main.continue_run`: `RunState.restore` (personaje, items, armas, pool), seed, y
+  `Game.resume_from` → `FloorController.load_floor(piso, foto)` (mismo layout, lo sorteado y lo visto
+  de la foto; cada sala guardada se repone con `Room.restore` al armarla; un jefe vencido vuelve a tener
+  su trampilla) y `Game._restore_player`. Se borra al morir, al ganar, al abandonar desde la pausa
+  (pide confirmación) y al empezar otra. No se guardan: balas, bombas puestas ni contadores internos
+  de algunos items (Eco, Diente de leche).
 - **Partidas:** cuatro espacios independientes (`SaveSlots.COUNT`), cada uno un `MetaProfile` en su
-  archivo. `SaveManager.slot` es la abierta (0 = ninguna); `slot_info(i)` lee una sin abrirla (para la
+  archivo (borrar una borra también su run guardada). `SaveManager.slot` es la abierta (0 = ninguna); `slot_info(i)` lee una sin abrirla (para la
   pantalla de partidas: si se usó, porcentaje, runs, victorias); `delete_slot(i)` la borra (la
   pantalla pide confirmación); `close_slot()` vuelve a ninguna. Elegir una vacía empieza de cero y el
   archivo aparece al guardar algo. El progreso de 0 a 100 % es `MetaRules.completion`: cada logro,

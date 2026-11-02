@@ -15,6 +15,17 @@ var dry: bool = false
 @onready var _visual: WellVisual = $Visual
 
 
+func _ready() -> void:
+	_visual.dry = dry
+
+
+## Seco sin usarlo (al seguir una run guardada). Se puede llamar antes de agregarlo al árbol.
+func set_dry() -> void:
+	dry = true
+	if is_node_ready():
+		_visual.dry = true
+
+
 func _physics_process(_delta: float) -> void:
 	if dry:
 		return

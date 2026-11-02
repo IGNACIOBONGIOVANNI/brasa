@@ -79,3 +79,13 @@ func test_without_an_old_save_nothing_happens() -> void:
 	assert_false(_slots.migrate_legacy())
 	assert_false(_slots.is_used(1))
 	assert_false(FileAccess.file_exists(_slots.options_path()))
+
+
+func test_the_run_in_progress_lives_next_to_its_slot_and_goes_with_it() -> void:
+	assert_eq(_slots.run_path(2), DIR.path_join("slot_2_run.json"))
+	assert_eq(SaveSlots.run_path_for("user://prueba.json"), "user://prueba_run.json")
+	_write(_slots.slot_path(2), _profile_with(5))
+	_write(_slots.run_path(2), {"version": 1, "format": RunSnapshot.FORMAT})
+	_slots.delete(2)
+	assert_false(_slots.is_used(2))
+	assert_false(FileAccess.file_exists(_slots.run_path(2)), "borrar la partida borra su run a medias")

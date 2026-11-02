@@ -7,6 +7,9 @@ extends Node
 ## armazón del Galpón (stream LOOT), mueve la cámara de sala en sala al cruzar una puerta, destapa las puertas a la
 ## secreta con explosiones, abre la tienda con una llave y guarda lo que muestra el minimapa.
 ## Al vencer al jefe pone la salida: trampilla al piso siguiente o, en el último, la que gana la run.
+## Run guardada: `capture` pasa el piso a un RunSnapshot y, con `resume` puesto antes de entrar al
+## árbol, el primer piso que arma es el de la foto (mismo layout por la seed, lo sorteado y lo visto
+## de la foto; cada sala guardada se repone al armarla) y pone al jugador en su sala.
 
 signal map_changed
 
@@ -42,12 +45,28 @@ var _rooms: Dictionary[Vector2i, Room] = {}
 ## Conexiones con barrera (secreta o tienda) ya abiertas (clave: las dos celdas ordenadas).
 var _opened_edges: Dictionary[Vector4i, bool] = {}
 var _transitioning: bool = false
+## Run guardada a seguir (la pone Game antes de entrar al árbol).
+var resume: RunSnapshot
+## Salas de la foto que todavía no se volvieron a armar (se reponen al entrar).
+var _saved_rooms: Dictionary[Vector2i, RunSnapshot.RoomState] = {}
+var _items_by_id: Dictionary[StringName, ItemData] = {}
+var _mechs_by_id: Dictionary[StringName, MechData] = {}
 
 
 func _ready() -> void:
 	EventBus.exploded.connect(_on_exploded)
 	_register_dev_commands()
-	load_floor(0)
+	var catalog := load(RunState.CATALOG_PATH) as ItemCatalog
+	for item: ItemData in catalog.items:
+		_items_by_id[item.id] = item
+	if catalog.filler != null:
+		_items_by_id[catalog.filler.id] = catalog.filler
+	for mech: MechData in run.mechs:
+		_mechs_by_id[mech.id] = mech
+	if resume != null and resume.floor_index >= 0 and resume.floor_index < run.floors.size():
+		load_floor(resume.floor_index, resume)
+	else:
+		load_floor(0)
 
 
 func _exit_tree() -> void:
@@ -59,8 +78,9 @@ func is_last_floor() -> bool:
 	return floor_index >= run.floors.size() - 1
 
 
-## Arma el piso `index` desde cero (borra el anterior) y pone al jugador en la sala inicial.
-func load_floor(index: int) -> void:
+## Arma el piso `index` desde cero (borra el anterior) y pone al jugador en la sala inicial. Con
+## `saved` (una run guardada en este piso) repone lo de la foto y lo pone donde estaba.
+func load_floor(index: int, saved: RunSnapshot = null) -> void:
 	floor_index = index
 	theme = run.floors[index]
 	RunState.floor_index = index
@@ -71,13 +91,88 @@ func load_floor(index: int) -> void:
 	layout = FloorGenerator.generate(rng, _params(rng))
 	TemplatePicker.assign(layout, theme.templates, rng, theme.difficulty_bonus)
 	RulePicker.assign(layout, run.room_rules, theme.rule_chance, rng)
-	_roll_offers()
-	var room: Room = _ensure_room(layout.start)
-	player.global_position = room.to_global(room.spawn_point())
+	var start_cell: Vector2i = layout.start
+	if saved != null:
+		_restore_floor(saved)
+		if layout.has_room(saved.cell):
+			start_cell = saved.cell
+	else:
+		_roll_offers()
+	var room: Room = _ensure_room(start_cell)
+	if saved != null and start_cell == saved.cell:
+		player.global_position = room.to_global(saved.position)
+	else:
+		player.global_position = room.to_global(room.spawn_point())
 	player.stop_motion()
 	camera.global_position = room.global_position
-	_enter(layout.start)
+	_enter(start_cell)
 	EventBus.floor_changed.emit(index)
+
+
+## Pasa lo del piso a la foto: sala y lugar del jugador, lo sorteado en cada sala, lo visto, las
+## barreras abiertas y cada sala armada (con los armazones que quedaron parados en ella; las salas de
+## una foto anterior que todavía no se volvieron a armar van como estaban).
+func capture(snapshot: RunSnapshot) -> void:
+	snapshot.floor_index = floor_index
+	snapshot.cell = current_cell
+	snapshot.position = current_room().to_local(player.global_position)
+	snapshot.offers.clear()
+	snapshot.hangar_mechs.clear()
+	for cell: Vector2i in layout.slots:
+		var slot: RoomSlot = layout.get_slot(cell)
+		if not slot.offers.is_empty():
+			var ids: Array[StringName] = []
+			for item: ItemData in slot.offers:
+				ids.append(item.id)
+			snapshot.offers[cell] = ids
+		if slot.mech != null:
+			snapshot.hangar_mechs[cell] = slot.mech.id
+	snapshot.visited.assign(visited.keys())
+	snapshot.discovered_secrets.assign(discovered_secrets.keys())
+	snapshot.map_revealed = map_revealed
+	snapshot.opened_edges.assign(_opened_edges.keys())
+	snapshot.rooms.clear()
+	for cell: Vector2i in _saved_rooms:
+		snapshot.rooms[cell] = _saved_rooms[cell]
+	for cell: Vector2i in _rooms:
+		snapshot.rooms[cell] = _rooms[cell].capture()
+	for child: Node in entities.get_children():
+		var parked := child as ParkedMech
+		if parked == null or parked.is_queued_for_deletion():
+			continue
+		var cell: Vector2i = cell_at(parked.global_position)
+		if snapshot.rooms.has(cell) and _rooms.has(cell):
+			snapshot.rooms[cell].mechs.append(_rooms[cell].capture_mech(parked))
+
+
+## Celda de la sala que contiene ese punto global.
+func cell_at(global_point: Vector2) -> Vector2i:
+	return layout.start + Vector2i((rooms_root.to_local(global_point) / ROOM_STRIDE).round())
+
+
+## Lo de la foto que no sale de la seed: lo sorteado en cada sala, lo visto, las barreras abiertas y
+## las salas ya armadas (se reponen cuando se arman).
+func _restore_floor(saved: RunSnapshot) -> void:
+	for cell: Vector2i in layout.slots:
+		var slot: RoomSlot = layout.get_slot(cell)
+		slot.offers.clear()
+		for id: Variant in saved.offers.get(cell, []):
+			var item: ItemData = _items_by_id.get(StringName(str(id)))
+			if item != null:
+				slot.offers.append(item)
+		slot.mech = _mechs_by_id.get(saved.hangar_mechs.get(cell, &""))
+	for cell: Vector2i in saved.visited:
+		if layout.has_room(cell):
+			visited[cell] = true
+	for cell: Vector2i in saved.discovered_secrets:
+		if layout.has_room(cell):
+			discovered_secrets[cell] = true
+	map_revealed = saved.map_revealed
+	for edge: Vector4i in saved.opened_edges:
+		_opened_edges[edge] = true
+	for cell: Vector2i in saved.rooms:
+		if layout.has_room(cell):
+			_saved_rooms[cell] = saved.rooms[cell]
 
 
 ## Baja al piso siguiente con un fundido (el juego queda en pausa mientras tanto). Las cargas de
@@ -100,6 +195,7 @@ func advance_floor() -> void:
 ## Saca todo lo del piso anterior: salas, enemigos, bombas, balas, efectos y manchas.
 func _clear_world() -> void:
 	_rooms.clear()
+	_saved_rooms.clear()
 	visited.clear()
 	discovered_secrets.clear()
 	_opened_edges.clear()
@@ -192,11 +288,17 @@ func _ensure_room(cell: Vector2i) -> Room:
 	var room := ROOM_SCENE.instantiate() as Room
 	room.position = room_position(cell)
 	room.setup(layout.get_slot(cell), theme, neighbors, door_modes, entities)
+	var saved: RunSnapshot.RoomState = _saved_rooms.get(cell)
+	if saved != null:
+		_saved_rooms.erase(cell)
+		room.restore(saved, _items_by_id, _mechs_by_id)
 	room.door_entered.connect(_on_room_door_entered.bind(cell))
 	room.door_unlock_requested.connect(_on_room_door_unlock_requested.bind(cell))
 	room.cleared.connect(_on_room_cleared.bind(cell))
 	rooms_root.add_child(room)
 	_rooms[cell] = room
+	if saved != null and saved.cleared and layout.get_slot(cell).kind == RoomSlot.Kind.BOSS:
+		_spawn_exit(cell)
 	return room
 
 
@@ -225,8 +327,11 @@ func _roll_offers() -> void:
 
 ## Al vencer al jefe aparece la salida: al piso siguiente, o la que gana la run en el último.
 func _on_room_cleared(cell: Vector2i) -> void:
-	if layout.get_slot(cell).kind != RoomSlot.Kind.BOSS:
-		return
+	if layout.get_slot(cell).kind == RoomSlot.Kind.BOSS:
+		_spawn_exit(cell)
+
+
+func _spawn_exit(cell: Vector2i) -> void:
 	var exit: Trapdoor = get_room(cell).spawn_exit(is_last_floor())
 	exit.entered.connect(_on_exit_entered)
 

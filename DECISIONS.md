@@ -729,3 +729,31 @@ o un foso.
 - **Para probarlos a mano:** el menú de debug (F3) tiene "Jefes/<jefe>: <movimiento>", que hace que
   el jefe vivo lo haga ya. Sacamos los patrones `campanario_burst` y `campanario_spiral_fast`, que ya
   no usaba nadie, y sumamos `campanario_cascote`, `rey_clavos` y `rey_astillas`.
+
+## Hito 20 — guardado de la run (2026-11-02)
+
+Pedido del usuario: "un guardado automático: al salir de la partida desde el menú o cerrar el juego,
+que quede en la sala donde está el personaje y, si no completó el enfrentamiento, que se repita".
+
+- **Cuándo se guarda:** al empezar la run, al entrar a cada sala, al limpiarla y al salir (pausa →
+  "Guardar y volver al menú", "Guardar y salir del juego" o cerrar la ventana). Guardar al entrar y al
+  limpiar hace que un corte (se colgó, se apagó la compu) pierda como mucho una sala.
+- **En medio de una pelea no se guarda:** queda la foto de cuando se entró a esa sala. Al seguir, el
+  jugador aparece en la puerta por la que entró, los enemigos vuelven a aparecer y tiene lo que tenía
+  al entrar (vida, monedas, bombas, Pulsos). Así no se pueden farmear monedas saliendo y volviendo, ni
+  salvarse de una pelea perdida.
+- **Qué vuelve como estaba:** piso, sala y lugar; vida, items, activo y su carga, armas con su
+  munición, recursos, tiempo de la run, enemigos y jefes vencidos; el armazón que manejaba (con su
+  blindaje) y los que dejó parados; salas limpias, pedestales (lo que se llevó no vuelve, lo que cambió
+  por un activo queda), pickups del piso, rocas rotas, pozo seco, puertas secretas destapadas, la
+  tienda abierta y el mapa visto. La tienda y los tesoros todavía sin visitar tienen los mismos items.
+- **Qué no:** balas en el aire, bombas puestas, efectos y los contadores internos de Eco y Diente de
+  leche (arrancan de cero). Es lo más simple y no se nota.
+- **Un solo guardado por partida:** `slot_N_run.json` al lado de la partida. Borrar la partida lo
+  borra. Si el archivo es de otro formato (otra versión del juego) se descarta en silencio.
+- **Se pierde** al morir, al ganar, al abandonar desde la pausa ("Abandonar la run" pide apretarlo dos
+  veces) o al empezar otra ("Nueva run", que aparece en lugar de "Jugar" cuando hay una guardada,
+  también pide confirmación). Abandonar sigue sin contar como run.
+- **El mismo piso:** el layout no se guarda, sale de la seed de la run (que sí se guarda); lo sorteado
+  en cada sala se guarda entero, así no depende de qué items ya salieron.
+- **Para probar:** `--skip-menu` sigue la run guardada de la última partida si hay una.
