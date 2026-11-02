@@ -240,6 +240,12 @@ esporas que revientan al acercarse (Raíces) y chorros de fuego (Forja).
 rápido, lanzallamas) que aparecen en una sala especial nueva, el Galpón. Se suben tocándolos, tienen
 blindaje propio y su arma, y se baja rodando; si el blindaje se acaba, revientan.
 
+**Hito 19 — Jefes con movimientos propios** (pedido del usuario): cada jefe tiene sus movimientos
+(cascotes que caen del techo, salto aplastante, embestidas en cadena, bombas de metralla, raíces que
+avanzan por el piso, zarpazos en la oscuridad, mira láser que obliga a rodar, metal fundido, rayo que
+barre) y la dificultad sube de un jefe al otro. Los enemigos que caminan rodean rocas y fosos, y los
+que embisten ya no se quedan embistiendo contra un foso o una pared.
+
 ## 6. Cosas a tener en cuenta desde ya
 
 - **Export templates.** Para el hito 7 hacen falta las plantillas de exportación de 4.7.2 instaladas

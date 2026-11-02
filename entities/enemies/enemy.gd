@@ -7,6 +7,9 @@ extends CharacterBody2D
 ## Los enemigos que crea otro (las babosas al dividirse, las crías de un nido) se avisan con
 ## `spawned` en el acto, aunque entran al árbol diferidos: así la sala los cuenta antes de enterarse
 ## (con `killed`) de que murió el que los creó.
+## Caminos: la sala le pasa su `nav` (RoomNav); si algo tapa la línea hasta el jugador (roca, foso),
+## camina rodeándolo (`route_direction`). Los jefes con movimientos propios (BossPhase.attacks) atacan
+## con el estado BossAttack en vez de Telegraph/Attack.
 
 ## Murió (después de avisar a sus hijos con `spawned`).
 signal killed
@@ -35,6 +38,13 @@ const ENEMY_SCENE: PackedScene = preload("res://entities/enemies/enemy.tscn")
 const CHILD_PUSH: float = 140.0
 ## Alfa del dibujo mientras es fantasma (PHASE).
 const GHOST_ALPHA: float = 0.3
+## Cada cuánto revisa si puede ir derecho al jugador o tiene que rodear algo.
+const ROUTE_REFRESH: float = 0.2
+## Mitad del interior de una sala (para que los jefes no salten ni tiren cosas afuera).
+const ROOM_HALF: Vector2 = Vector2(120, 72)
+## Para llegar a alguien alcanza con tocarlo: el camino se revisa hasta esta distancia de más del
+## propio cuerpo (si no, un jugador pegado a la pared "taparía" su propio camino).
+const TOUCH_MARGIN: float = 4.0
 
 @export var data: EnemyData
 
@@ -61,6 +71,23 @@ var _hidden: bool = false
 var _children: Array[int] = []
 ## BEAM: por dónde va el rayo (lo apunta el aviso y queda fijo al disparar).
 var beam_direction: Vector2 = Vector2.DOWN
+## Caminos de la sala donde está (null en la arena de tests: va siempre derecho) y dónde está el
+## centro de esa sala (global).
+var nav: RoomNav
+var nav_origin: Vector2 = Vector2.ZERO
+## Jefes: el movimiento que está haciendo, el último que hizo (para no repetirlo) y la pausa que
+## pide al terminar (Recover la usa una vez; -1 = la de la fase).
+var attack: BossAttack
+var next_recover: float = -1.0
+var _last_attack_index: int = -1
+## Movimiento pedido desde el menú de debug: sale el próximo (una vez).
+var _forced_attack: BossAttack
+## En el aire (un jefe que salta o se esconde en la oscuridad): ni recibe ni hace daño.
+var _airborne: bool = false
+var _route_left: float = 0.0
+var _route_direct: bool = true
+var _route_point: Vector2 = Vector2.ZERO
+var _probe_shape := CircleShape2D.new()
 
 @onready var visual: EnemyVisual = $Visual
 @onready var health: HealthComponent = $HealthComponent
@@ -147,6 +174,114 @@ func apply_velocity() -> void:
 	move_and_slide()
 
 
+## Hacia dónde caminar para llegar al jugador: derecho si no hay nada en el medio; si una roca o un
+## foso tapa la línea, hacia la próxima celda del camino que los rodea (RoomNav). Cero sin jugador.
+func route_direction(delta: float) -> Vector2:
+	var offset: Vector2 = to_target()
+	if offset == Vector2.ZERO:
+		return Vector2.ZERO
+	if nav == null:
+		return offset.normalized()
+	_route_left -= delta
+	if _route_left <= 0.0 or (not _route_direct and global_position.distance_to(_route_point) < 2.0):
+		_refresh_route()
+	if _route_direct:
+		return offset.normalized()
+	var to_point: Vector2 = _route_point - global_position
+	return to_point.normalized() if to_point != Vector2.ZERO else offset.normalized()
+
+
+## true si el cuerpo puede ir derecho hasta tocar `to` sin chocar paredes, rocas ni fosos (a los que
+## vuelan los fosos no los frenan).
+func has_clear_path(to: Vector2) -> bool:
+	var offset: Vector2 = to - global_position
+	var reach: float = offset.length() - data.body_radius - TOUCH_MARGIN
+	if reach <= 0.0:
+		return true
+	_probe_shape.radius = maxf(1.0, data.body_radius - 1.0)
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = _probe_shape
+	query.transform = Transform2D(0.0, _body_shape.global_position)
+	query.motion = offset.normalized() * reach
+	query.collision_mask = collision_mask & (PhysicsLayers.WALL | PhysicsLayers.PIT)
+	query.exclude = [get_rid()]
+	var result: PackedFloat32Array = get_world_2d().direct_space_state.cast_motion(query)
+	return result.is_empty() or result[0] >= 1.0
+
+
+func _refresh_route() -> void:
+	_route_left = ROUTE_REFRESH
+	_route_direct = has_clear_path(target.global_position)
+	if not _route_direct:
+		_route_point = nav_origin + nav.next_point(global_position - nav_origin, target.global_position - nav_origin)
+
+
+## Interior de la sala donde está, en coordenadas globales.
+func room_rect() -> Rect2:
+	return Rect2(nav_origin - ROOM_HALF, ROOM_HALF * 2.0)
+
+
+## Un lugar de la sala cerca de `at` donde puede pararse: adentro (con su cuerpo entero) y, si la
+## sala tiene caminos, en una celda sin roca ni foso.
+func landing_spot(at: Vector2) -> Vector2:
+	var margin: float = data.body_radius + 2.0
+	var area: Rect2 = room_rect().grow(-margin)
+	var spot := Vector2(clampf(at.x, area.position.x, area.end.x), clampf(at.y, area.position.y, area.end.y))
+	if nav != null:
+		spot = nav_origin + nav.nearest_open(spot - nav_origin)
+	return spot
+
+
+## Jefes con movimientos propios en la fase actual (BossPhase.attacks).
+func has_boss_attacks() -> bool:
+	return is_boss() and not data.phases[phase].attacks.is_empty()
+
+
+## El próximo movimiento de jefe: uno al azar de la fase (stream de combate), nunca el mismo dos
+## veces seguidas si hay más de uno. Las embestidas no entran si un foso o una roca tapan el camino.
+func next_boss_attack() -> BossAttack:
+	if _forced_attack != null:
+		var forced: BossAttack = _forced_attack
+		_forced_attack = null
+		return forced
+	var attacks: Array[BossAttack] = data.phases[phase].attacks
+	var blocked: bool = has_target() and not has_clear_path(target.global_position)
+	var choices: Array[int] = []
+	for i: int in attacks.size():
+		var repeated: bool = i == _last_attack_index and attacks.size() > 1
+		if not repeated and not (blocked and attacks[i].kind == BossAttack.Kind.CHARGES):
+			choices.append(i)
+	if choices.is_empty():
+		for i: int in attacks.size():
+			if i != _last_attack_index or attacks.size() == 1:
+				choices.append(i)
+	var index: int = choices[GameRNG.stream(RngStreams.COMBAT).randi_range(0, choices.size() - 1)]
+	_last_attack_index = index
+	return attacks[index]
+
+
+## Menú de debug: que haga `forced` ya si está caminando o en pausa; si no, apenas termine.
+func force_attack(forced: BossAttack) -> void:
+	_forced_attack = forced
+	var state: StringName = machine.get_state_name()
+	if state == &"Move" or state == &"Recover":
+		machine.transition_to(&"BossAttack")
+
+
+func is_airborne() -> bool:
+	return _airborne
+
+
+## En el aire (salta, o se esconde en la oscuridad): sin hurtbox, sin daño por contacto y sin cuerpo
+## (lo mueven a mano). El dibujo lo maneja quien lo llama (EnemyVisual.set_lift).
+func set_airborne(airborne: bool) -> void:
+	if airborne == _airborne:
+		return
+	_airborne = airborne
+	_body_shape.set_deferred(&"disabled", airborne)
+	_apply_touchable()
+
+
 ## Segundos hasta el próximo ataque, con un poco de azar del stream de combate.
 func roll_attack_cooldown(factor: float = 1.0) -> float:
 	var jitter: float = GameRNG.stream(RngStreams.COMBAT).randf_range(-COOLDOWN_JITTER, COOLDOWN_JITTER)
@@ -170,6 +305,8 @@ func spawn_child(child_data: EnemyData, at: Vector2) -> Enemy:
 	child.health_multiplier = health_multiplier
 	child.bullet_speed_multiplier = bullet_speed_multiplier
 	child.pace = pace
+	child.nav = nav
+	child.nav_origin = nav_origin
 	var offset: Vector2 = at - global_position
 	child._birth_push = offset.normalized() if offset != Vector2.ZERO else Vector2.DOWN
 	_children.append(child.get_instance_id())
@@ -194,8 +331,9 @@ func beam_origin() -> Vector2:
 	return global_position + Vector2(0, -2) + beam_direction * data.body_radius
 
 
+## Bajo tierra, fantasma o en el aire: nada lo toca.
 func is_hidden() -> bool:
-	return _hidden
+	return _hidden or _airborne
 
 
 ## Bajo tierra o fantasma: sin hurtbox ni daño por contacto; el dibujo cambia.
@@ -203,13 +341,17 @@ func set_hidden(hide_it: bool) -> void:
 	if hide_it == _hidden:
 		return
 	_hidden = hide_it
-	_hurtbox_shape.set_deferred(&"disabled", hide_it)
-	hitbox.active = not hide_it
+	_apply_touchable()
 	match data.move_style:
 		EnemyData.MoveStyle.BURROW:
 			visual.set_burrowed(hide_it)
 		_:
-			visual.modulate.a = GHOST_ALPHA if hide_it else 1.0
+			visual.self_modulate.a = GHOST_ALPHA if hide_it else 1.0
+
+
+func _apply_touchable() -> void:
+	_hurtbox_shape.set_deferred(&"disabled", is_hidden())
+	hitbox.active = not is_hidden()
 
 
 ## Si el contenedor ya no está (fin de la run), el hijo se libera sin entrar. Se pasa el id porque un
@@ -262,6 +404,7 @@ func _update_phase() -> void:
 	phase = next
 	behavior = data.phases[phase].behavior
 	_attack_count = 0
+	_last_attack_index = -1
 	emitter.stop()
 	flash.flash(PHASE_FLASH_TIME)
 	EventBus.shake_requested.emit(PHASE_TRAUMA)
@@ -290,11 +433,15 @@ func _die() -> void:
 	glow.texture_scale = 3.0 if is_boss() else 1.0
 	glow.duration = 0.6 if is_boss() else 0.25
 	if is_boss():
-		# Al morir el jefe se borran sus balas: la pelea terminó.
+		# Al morir el jefe se borran sus balas, sus bombas y sus golpes avisados: la pelea terminó.
 		for node: Node in get_tree().get_nodes_in_group(Bullet.GROUP):
 			var bullet := node as Bullet
 			if bullet.is_hostile_to_player():
 				bullet.destroy()
+		for node: Node in get_tree().get_nodes_in_group(LobShell.GROUP):
+			(node as LobShell).fizzle()
+		for node: Node in get_tree().get_nodes_in_group(BossStrike.GROUP):
+			(node as BossStrike).vanish()
 		burst.amount = 40
 		EventBus.shake_requested.emit(BOSS_DEATH_TRAUMA)
 		EventBus.hitstop_requested.emit(BOSS_DEATH_HITSTOP)

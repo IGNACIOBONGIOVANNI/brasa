@@ -24,6 +24,8 @@ signal room_entered(cell: Vector2i)
 signal room_cleared(cell: Vector2i)
 ## Empezó (o terminó, con null) el combate de una sala con regla.
 signal room_rule_changed(rule: RoomRule)
+## Un jefe apaga (o vuelve a prender, con 0) la luz de la sala: `amount` de 0 a 1, en `fade` s.
+signal darkness_requested(amount: float, fade: float)
 ## Explotó una bomba (FloorController la usa para destapar puertas secretas).
 signal exploded(at: Vector2, radius: float)
 ## Apareció un jefe (el HUD muestra su barra de vida).

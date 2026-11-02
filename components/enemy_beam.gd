@@ -3,6 +3,8 @@ extends Node2D
 ## Rayo de un enemigo (BEAM). Primero se ve una línea fina que avisa por dónde va a salir (preview) y
 ## después el rayo de verdad (fire): corta en paredes y rocas y lastima al jugador si lo cruza.
 ## Rodando se atraviesa (el jugador está invulnerable). Se dibuja en coordenadas globales.
+## La mira de un jefe (SNIPE) es una preview fija (`steady`) que, ya trabada (`locked`), titila rápido
+## y blanca: avisa que hay que rodar ya.
 
 const RANGE: float = 280.0
 const KNOCKBACK: float = 120.0
@@ -15,6 +17,8 @@ var _mode: Mode = Mode.OFF
 var _from: Vector2 = Vector2.ZERO
 var _to: Vector2 = Vector2.ZERO
 var _time: float = 0.0
+var _steady: bool = false
+var _locked: bool = false
 
 
 func _ready() -> void:
@@ -26,9 +30,16 @@ func is_firing() -> bool:
 	return _mode == Mode.FIRE
 
 
-## La línea fina del aviso.
-func preview(from: Vector2, direction: Vector2) -> void:
+## La mira de un jefe ya trabada (por disparar).
+func is_locked() -> bool:
+	return _mode == Mode.PREVIEW and _locked
+
+
+## La línea fina del aviso. `steady`: sin titilar (mira); `locked`: trabada, por disparar.
+func preview(from: Vector2, direction: Vector2, steady: bool = false, locked: bool = false) -> void:
 	_mode = Mode.PREVIEW
+	_steady = steady
+	_locked = locked
 	_from = from
 	_to = _wall_end(from, direction)
 	queue_redraw()
@@ -73,8 +84,15 @@ func _wall_end(from: Vector2, direction: Vector2) -> Vector2:
 func _draw() -> void:
 	match _mode:
 		Mode.PREVIEW:
-			var blink: float = 0.35 + 0.35 * sin(_time * 30.0)
+			if _locked:
+				var flash: float = 0.5 + 0.5 * sin(_time * 70.0)
+				draw_line(_from, _to, CORE_COLOR.lerp(color, flash), 1.0)
+				draw_circle(_to, 1.5, CORE_COLOR)
+				return
+			var blink: float = 0.55 if _steady else 0.35 + 0.35 * sin(_time * 30.0)
 			draw_line(_from, _to, Color(color, blink), 1.0)
+			if _steady:
+				draw_circle(_to, 1.0, Color(color, 0.8))
 		Mode.FIRE:
 			var flicker: float = 0.8 + 0.2 * sin(_time * 50.0)
 			draw_line(_from, _to, Color(color, 0.35 * flicker), 5.0)

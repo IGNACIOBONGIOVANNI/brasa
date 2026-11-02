@@ -316,6 +316,15 @@ func _register_dev_commands() -> void:
 	Debug.add_command(self, "Ir al Galpón (si hay)", _go_to_kind.bind(RoomSlot.Kind.HANGAR))
 	for mech: MechData in run.mechs:
 		Debug.add_command(self, "Mechas/%s" % mech.display_name, spawn_mech.bind(mech))
+	for floor_theme: FloorTheme in run.floors:
+		for enemy: EnemyData in floor_theme.enemies:
+			var seen: Dictionary[BossAttack, bool] = {}
+			for boss_phase: BossPhase in enemy.phases:
+				for attack: BossAttack in boss_phase.attacks:
+					if not seen.has(attack):
+						seen[attack] = true
+						Debug.add_command(self, "Jefes/%s: %s (%s)" % [enemy.display_name, attack.display_name, attack.id],
+								force_boss_attack.bind(attack))
 	Debug.add_command(self, "Volver al inicio", _go_to_kind.bind(RoomSlot.Kind.START))
 	Debug.add_command(self, "Revelar mapa", _reveal_map)
 	Debug.add_command(self, "Limpiar sala", _clear_current_room)
@@ -327,6 +336,15 @@ func spawn_mech(mech: MechData) -> ParkedMech:
 	var parked := Fx.spawn(get_tree(), PARKED_MECH_SCENE, player.global_position + DEV_MECH_OFFSET, Fx.ENTITIES_GROUP) as ParkedMech
 	parked.setup(mech)
 	return parked
+
+
+## El jefe vivo que tenga ese movimiento lo hace ya (o apenas termine lo que está haciendo). Menú de
+## debug, para probar cada movimiento sin esperar a que salga.
+func force_boss_attack(attack: BossAttack) -> void:
+	for node: Node in get_tree().get_nodes_in_group(Enemy.GROUP):
+		var enemy := node as Enemy
+		if enemy.is_boss() and enemy.data.phases.any(func(p: BossPhase) -> bool: return p.attacks.has(attack)):
+			enemy.force_attack(attack)
 
 
 func _go_to_kind(kind: RoomSlot.Kind) -> void:

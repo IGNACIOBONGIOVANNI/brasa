@@ -45,6 +45,8 @@ var _time: float = 0.0
 var _hop_left: float = 0.0
 var _burrowed: bool = false
 var _guarding: bool = false
+## Altura en el aire (un jefe que salta): el cuerpo sube y la sombra se achica en el piso.
+var _lift: float = 0.0
 
 
 func configure(data: EnemyData) -> void:
@@ -84,6 +86,11 @@ func set_guarding(guarding: bool) -> void:
 	_guarding = guarding
 
 
+## Cuántos px está en el aire (0 = en el piso). La sombra queda donde está el nodo y marca dónde cae.
+func set_lift(height: float) -> void:
+	_lift = maxf(0.0, height)
+
+
 ## Crece desde chiquito durante `duration` segundos.
 func play_spawn(duration: float) -> void:
 	_spawn_duration = duration
@@ -109,8 +116,16 @@ func _draw() -> void:
 		return
 	# Sombra (los que vuelan la tienen más chica y más lejos).
 	var flying: bool = style == EnemyData.VisualStyle.BAT or style == EnemyData.VisualStyle.WISP
-	draw_set_transform(Vector2(0, radius * (1.1 if flying else 0.6)), 0.0, Vector2(1.0, 0.4))
-	draw_circle(Vector2.ZERO, radius * (0.6 if flying else 0.9) * appear, Color(0, 0, 0, 0.35))
+	if _lift > 0.0:
+		# En el aire: la sombra se agranda y se oscurece a medida que baja, con un aro que avisa.
+		var near: float = clampf(1.0 - _lift / 140.0, 0.25, 1.0)
+		draw_set_transform(Vector2(0, radius * 0.6), 0.0, Vector2(1.0, 0.45))
+		draw_circle(Vector2.ZERO, radius * 1.1 * near, Color(0, 0, 0, 0.25 + 0.3 * near))
+		draw_arc(Vector2.ZERO, radius * 1.4, 0.0, TAU, 24, Color(ALERT_COLOR, 0.35 + 0.3 * sin(_time * 20.0)), 1.0)
+		draw_set_transform(Vector2.ZERO)
+	else:
+		draw_set_transform(Vector2(0, radius * (1.1 if flying else 0.6)), 0.0, Vector2(1.0, 0.4))
+		draw_circle(Vector2.ZERO, radius * (0.6 if flying else 0.9) * appear, Color(0, 0, 0, 0.35))
 	# Cuerpo: aplastado al recibir un golpe, inclinado hacia adelante al embestir, estirado al saltar.
 	var squash: float = _squash_left / HIT_SQUASH_TIME
 	var body_scale := Vector2(1.0 + 0.25 * squash, 1.0 - 0.2 * squash) * lerpf(0.3, 1.0, appear)
@@ -122,6 +137,8 @@ func _draw() -> void:
 		body_scale *= Vector2(1.0 - 0.15 * sin(hop * PI), 1.0 + 0.2 * sin(hop * PI))
 	if flying:
 		lift = Vector2(0, roundf(-3.0 + sin(_time * 5.0)))
+	if _lift > 0.0:
+		lift = Vector2(0, -roundf(_lift))
 	draw_set_transform(BODY_OFFSET + lean + lift, 0.0, body_scale)
 	match style:
 		EnemyData.VisualStyle.HORNED:
@@ -152,7 +169,7 @@ func _draw() -> void:
 			_draw_mortar()
 	draw_set_transform(Vector2.ZERO)
 	if _alert:
-		var origin := Vector2(0, BODY_OFFSET.y - radius - 7.0)
+		var origin := Vector2(0, BODY_OFFSET.y - radius - 7.0 - roundf(_lift))
 		PixelBitmap.paint_outlined(self, PixelIcons.ALERT, origin, ALERT_COLOR, OUTLINE_COLOR)
 
 

@@ -7,7 +7,8 @@ extends Node2D
 ## a 320x180 y se agranda con píxeles enteros; el HUD y los menús van afuera, a la resolución de la
 ## ventana, así el texto se ve nítido.
 ## Con piso, también pone la música: el tema del piso, el del jefe mientras hay uno vivo y silencio
-## al morir.
+## al morir. La luz de la sala es la penumbra del piso, oscurecida por la regla (Apagón) o por un jefe
+## que la apaga (EventBus.darkness_requested); gana la más oscura.
 
 ## Desde la pausa: volver al menú o salir del juego (los atiende Main).
 signal menu_requested
@@ -32,6 +33,10 @@ const DEATH_MUSIC_FADE: float = 1.2
 @onready var _ambient: CanvasModulate = get_node_or_null(^"WorldView/World/Ambient") as CanvasModulate
 @onready var _motes: AmbientMotes = get_node_or_null(^"WorldView/World/GameCamera/Motes") as AmbientMotes
 
+var _rule_darkness: float = 0.0
+var _boss_darkness: float = 0.0
+var _light_tween: Tween
+
 
 func _ready() -> void:
 	_hud.bind_player(player)
@@ -43,6 +48,7 @@ func _ready() -> void:
 		EventBus.boss_defeated.connect(_on_boss_defeated)
 		EventBus.player_died.connect(_on_player_died)
 		EventBus.room_rule_changed.connect(_on_room_rule_changed)
+		EventBus.darkness_requested.connect(_on_darkness_requested)
 	if _pause != null:
 		_pause.menu_requested.connect(menu_requested.emit)
 		_pause.quit_requested.connect(quit_requested.emit)
@@ -75,11 +81,17 @@ func spawn_enemy(data: EnemyData, at: Vector2) -> Enemy:
 	return enemy
 
 
+## Cuánto está oscurecida la sala ahora (0 = la penumbra normal del piso).
+func darkness() -> float:
+	return maxf(_rule_darkness, _boss_darkness)
+
+
 ## Penumbra, partículas de ambiente y música del piso.
 func _apply_floor_mood(index: int) -> void:
 	var theme: FloorTheme = floor_controller.run.floors[index]
-	if _ambient != null:
-		_ambient.color = theme.ambient_light
+	_rule_darkness = 0.0
+	_boss_darkness = 0.0
+	_refresh_light(0.0)
 	if _motes != null:
 		_motes.configure(theme)
 	AudioManager.play_music(theme.music)
@@ -87,17 +99,38 @@ func _apply_floor_mood(index: int) -> void:
 
 ## Apagón: la sala queda más oscura mientras dura el combate.
 func _on_room_rule_changed(rule: RoomRule) -> void:
-	if _ambient != null:
-		var light: Color = floor_controller.theme.ambient_light
-		_ambient.color = light.darkened(rule.darkness) if rule != null else light
+	_rule_darkness = rule.darkness if rule != null else 0.0
+	_refresh_light(0.0)
+
+
+func _on_darkness_requested(amount: float, fade: float) -> void:
+	_boss_darkness = amount
+	_refresh_light(fade)
+
+
+## Pone la luz de la sala según la penumbra del piso y lo que la oscurezca, de a poco si `fade` > 0.
+func _refresh_light(fade: float) -> void:
+	if _ambient == null:
+		return
+	var light: Color = floor_controller.theme.ambient_light.darkened(darkness())
+	if _light_tween != null:
+		_light_tween.kill()
+	if fade <= 0.0:
+		_ambient.color = light
+		return
+	_light_tween = create_tween()
+	_light_tween.tween_property(_ambient, ^"color", light, fade)
 
 
 func _on_boss_spawned(_boss: Node2D) -> void:
 	AudioManager.play_music(floor_controller.theme.boss_music)
 
 
+## Al morir el jefe también vuelve la luz (si la había apagado).
 func _on_boss_defeated(_boss: Node2D) -> void:
 	AudioManager.play_music(floor_controller.theme.music)
+	_boss_darkness = 0.0
+	_refresh_light(0.3)
 
 
 func _on_player_died() -> void:

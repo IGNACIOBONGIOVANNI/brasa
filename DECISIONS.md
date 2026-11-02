@@ -675,3 +675,57 @@ Pedido del usuario: "vehículos para el jugador tipo mechas".
 - **Se ven:** casco con franja de su color, dos patas que se alternan al caminar, la chispa en la
   cabina y el arma siguiendo la mira; con poco blindaje echa humo. Parado, la cabina está vacía y
   titila una luz.
+
+## Hito 19 — jefes con movimientos propios (2026-11-01)
+
+Pedido del usuario: que los jefes no se parezcan, que cada uno tenga sus movimientos (cosas que caen,
+bombas con metralla, oscuridad con zarpazos, una mira láser que obliga a rodar y otros), que la
+dificultad suba de uno al otro, y arreglar que los que embisten se queden trabados contra una pared
+o un foso.
+
+- **Movimientos como datos:** cada fase de un jefe tiene una lista de movimientos (`BossAttack`) y
+  elige uno al azar cada vez, sin repetir el anterior. Once tipos reutilizables con parámetros
+  (cuántos, cada cuánto, cuánto avisan, radio, daño); cada jefe usa los suyos con sus números. Todos
+  tienen aviso antes (parpadeo, "!" y sonido, más el aviso propio: sombra, mecha, mira, marca en el
+  piso) y una pausa al final para pegarle.
+- **Campanario (piso 1, el más fácil, 2 fases):** Tañido (anillo de balas), Cascotes (caen del techo
+  donde estás, con sombra), y en la segunda fase Repique, Derrumbe (más cascotes, que se rompen en
+  esquirlas), Badajazo y Caída de la campana (salta, su sombra te sigue, cae encima con una onda).
+- **Rey Carnero (piso 2, 3 fases):** Embestidas en cadena (2, 3 y después 4, con la línea marcada;
+  al final rompen la pared en astillas), Pisotón, Clavos de la corona (bombas que caen, esperan con la
+  mecha prendida y revientan en metralla; el Pulso las apaga), Llamado del rebaño (carneros) y
+  Cornada.
+- **Raigón (piso 3, 3 fases):** Raíces (filas de raíces que salen del piso hacia vos; cortan en rocas
+  y fosos, así sirven para cubrirse), Esporas, Semillero (esporas que disparan), Zarpazos en la
+  oscuridad (se come la luz: solo queda la tuya; desaparece y tira tajos rojos donde estás, que avisan
+  con tres rayitas; después vuelve la luz y aparece en otro lado), Enredadera (raíces en las ocho
+  direcciones) y más esporas.
+- **Yunque (piso 4, el más difícil, 4 fases):** Grietas de fuego (en cruz y después en ocho
+  direcciones), Chispazo, Metal fundido (charcos que quedan quemando unos segundos), Mira de forja
+  (salta a una esquina lejos, te sigue con una mira láser y cuando se traba titila blanca: de costado
+  no da el tiempo, hay que rodar; pega un corazón entero), Barrido (un rayo que gira 200° y después
+  300°) y ráfagas.
+- **La dificultad sube y lo controla un test:** de un jefe al siguiente no hay menos fases, hay más
+  movimientos y más variedad, los avisos son más cortos, ataca más seguido al final y tiene igual o
+  más vida (Campanario 120, Rey 160, Raigón 200, Yunque 300, más el multiplicador del piso). Otro test
+  exige que cada jefe tenga al menos un tipo de movimiento que ningún otro tiene. Con el bot de
+  balance las peleas duran unos 17 s, 24 s, 55 s y 54 s de bot (para una persona, el doble o más;
+  Raigón dura tanto porque en la oscuridad no se le puede pegar).
+- **Rodar esquiva todo lo avisado:** los golpes, los charcos, el rayo y la mira respetan la
+  invulnerabilidad de la rodada. La mira queda trabada menos que lo que dura una rodada (lo exige un
+  test). El Pulso apaga las bombas (también en el piso) pero no los golpes avisados ni los rayos: es
+  para las balas.
+- **En el aire o escondido el jefe no se puede golpear** (ni hace daño por contacto): el salto, el
+  salto a la esquina de la mira y la oscuridad. Nunca cae en una roca ni en un foso.
+- **Oscuridad:** la apaga el jefe y la vuelve a prender él mismo; si cambia de fase o muere en el
+  medio, la luz vuelve igual. Si la sala ya tenía Apagón, gana la más oscura de las dos.
+- **Embestidas sin trabarse:** los enemigos que caminan ahora rodean rocas y fosos (caminos A* en la
+  grilla de la sala; una roca rota abre el paso) y los que embisten solo avisan la embestida si
+  tienen el camino libre hasta tocarte; si no, caminan rodeando. El jefe que embiste tampoco elige la
+  embestida con un foso en el medio. Con el bot de balance las salas comunes duran lo mismo que antes
+  (la diferencia entre seeds es mayor que entre versiones).
+- **Arreglo de paso:** los fantasmas (Hollín) se veían opacos porque el parpadeo de daño pisaba la
+  transparencia; ahora la transparencia va aparte (`self_modulate`).
+- **Para probarlos a mano:** el menú de debug (F3) tiene "Jefes/<jefe>: <movimiento>", que hace que
+  el jefe vivo lo haga ya. Sacamos los patrones `campanario_burst` y `campanario_spiral_fast`, que ya
+  no usaba nadie, y sumamos `campanario_cascote`, `rey_clavos` y `rey_astillas`.

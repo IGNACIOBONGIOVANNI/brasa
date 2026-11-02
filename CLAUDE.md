@@ -5,9 +5,11 @@ estructura de los roguelites de salas + bullet hell, con contenido 100 % origina
 [docs/LORE.md](docs/LORE.md).
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 18 (mechas) terminado: tres armazones (Caldera, Zancos, Fuelle) que el jugador
-encuentra en una sala especial nueva, el Galpón, y maneja (blindaje propio, su arma, rodar para
-saltar afuera). Antes: hito 17 (una trampa por piso que lastima a jugador y enemigos), hito 16 (seis
+**Estado:** Hito 19 (jefes) terminado: cada jefe tiene movimientos propios (`BossAttack`: cascotes,
+salto, embestidas, bombas de metralla, raíces, zarpazos en la oscuridad, mira láser, metal fundido,
+barrido) y la dificultad sube de uno al otro; los enemigos rodean rocas y fosos (`RoomNav`) y los que
+embisten no se quedan trabados contra un foso. Antes: hito 18 (tres armazones que el jugador maneja,
+en el Galpón), hito 17 (una trampa por piso que lastima a jugador y enemigos), hito 16 (seis
 reglas de sala y las salas Prueba, Altar y Pozo), hito 15 (cuatro partidas con su progreso),
 hito 14 (música chiptune generada con `ChipTune`), hito 13 (lanzagranadas,
 bazuca, franco tirador, caño de riel y estados fuego, veneno, corrupción y apagado), hito 12 (8 enemigos nuevos),
@@ -235,6 +237,11 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   (lo exige un test, con un aspecto distinto por piso).
 - Armazones (mechas): un `.tres` por armazón en `content/mechs/` (`MechData`, con su `WeaponData`
   adentro como sub-recurso, munición infinita) y en `run_config.mechs` (lo exige un test).
+- Jefes: un `EnemyData` con `phases`; cada `BossPhase` tiene su `behavior` (cómo camina, cada cuánto
+  ataca) y al menos dos `attacks` (`BossAttack`, sub-recursos del mismo `.tres`). Un test exige que
+  cada jefe tenga un tipo de movimiento que ningún otro use y que la dificultad suba de piso en piso
+  (fases, cantidad y variedad de movimientos, avisos más cortos, ataques más seguidos, más vida), y
+  que la mira trabada (SNIPE) dure menos que una rodada.
 - Reglas de sala: un `.tres` por regla en `content/rules/` (`RoomRule`) y en
   `run_config.room_rules` (lo exige un test).
 - Items: un `.tres` por item en `content/items/` y en `catalog.tres` (lo exige un test), con su
@@ -281,7 +288,7 @@ core/audio/                 SfxSynth (sintetizador de sonidos placeholder), Chip
                             sintetizador de 8 bits)
 core/floor_gen/             FloorGenerator, FloorLayout, RoomSlot, FloorParams, TemplatePicker, RulePicker,
                             MinimapModel
-core/rooms/                 RoomTemplateParser (texto → RoomGrid)
+core/rooms/                 RoomTemplateParser (texto → RoomGrid), RoomNav (caminos A* dentro de una sala)
 core/loot/                  RoomReward (premio por limpiar sala)
 core/stats/                 StatCalculator (base + ADD, × MULT, límites)
 core/items/                 ItemPool (sorteo por pool y rareza, sin repetir)
@@ -293,12 +300,13 @@ core/meta/                  MetaProfile (progreso de una partida), MetaRules (ch
 data/                       StatBlock, StatModifier, WeaponData, ItemData, ItemCatalog, EnemyData, BossPhase,
                             BulletPatternData, SfxData, SfxLibrary, RoomTemplate, FloorTheme, PickupData,
                             RunConfig, CharacterData, AchievementData, MetaConfig, RoomRule, TrapData,
-                            MechData
+                            MechData, BossAttack (movimiento de jefe)
 content/                    weapons/ (pistola, trabuco, metralla, haz, órbita, ballesta, lanzagranadas, bazuca,
                             franco tirador, caño de riel), items/ (37 +
                             catalog), enemies/ (carnero, vigia, farol, centinela, espora, fundidor, grasa
                             (→ grasita → gotita), mecha, murcielago, nido (→ cria), topo, hollin, escudero,
-                            fogonero; jefes campanario, rey_carnero, raigon y yunque), patterns/ (29),
+                            fogonero; jefes campanario, rey_carnero, raigon y yunque, con sus movimientos
+                            adentro), patterns/ (30),
                             sfx/sfx_library, rooms/floor_1/ (24), floor_2/ (10), floor_3/ (10), floor_4/ (11),
                             mechs/ (caldera, zancos, fuelle),
                             floors/ (Sótano, Cloacas, Raíces, Forja), run/run_config, rules/ (furia,
@@ -313,8 +321,10 @@ components/                 Weapon, LaserBeam, OrbitRing, RailGun, AimSight, Hea
                             multiplicador de daño), Hitbox, Knockback, Flash, BulletEmitter, EnemyBeam (rayo de
                             enemigo), StatusComponent (estados), ItemHookRunner, state_machine/
 entities/player/            player.tscn/.gd, player_visual.gd, states/ (move, roll, dead)
-entities/enemies/           enemy.tscn/.gd, enemy_visual.gd, states/ (idle, move, telegraph, attack, recover),
-                            enemy_blast.gd (explosiones), lob_shell.tscn/.gd (bola en arco)
+entities/enemies/           enemy.tscn/.gd, enemy_visual.gd, states/ (idle, move, telegraph, attack, recover,
+                            boss_attack), enemy_blast.gd (explosiones), lob_shell.tscn/.gd (bola en arco o
+                            bomba con mecha), boss_strike.tscn/.gd (golpe de jefe avisado), boss/ (BossMove
+                            y una subclase por tipo de movimiento, BossMoves elige cuál)
 entities/bullets/           bullet.tscn/.gd (rebote, perforación, teledirigido, explosivas), grenade.tscn/.gd,
                             player_blast.gd (explosiones de armas del jugador)
 entities/pickups/           pickup.tscn/.gd, pickup_visual.gd, item_pedestal.tscn/.gd, item_pedestal_visual.gd,
@@ -350,10 +360,11 @@ tests/unit/                 rng_streams, shot_spec, health_math, pattern_math, i
                             floor_generator (500 seeds), room_template_parser, template_picker, minimap_model,
                             room_reward, stat_calculator, item_pool, weapon_slot, phase_math,
                             save_schema, save_store, meta_profile, inventory_text, window_scales, chip_tune,
-                            game_options, save_slots, rule_picker
+                            game_options, save_slots, rule_picker, room_nav
 tests/integration/          player_shooting, bullets, combat, main_flow, floor, rooms, items,
                             bullet_behaviors, weapons, boss, meta_flow, feedback, inventory, enemy_kinds,
-                            weapons_statuses, music, save_slots_flow, special_rooms, traps, mechs
+                            weapons_statuses, music, save_slots_flow, special_rooms, traps, mechs,
+                            boss_attacks, pathing
 tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria, la música apagada y GameRNG con una seed fija
 docs/PLAN.md                plan, arquitectura e hitos
 docs/LORE.md                la historia y dónde está cada texto en el juego
@@ -530,10 +541,33 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   Move → Telegraph (parpadeo amarillo + "!" + sonido) → Attack → Recover. Los estados leen
   `enemy.behavior` (movimiento y ataque); `enemy.data` da vida, cuerpo y dibujo. `BulletEmitter`
   dispara ráfagas re-apuntando; direcciones con `PatternMath`.
-- **Jefes:** un `EnemyData` con `phases` (`BossPhase`: umbral de vida + un EnemyData de comportamiento).
-  Al bajar de cada umbral (`PhaseMath`) cambia `behavior`, destella y hace una pausa. Avisan
-  `EventBus.boss_spawned` / `boss_defeated` (barra de vida en el HUD). Al morir borran sus balas; la
-  sala del jefe da su item (pool jefe) y un corazón.
+- **Jefes:** un `EnemyData` con `phases` (`BossPhase`: umbral de vida + un EnemyData de comportamiento
+  + sus movimientos `attacks`). Al bajar de cada umbral (`PhaseMath`) cambia `behavior`, destella y
+  hace una pausa. Avisan `EventBus.boss_spawned` / `boss_defeated` (barra de vida en el HUD). Al morir
+  borran sus balas, sus bombas y sus golpes avisados; la sala del jefe da su item (pool jefe) y un
+  corazón.
+- **Movimientos de jefe (`BossAttack`):** en Move, cuando le toca atacar, un jefe con movimientos pasa
+  al estado `BossAttack` (no a Telegraph): `Enemy.next_boss_attack` elige uno al azar de la fase
+  (stream COMBAT, nunca el mismo dos veces seguidas, sin embestidas si el camino está tapado) y
+  `BossMoves.create` arma su `BossMove` (una subclase por `BossAttack.Kind` en
+  `entities/enemies/boss/`). El BossMove hace el aviso de `windup` (parpadeo, "!", sonido), lo suyo
+  (`_begin`/`_tick`) y al terminar o si lo cortan (cambio de fase) `_end` deja todo como estaba; después
+  Recover dura el `recover` del movimiento (`Enemy.next_recover`). Tipos: VOLLEY (patrón), DEBRIS
+  (cascotes con sombra), FRAG_BOMBS (`LobShell` con `fuse`: cae, espera y suelta metralla), DARK_CLAWS
+  (`EventBus.darkness_requested` apaga la luz, el jefe se esconde y tira tajos), SNIPE (salta a una
+  esquina lejos, mira láser con `EnemyBeam.preview(steady, locked)` y rayo: hay que rodar), LEAP (salta,
+  la sombra sigue al jugador y cae con una onda), CHARGES (embestidas con la línea marcada), SUMMON,
+  GROUND_LINES (golpes que avanzan por el piso, cortan en rocas y fosos), SWEEP (rayo que barre) y
+  MOLTEN (charcos que quedan quemando). Los golpes avisados son `BossStrike` (círculo o tajo; avisa
+  `warn_time`, pega una vez y, con `linger`, queda lastimando). En el aire o escondido el jefe está
+  `airborne` (`Enemy.set_airborne`: sin cuerpo, sin hurtbox, sin contacto; `EnemyVisual.set_lift`
+  lo dibuja arriba de su sombra). Nunca cae en una roca o un foso (`Enemy.landing_spot`). `Game` junta
+  la oscuridad del jefe con la de la regla (gana la mayor) y la vuelve a 0 al morir el jefe.
+- **Caminos:** cada `Room` arma un `RoomNav` (A* de 15 x 9 con rocas y fosos tapados; una roca rota se
+  destapa) y se lo pasa a sus enemigos (`Enemy.nav`, también a los hijos). `Enemy.route_direction`
+  va derecho si `has_clear_path` (un cast del cuerpo contra paredes, rocas y fosos hasta tocar al
+  jugador) y si no, a la próxima celda del camino (se recalcula cada 0,2 s). Los que embisten solo
+  avisan con el camino libre. En la arena de tests no hay `nav` y van derecho.
 - **Game feel:** `EventBus.shake_requested(trauma)` → `GameCamera`; `EventBus.hitstop_requested(s)` →
   `HitStop` (time_scale 0 contando ticks reales). Partículas, manchas y ondas con `Fx.spawn` en los
   contenedores `Effects` y `Decals` de `game.tscn`.
@@ -584,6 +618,7 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   balas, tiempo de la run), F2 formas de colisión (hurtbox verde, hitbox rojo), F3 menú dev con los comandos que
   registra la escena (`Debug.add_command(dueño, texto, callable)`; un texto "Grupo/Nombre" va a un
   submenú; pausa el juego): ir al jefe, tesoro, tienda, secreta o inicio, revelar mapa, limpiar sala,
+  "Jefes" (que el jefe vivo haga ya ese movimiento: `FloorController.force_boss_attack`),
   siguiente piso (o ganar), curar, invulnerable, Pulsos, +5 recursos, cargar activo, morir, "Items"
   (un pedestal gratis con cualquier item del catálogo, arriba del jugador), "Mechas" (un armazón
   parado arriba del jugador), ir a la Prueba, el Altar, el Pozo o el Galpón y "Progreso" (+100

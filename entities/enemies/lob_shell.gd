@@ -3,6 +3,9 @@ extends Node2D
 ## Bola de fuego del Fogonero (LOB): vuela en arco desde donde la tiraron hasta donde estaba el
 ## jugador, con una marca en el piso que avisa dónde va a caer. Al caer explota (EnemyBlast). Un Pulso
 ## la apaga en el aire. El nodo está en el punto donde cae; la bola se dibuja corrida.
+## Con `fuse` > 0 es una bomba de jefe (FRAG_BOMBS): cae, queda `fuse` s en el piso con la mecha
+## prendida y el radio marcado, y recién ahí explota (la metralla es `pattern`). El Pulso también la
+## apaga en el piso.
 
 const GROUP: StringName = &"lob_shells"
 const ARC_HEIGHT: float = 42.0
@@ -18,7 +21,10 @@ var radius: float = 24.0
 var pattern: BulletPatternData
 var speed_multiplier: float = 1.0
 var color: Color = Color("ff8a3d")
+## Segundos en el piso antes de explotar (0 = explota al caer).
+var fuse: float = 0.0
 var _elapsed: float = 0.0
+var _landed: bool = false
 
 
 func _ready() -> void:
@@ -27,7 +33,10 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_elapsed += delta
-	if _elapsed >= duration:
+	if _elapsed >= duration and not _landed and fuse > 0.0:
+		_landed = true
+		AudioManager.play_sfx(&"bomb_place", 0.15)
+	if _elapsed >= duration + fuse:
 		EnemyBlast.explode(get_tree(), global_position, radius, damage, pattern, speed_multiplier, color)
 		queue_free()
 
@@ -50,6 +59,9 @@ func _ball_offset() -> Vector2:
 
 
 func _draw() -> void:
+	if _landed:
+		_draw_bomb()
+		return
 	var t: float = clampf(_elapsed / duration, 0.0, 1.0)
 	# La marca crece y late a medida que se acerca.
 	var blink: float = 0.4 + 0.3 * sin(_elapsed * 20.0)
@@ -62,3 +74,20 @@ func _draw() -> void:
 	draw_circle(ball, BALL_RADIUS + 1.0, color.darkened(0.4))
 	draw_circle(ball, BALL_RADIUS, color)
 	draw_circle(ball + Vector2(-1, -1), 1.0, CORE_COLOR)
+
+
+## En el piso: el radio marcado, la bomba y la mecha que titila cada vez más rápido.
+func _draw_bomb() -> void:
+	var left: float = clampf(1.0 - (_elapsed - duration) / fuse, 0.0, 1.0)
+	var blink: float = 0.5 + 0.5 * sin(_elapsed * lerpf(40.0, 12.0, left))
+	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 28, Color(color, 0.35 + 0.4 * blink), 1.0)
+	draw_circle(Vector2.ZERO, radius * (1.0 - left), Color(color, 0.1))
+	draw_set_transform(Vector2(0, 2), 0.0, Vector2(1.0, 0.45))
+	draw_circle(Vector2.ZERO, BALL_RADIUS + 1.0, Color(0, 0, 0, 0.3))
+	draw_set_transform(Vector2.ZERO)
+	var body := Vector2(0, -2)
+	draw_circle(body, BALL_RADIUS + 2.0, color.darkened(0.7))
+	draw_circle(body, BALL_RADIUS + 1.0, color.darkened(0.5))
+	draw_circle(body + Vector2(-1, -1), 1.0, color.darkened(0.1))
+	draw_line(body + Vector2(1, -BALL_RADIUS - 1.0), body + Vector2(2, -BALL_RADIUS - 3.0), color.darkened(0.3), 1.0)
+	draw_circle(body + Vector2(2, -BALL_RADIUS - 3.0), 0.5 + blink, Color(CORE_COLOR, blink))

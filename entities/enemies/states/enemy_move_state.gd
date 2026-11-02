@@ -4,7 +4,9 @@ extends State
 ## Telegraph (el aviso) antes de atacar. CHASE persigue, KEEP_DISTANCE mantiene la distancia, HOP
 ## avanza a saltos, FLY vuela en círculos alrededor del jugador, STAY no se mueve, BURROW persigue bajo
 ## tierra (asoma recién al atacar) y PHASE persigue alternando entre sólido y fantasma (solo ataca
-## sólido).
+## sólido). Los que caminan rodean rocas y fosos (Enemy.route_direction) y los que embisten solo
+## avisan si tienen el camino libre: así no se quedan embistiendo contra un foso o una roca.
+## Un jefe con movimientos propios pasa a BossAttack en vez de Telegraph.
 
 ## Margen alrededor de preferred_distance donde se mueve de costado en vez de acercarse o alejarse.
 const DISTANCE_MARGIN: float = 14.0
@@ -57,45 +59,55 @@ func physics_update(delta: float) -> void:
 	var offset: Vector2 = enemy.to_target()
 	match enemy.behavior.move_style:
 		EnemyData.MoveStyle.HOP:
-			_hop(offset, delta)
+			_hop(enemy.route_direction(delta), delta)
 		EnemyData.MoveStyle.FLY:
 			_fly(delta)
 		EnemyData.MoveStyle.STAY:
 			enemy.move_toward_velocity(Vector2.ZERO, delta)
 		_:
-			enemy.move_toward_velocity(_desired_direction(offset) * enemy.behavior.move_speed, delta)
+			var toward: Vector2 = enemy.route_direction(delta)
+			enemy.move_toward_velocity(_desired_direction(offset, toward) * enemy.behavior.move_speed, delta)
 	enemy.look_at_target()
 	if enemy.behavior.move_style == EnemyData.MoveStyle.PHASE:
 		_update_phase(delta)
 	_cooldown -= delta
-	if _cooldown <= 0.0 and offset.length() <= enemy.behavior.attack_range and not _is_ghost():
-		machine.transition_to(&"Telegraph")
+	if _cooldown <= 0.0 and offset.length() <= enemy.behavior.attack_range and not _is_ghost() and _can_attack():
+		machine.transition_to(&"BossAttack" if enemy.has_boss_attacks() else &"Telegraph")
 
 
 func _is_ghost() -> bool:
 	return enemy.behavior.move_style == EnemyData.MoveStyle.PHASE and enemy.is_hidden()
 
 
-func _desired_direction(offset: Vector2) -> Vector2:
-	var toward: Vector2 = offset.normalized()
+## Embestir contra algo que tapa el camino (un foso, una roca) lo dejaría empujando ahí: espera a
+## tenerlo libre mientras camina rodeándolo.
+func _can_attack() -> bool:
+	if enemy.behavior.attack_kind != EnemyData.AttackKind.CHARGE or enemy.has_boss_attacks():
+		return true
+	return enemy.has_clear_path(enemy.target.global_position)
+
+
+## `toward`: hacia el jugador, rodeando lo que tape el camino.
+func _desired_direction(offset: Vector2, toward: Vector2) -> Vector2:
 	if enemy.behavior.move_style != EnemyData.MoveStyle.KEEP_DISTANCE:
 		return toward
 	var distance: float = offset.length()
 	if distance > enemy.behavior.preferred_distance + DISTANCE_MARGIN:
 		return toward
 	if distance < enemy.behavior.preferred_distance - DISTANCE_MARGIN:
-		return -toward
-	return toward.orthogonal() * _strafe_sign * STRAFE_FACTOR
+		return -offset.normalized()
+	return offset.normalized().orthogonal() * _strafe_sign * STRAFE_FACTOR
 
 
-## Salta hacia el jugador cada hop_interval y entre salto y salto frena.
-func _hop(offset: Vector2, delta: float) -> void:
+## Salta hacia el jugador (rodeando lo que tape el camino) cada hop_interval y entre salto y salto
+## frena.
+func _hop(toward: Vector2, delta: float) -> void:
 	_hop_left -= delta
 	if _hop_left > 0.0:
 		enemy.move_toward_velocity(Vector2.ZERO, delta)
 		return
 	_hop_left = enemy.behavior.hop_interval
-	enemy.move_velocity = offset.normalized() * enemy.behavior.move_speed * HOP_BURST
+	enemy.move_velocity = toward * enemy.behavior.move_speed * HOP_BURST
 	enemy.apply_velocity()
 	enemy.visual.play_hop()
 	AudioManager.play_sfx(&"hop", 0.2)

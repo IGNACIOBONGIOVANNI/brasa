@@ -1,67 +1,178 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
 [ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
-[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="2_pattern_script"]
-[ext_resource type="Script" path="res://data/boss_phase.gd" id="3_phase_script"]
-[ext_resource type="Resource" path="res://content/patterns/raigon_ring.tres" id="p0"]
-[ext_resource type="Resource" path="res://content/patterns/raigon_fan.tres" id="p1"]
-[ext_resource type="Resource" path="res://content/patterns/raigon_spiral.tres" id="p2"]
-[ext_resource type="Resource" path="res://content/patterns/raigon_aimed.tres" id="p3"]
+[ext_resource type="Script" path="res://data/boss_phase.gd" id="3_phase"]
+[ext_resource type="Script" path="res://data/boss_attack.gd" id="4_attack"]
+[ext_resource type="Resource" path="res://content/patterns/raigon_ring.tres" id="x0"]
+[ext_resource type="Resource" path="res://content/enemies/espora.tres" id="x1"]
+[ext_resource type="Resource" path="res://content/patterns/raigon_spiral.tres" id="x2"]
+[ext_resource type="Resource" path="res://content/patterns/raigon_fan.tres" id="x3"]
+[ext_resource type="Resource" path="res://content/patterns/raigon_aimed.tres" id="x4"]
 
 [sub_resource type="Resource" id="Behavior_0"]
 script = ExtResource("1_enemy")
 id = &"raigon_fase_1"
-move_style = 1
-move_speed = 20.0
-acceleration = 300.0
-preferred_distance = 90.0
-attack_kind = 1
+move_style = 4
 attack_range = 300.0
-attack_cooldown = 1.6
-telegraph_time = 0.6
-recover_time = 0.6
-patterns = Array[ExtResource("2_pattern_script")]([ExtResource("p0"), ExtResource("p1")])
+attack_cooldown = 1.35
+recover_time = 0.8
+
+[sub_resource type="Resource" id="Attack_raices"]
+script = ExtResource("4_attack")
+id = &"raices"
+display_name = "Raíces"
+kind = 8
+windup = 0.6
+recover = 0.8
+count = 3
+interval = 0.06
+warn_time = 0.5
+radius = 8.0
+spread = 22.0
+look = 1
+
+[sub_resource type="Resource" id="Attack_esporas"]
+script = ExtResource("4_attack")
+id = &"esporas"
+display_name = "Esporas"
+kind = 0
+windup = 0.55
+recover = 0.7
+pattern = ExtResource("x0")
+
+[sub_resource type="Resource" id="Attack_semillero"]
+script = ExtResource("4_attack")
+id = &"semillero"
+display_name = "Semillero"
+kind = 7
+windup = 0.55
+recover = 0.6
+count = 2
+cap = 2
+summon = ExtResource("x1")
 
 [sub_resource type="Resource" id="Phase_0"]
-script = ExtResource("3_phase_script")
+script = ExtResource("3_phase")
 health_fraction = 1.0
 behavior = SubResource("Behavior_0")
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_raices"), SubResource("Attack_esporas"), SubResource("Attack_semillero")])
 
 [sub_resource type="Resource" id="Behavior_1"]
 script = ExtResource("1_enemy")
 id = &"raigon_fase_2"
 move_style = 1
-move_speed = 28.0
+move_speed = 22.0
 acceleration = 300.0
-preferred_distance = 85.0
-attack_kind = 1
+preferred_distance = 90.0
 attack_range = 300.0
-attack_cooldown = 1.2
-telegraph_time = 0.5
-recover_time = 0.5
-patterns = Array[ExtResource("2_pattern_script")]([ExtResource("p2"), ExtResource("p3")])
+attack_cooldown = 1.1
+recover_time = 0.7
+
+[sub_resource type="Resource" id="Attack_raices_5"]
+script = ExtResource("4_attack")
+id = &"raices_5"
+display_name = "Raíces"
+kind = 8
+windup = 0.5
+recover = 0.75
+count = 5
+interval = 0.055
+warn_time = 0.45
+radius = 8.0
+spread = 20.0
+look = 1
+
+[sub_resource type="Resource" id="Attack_zarpazos"]
+script = ExtResource("4_attack")
+id = &"zarpazos"
+display_name = "Zarpazos en la oscuridad"
+kind = 3
+windup = 0.75
+recover = 1.0
+count = 4
+interval = 0.65
+warn_time = 0.65
+radius = 7.0
+darkness = 0.85
+
+[sub_resource type="Resource" id="Attack_esporas_espiral"]
+script = ExtResource("4_attack")
+id = &"esporas_espiral"
+display_name = "Espiral de esporas"
+kind = 0
+windup = 0.5
+recover = 0.6
+pattern = ExtResource("x2")
 
 [sub_resource type="Resource" id="Phase_1"]
-script = ExtResource("3_phase_script")
-health_fraction = 0.6
+script = ExtResource("3_phase")
+health_fraction = 0.65
 behavior = SubResource("Behavior_1")
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_raices_5"), SubResource("Attack_zarpazos"), SubResource("Attack_esporas_espiral"), SubResource("Attack_semillero")])
 
 [sub_resource type="Resource" id="Behavior_2"]
 script = ExtResource("1_enemy")
 id = &"raigon_fase_3"
-move_speed = 45.0
-acceleration = 400.0
-attack_range = 140.0
-attack_cooldown = 1.1
-telegraph_time = 0.45
-recover_time = 0.7
-charge_speed = 230.0
-charge_time = 0.5
+move_style = 1
+move_speed = 30.0
+acceleration = 300.0
+preferred_distance = 80.0
+attack_range = 300.0
+attack_cooldown = 0.8
+recover_time = 0.6
+
+[sub_resource type="Resource" id="Attack_enredadera"]
+script = ExtResource("4_attack")
+id = &"enredadera"
+display_name = "Enredadera"
+kind = 8
+windup = 0.45
+recover = 0.7
+count = 8
+interval = 0.05
+warn_time = 0.42
+radius = 8.0
+aim_at_player = false
+look = 1
+
+[sub_resource type="Resource" id="Attack_zarpazos_6"]
+script = ExtResource("4_attack")
+id = &"zarpazos_6"
+display_name = "Noche cerrada"
+kind = 3
+windup = 0.65
+recover = 1.0
+count = 6
+interval = 0.5
+warn_time = 0.55
+radius = 7.0
+darkness = 0.9
+
+[sub_resource type="Resource" id="Attack_esporas_abanico"]
+script = ExtResource("4_attack")
+id = &"esporas_abanico"
+display_name = "Abanico de esporas"
+kind = 0
+windup = 0.45
+recover = 0.6
+pattern = ExtResource("x3")
+
+[sub_resource type="Resource" id="Attack_esporas_punteria"]
+script = ExtResource("4_attack")
+id = &"esporas_punteria"
+display_name = "Esporas certeras"
+kind = 0
+windup = 0.45
+recover = 0.6
+count = 2
+interval = 0.4
+pattern = ExtResource("x4")
 
 [sub_resource type="Resource" id="Phase_2"]
-script = ExtResource("3_phase_script")
+script = ExtResource("3_phase")
 health_fraction = 0.3
 behavior = SubResource("Behavior_2")
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_enredadera"), SubResource("Attack_zarpazos_6"), SubResource("Attack_esporas_abanico"), SubResource("Attack_esporas_punteria")])
 
 [resource]
 script = ExtResource("1_enemy")
@@ -72,7 +183,7 @@ template_char = "R"
 max_health = 200.0
 spawn_delay = 1.5
 knockback_resistance = 0.9
-phases = Array[ExtResource("3_phase_script")]([SubResource("Phase_0"), SubResource("Phase_1"), SubResource("Phase_2")])
+phases = Array[ExtResource("3_phase")]([SubResource("Phase_0"), SubResource("Phase_1"), SubResource("Phase_2")])
 body_radius = 12.0
 hurtbox_radius = 15.0
 visual_style = 3

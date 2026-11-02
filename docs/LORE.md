@@ -20,13 +20,17 @@ encender y bajar otra vez.
 ## El descenso (los cuatro pisos)
 
 1. **Sótano.** Debajo de la iglesia, donde cayó la campana. **Campanario**: la campana caída, que
-   sigue tocando sola; cada golpe es una onda de balas. Al callarla: *Silencio en el sótano*.
+   sigue tocando sola; cada golpe es una onda de balas, cada tañido hace caer cascotes del techo y,
+   cuando se enoja, salta y se vuelve a caer encima tuyo. Al callarla: *Silencio en el sótano*.
 2. **Cloacas.** Los carneros del monte bajaron por acá buscando calor y se quedaron. **Rey Carnero**:
-   el más grande, con una corona hecha de clavos de la fragua. *Corona caída*.
+   el más grande, con una corona hecha de clavos de la fragua. Embiste una y otra vez, se arranca
+   clavos de la corona y los tira como bombas, y llama al rebaño. *Corona caída*.
 3. **Raíces.** El bosque de arriba metió sus raíces hasta la fragua para chuparle el calor que
-   quedaba; las esporas brillan con ese fuego robado. **Raigón**: la raíz madre. *Poda*.
+   quedaba; las esporas brillan con ese fuego robado. **Raigón**: la raíz madre. Sus raíces salen
+   del piso en fila y, cuando se come la luz, ataca a zarpazos desde la oscuridad. *Poda*.
 4. **Forja.** El corazón de la fragua. El **Yunque**, que era el guardián del fuego, se quedó con la
-   última llama y aplasta a cualquiera que se acerque. Al vencerlo, la fragua vuelve a prender y el
+   última llama y aplasta a cualquiera que se acerque: abre grietas de fuego, salpica metal fundido,
+   apunta desde las esquinas con una mira de forja y barre la sala con un rayo. Al vencerlo, la fragua vuelve a prender y el
    pueblo recupera el calor: *Fragua encendida* (el id interno del logro sigue siendo
    `fragua_apagada` para no tocar los guardados).
 
@@ -86,6 +90,9 @@ guardado.
 - **Una línea por piso:** `tagline` de cada `content/floors/floor_N.tres`, debajo del cartel "Piso N ·
   Nombre".
 - **Apodo de cada jefe:** `epithet` en `content/enemies/<jefe>.tres`, debajo de su nombre al aparecer.
+- **Movimientos de cada jefe:** `display_name` de cada `BossAttack` en `content/enemies/<jefe>.tres`
+  (Tañido, Cascotes, Caída de la campana, Clavos de la corona, Zarpazos en la oscuridad, Mira de
+  forja...). Por ahora solo se ven en el menú de debug.
 - **Final y derrota:** `RunSummary.VICTORY_TEXT` y `DEFEAT_TEXT`, debajo del título del resumen.
 - **Personajes:** `description` en `content/characters/*.tres`.
 - **Título:** menú principal y título de la ventana (`MenuBuilder.GAME_TITLE`), y `builds/Brasa.exe`.

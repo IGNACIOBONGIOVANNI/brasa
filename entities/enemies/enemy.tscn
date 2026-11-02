@@ -15,6 +15,7 @@
 [ext_resource type="Script" path="res://entities/enemies/states/enemy_telegraph_state.gd" id="13_telegraph"]
 [ext_resource type="Script" path="res://entities/enemies/states/enemy_attack_state.gd" id="14_attack"]
 [ext_resource type="Script" path="res://entities/enemies/states/enemy_recover_state.gd" id="15_recover"]
+[ext_resource type="Script" path="res://entities/enemies/states/enemy_boss_attack_state.gd" id="23_boss_attack"]
 [ext_resource type="Script" path="res://components/enemy_beam.gd" id="20_beam"]
 [ext_resource type="Material" path="res://fx/unshaded.tres" id="21_unshaded"]
 [ext_resource type="Script" path="res://components/status_component.gd" id="22_status"]
@@ -111,3 +112,6 @@ script = ExtResource("14_attack")
 
 [node name="Recover" type="Node" parent="StateMachine"]
 script = ExtResource("15_recover")
+
+[node name="BossAttack" type="Node" parent="StateMachine"]
+script = ExtResource("23_boss_attack")

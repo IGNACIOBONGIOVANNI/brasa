@@ -39,6 +39,8 @@ const SPAWN_CLEARANCE: int = 3
 
 var slot: RoomSlot
 var grid: RoomGrid
+## Caminos para los enemigos (las rocas rotas se destapan).
+var nav: RoomNav
 var phase: Phase = Phase.UNVISITED
 var doors: Dictionary[Vector2i, Door] = {}
 var _theme: FloorTheme
@@ -66,6 +68,11 @@ func setup(room_slot: RoomSlot, theme: FloorTheme, neighbors: Dictionary[Vector2
 		sides.append(side)
 	RoomBuilder.build_walls($Walls as Node2D, sides, theme)
 	RoomBuilder.build_obstacles($Obstacles as Node2D, grid, theme)
+	nav = RoomNav.from_grid(grid)
+	for child: Node in ($Obstacles as Node2D).get_children():
+		var rock := child as Rock
+		if rock != null:
+			rock.tree_exiting.connect(nav.set_open.bind(RoomNav.cell_of(rock.position), true))
 	RoomBuilder.build_traps($Traps as Node2D, grid, theme)
 	set_present(false)
 	for side: Vector2i in sides:
@@ -232,6 +239,8 @@ func _spawn_wave(index: int, combat_id: int) -> void:
 		if slot.rule != null:
 			enemy.health_multiplier *= slot.rule.enemy_health_mult
 			enemy.pace = slot.rule.enemy_pace
+		enemy.nav = nav
+		enemy.nav_origin = global_position
 		enemy.position = _entities.to_local(to_global(RoomGrid.cell_center(marker.cell)))
 		_entities.add_child(enemy)
 		_register_enemy(enemy)

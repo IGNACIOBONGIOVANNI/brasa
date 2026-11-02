@@ -47,7 +47,7 @@ func test_losing_health_changes_phase() -> void:
 	assert_eq(boss.behavior, CAMPANARIO.phases[1].behavior)
 	assert_eq(boss.machine.get_state_name(), &"Recover", "hace una pausa al cambiar")
 	_hit(boss, 40.0)
-	assert_eq(boss.phase, 2, "con 16 % pasa a la tercera")
+	assert_eq(boss.phase, 1, "la segunda es la última")
 	await wait_physics_frames(1)
 
 

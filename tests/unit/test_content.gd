@@ -18,6 +18,8 @@ const ACHIEVEMENTS_DIR: String = "res://content/achievements/"
 const RULES_DIR: String = "res://content/rules/"
 const TRAPS_DIR: String = "res://content/traps/"
 const MECHS_DIR: String = "res://content/mechs/"
+## Lo que dura la rodada del jugador (entities/player/player.tscn usa el valor por defecto).
+const PLAYER_ROLL_TIME: float = 0.32
 ## Salas especiales que un piso puede sumar con FloorTheme.extra_rooms.
 const EXTRA_KINDS: Array[RoomSlot.Kind] = [RoomSlot.Kind.CHALLENGE, RoomSlot.Kind.ALTAR, RoomSlot.Kind.WELL,
 		RoomSlot.Kind.HANGAR]
@@ -33,6 +35,7 @@ const CODE_SFX: Array[StringName] = [
 	&"victory", &"defeat", &"medkit", &"revive", &"hop", &"beam", &"burrow", &"summon", &"lob",
 	&"shield_block", &"rail_charge", &"rule", &"altar", &"well", &"trap_warn",
 	&"mech_board", &"mech_eject", &"mech_break",
+	&"rumble", &"debris", &"root", &"claw", &"molten", &"aim", &"leap", &"darkness",
 ]
 
 
@@ -406,7 +409,108 @@ func test_bosses_have_valid_phases() -> void:
 				assert_gt(boss_phase.behavior.patterns.size(), 0, "%s: fase %d con patrones" % [enemy.id, i])
 			if i > 0:
 				assert_lt(boss_phase.health_fraction, enemy.phases[i - 1].health_fraction, "%s: umbrales de mayor a menor" % enemy.id)
+			assert_gte(boss_phase.attacks.size(), 2, "%s: fase %d con al menos dos movimientos" % [enemy.id, i])
+			for attack: BossAttack in boss_phase.attacks:
+				_check_boss_attack(enemy, attack)
 	assert_gte(bosses, RUN.floors.size(), "un jefe por piso")
+
+
+## Que cada movimiento tenga lo que su tipo necesita y se pueda esquivar.
+func _check_boss_attack(boss: EnemyData, attack: BossAttack) -> void:
+	var label: String = "%s/%s" % [boss.id, attack.id]
+	assert_ne(attack.display_name, "", "%s: tiene nombre" % label)
+	assert_gt(attack.windup, 0.0, "%s: avisa antes" % label)
+	assert_gt(attack.recover, 0.0, "%s: deja una pausa para pegarle" % label)
+	assert_gte(attack.count, 1, label)
+	match attack.kind:
+		BossAttack.Kind.VOLLEY, BossAttack.Kind.FRAG_BOMBS:
+			assert_not_null(attack.pattern, "%s: con patrón" % label)
+		BossAttack.Kind.SUMMON:
+			assert_not_null(attack.summon, "%s: qué invoca" % label)
+			assert_true(attack.summon != null and attack.summon.phases.is_empty(), "%s: no invoca jefes" % label)
+			assert_gte(attack.cap, attack.count, "%s: tope" % label)
+		BossAttack.Kind.SNIPE:
+			assert_gt(attack.warn_time, 0.5, "%s: la mira se ve un rato" % label)
+			assert_gt(attack.lock_time, 0.0, label)
+			assert_lt(attack.lock_time, PLAYER_ROLL_TIME, "%s: trabada menos que una rodada (se esquiva rodando)" % label)
+		BossAttack.Kind.LEAP:
+			assert_gt(attack.lock_time, 0.0, "%s: la sombra se queda quieta antes de caer" % label)
+		BossAttack.Kind.DARK_CLAWS:
+			assert_gt(attack.darkness, 0.0, "%s: oscurece" % label)
+			assert_gte(attack.warn_time, 0.4, "%s: los zarpazos avisan" % label)
+		BossAttack.Kind.MOLTEN:
+			assert_gt(attack.linger, 0.0, "%s: el charco queda" % label)
+		BossAttack.Kind.SWEEP:
+			assert_gt(attack.spread, 0.0, label)
+			assert_gt(attack.speed, 0.0, label)
+		BossAttack.Kind.CHARGES:
+			assert_gt(attack.speed, 0.0, label)
+	if attack.kind != BossAttack.Kind.VOLLEY and attack.kind != BossAttack.Kind.SUMMON:
+		assert_gt(attack.warn_time, 0.3, "%s: cada golpe avisa" % label)
+
+
+## El jefe de cada piso, en orden.
+func _floor_bosses() -> Array[EnemyData]:
+	var result: Array[EnemyData] = []
+	for theme: FloorTheme in RUN.floors:
+		for enemy: EnemyData in theme.enemies:
+			if not enemy.phases.is_empty():
+				result.append(enemy)
+	return result
+
+
+func _attack_kinds(boss: EnemyData) -> Dictionary[BossAttack.Kind, bool]:
+	var kinds: Dictionary[BossAttack.Kind, bool] = {}
+	for boss_phase: BossPhase in boss.phases:
+		for attack: BossAttack in boss_phase.attacks:
+			kinds[attack.kind] = true
+	return kinds
+
+
+func _attack_count(boss: EnemyData) -> int:
+	var count: int = 0
+	for boss_phase: BossPhase in boss.phases:
+		count += boss_phase.attacks.size()
+	return count
+
+
+func _average_windup(boss: EnemyData) -> float:
+	var total: float = 0.0
+	for boss_phase: BossPhase in boss.phases:
+		for attack: BossAttack in boss_phase.attacks:
+			total += attack.windup
+	return total / maxi(1, _attack_count(boss))
+
+
+func test_each_boss_has_its_own_moves() -> void:
+	var bosses: Array[EnemyData] = _floor_bosses()
+	for boss: EnemyData in bosses:
+		var own: int = 0
+		for kind: BossAttack.Kind in _attack_kinds(boss):
+			var shared: bool = false
+			for other: EnemyData in bosses:
+				if other != boss and _attack_kinds(other).has(kind):
+					shared = true
+			if not shared:
+				own += 1
+		assert_gte(own, 1, "%s: tiene al menos un movimiento que ningún otro jefe hace" % boss.id)
+		assert_gte(_attack_kinds(boss).size(), 3, "%s: al menos tres tipos de movimiento" % boss.id)
+
+
+func test_bosses_get_harder_floor_by_floor() -> void:
+	var bosses: Array[EnemyData] = _floor_bosses()
+	assert_eq(bosses.size(), RUN.floors.size())
+	for i: int in range(1, bosses.size()):
+		var easier: EnemyData = bosses[i - 1]
+		var harder: EnemyData = bosses[i]
+		var label: String = "%s → %s" % [easier.id, harder.id]
+		assert_gte(harder.phases.size(), easier.phases.size(), "%s: no tiene menos fases" % label)
+		assert_gt(_attack_count(harder), _attack_count(easier), "%s: más movimientos" % label)
+		assert_gte(_attack_kinds(harder).size(), _attack_kinds(easier).size(), "%s: no menos variedad" % label)
+		assert_lte(_average_windup(harder), _average_windup(easier), "%s: avisa igual o menos" % label)
+		assert_lte(harder.phases[-1].behavior.attack_cooldown, easier.phases[-1].behavior.attack_cooldown,
+				"%s: al final ataca igual o más seguido" % label)
+		assert_gte(harder.max_health, easier.max_health, "%s: aguanta igual o más" % label)
 
 
 func test_every_room_file_is_in_its_floor() -> void:
