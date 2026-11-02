@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"tijereta"
+display_name = "Tijereta"
+template_char = "T"
+max_health = 10.0
+move_speed = 48.0
+acceleration = 500.0
+attack_kind = 6
+attack_range = 26.0
+attack_cooldown = 1.0
+telegraph_time = 0.35
+recover_time = 0.5
+attack_damage = 1.0
+blast_radius = 9.0
+charge_speed = 90.0
+body_radius = 5.0
+hurtbox_radius = 7.0
+visual_style = 14
+visual_radius = 7.0
+body_color = Color(0.5412, 0.5804, 0.651, 1)

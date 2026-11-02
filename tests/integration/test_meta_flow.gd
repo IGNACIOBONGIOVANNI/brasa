@@ -55,7 +55,7 @@ func test_play_goes_through_the_character_select() -> void:
 	(_main.screen as MainMenu).play_requested.emit()
 	assert_true(_main.screen is CharacterSelect)
 	var select := _main.screen as CharacterSelect
-	for character: CharacterData in SaveManager.config.characters:
+	for character: CharacterData in SaveManager.config.characters_of(SaveManager.config.chapters[0]):
 		assert_eq(select.button_for(character).disabled, character.locked, "%s: bloqueado o no" % character.id)
 	var first: CharacterData = SaveManager.config.default_character()
 	select.button_for(first).pressed.emit()

@@ -6,6 +6,10 @@
 [ext_resource type="Resource" path="res://content/characters/brasa.tres" id="c0"]
 [ext_resource type="Resource" path="res://content/characters/musgo.tres" id="c1"]
 [ext_resource type="Resource" path="res://content/characters/ceniza.tres" id="c2"]
+[ext_resource type="Resource" path="res://content/characters/testa.tres" id="c3"]
+[ext_resource type="Script" path="res://data/run_config.gd" id="4_run_script"]
+[ext_resource type="Resource" path="res://content/run/run_config.tres" id="ch1"]
+[ext_resource type="Resource" path="res://content/run/chapter_2.tres" id="ch2"]
 [ext_resource type="Resource" path="res://content/achievements/silencio_en_el_sotano.tres" id="a0"]
 [ext_resource type="Resource" path="res://content/achievements/corona_caida.tres" id="a1"]
 [ext_resource type="Resource" path="res://content/achievements/exterminio.tres" id="a2"]
@@ -16,5 +20,6 @@
 [ext_resource type="Resource" path="res://content/achievements/fragua_apagada.tres" id="a6"]
 [resource]
 script = ExtResource("1_meta")
-characters = Array[ExtResource("2_character_script")]([ExtResource("c0"), ExtResource("c1"), ExtResource("c2")])
+characters = Array[ExtResource("2_character_script")]([ExtResource("c0"), ExtResource("c1"), ExtResource("c2"), ExtResource("c3")])
 achievements = Array[ExtResource("3_achievement_script")]([ExtResource("a0"), ExtResource("a1"), ExtResource("a2"), ExtResource("a3"), ExtResource("a4"), ExtResource("a5"), ExtResource("a6")])
+chapters = Array[ExtResource("4_run_script")]([ExtResource("ch1"), ExtResource("ch2")])

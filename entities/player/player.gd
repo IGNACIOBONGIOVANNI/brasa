@@ -1,8 +1,8 @@
 class_name Player
 extends CharacterBody2D
 ## Jugador. Lee el input (con buffer) y delega en su StateMachine: Move (caminar, apuntar,
-## disparar, Pulso, bomba, recargar, cambiar de arma, usar el activo), Roll (rodar con i-frames)
-## y Dead. Su personaje, stats, items y armas salen de RunState.
+## disparar, Pulso, bomba, recargar, cambiar de arma, usar el activo), Roll (rodar con i-frames),
+## Charge (la embestida de los que esquivan embistiendo, CharacterData.Dodge.CHARGE) y Dead. Su personaje, stats, items y armas salen de RunState.
 ## Armazones (mechas): `board()` lo sube (lo llama ParkedMech al tocarlo). Mientras maneja, los golpes
 ## le sacan blindaje (`mech_armor`, el hurtbox apunta ahí) en vez de vida, camina a la velocidad del
 ## armazón, dispara su arma y no cambia de arma; rodar lo hace saltar afuera (`eject`: el armazón queda
@@ -77,6 +77,9 @@ var _bomb_hold: float = -1.0
 var _pulse_locked: bool = false
 ## El armazón que maneja (null = a pie).
 var mech: MechData
+## Viento que lo empuja este tick (Player.push) y en qué tick llegó.
+var _wind: Vector2 = Vector2.ZERO
+var _wind_tick: int = -10
 
 @onready var visual: PlayerVisual = $Visual
 @onready var weapon: WeaponComponent = $WeaponComponent
@@ -96,6 +99,7 @@ func _ready() -> void:
 	weapon.fired.connect(_on_weapon_fired)
 	hurtbox.hurt.connect(_on_hurt)
 	health.died.connect(_on_died)
+	visual.look = RunState.character.look
 	visual.set_body_color(RunState.character.body_color)
 	RunState.weapons_changed.connect(_sync_weapon)
 	RunState.stats_changed.connect(_on_stats_changed)
@@ -189,10 +193,22 @@ func move_toward_velocity(target_velocity: Vector2, delta: float) -> void:
 	apply_velocity()
 
 
-## Mueve el cuerpo con move_velocity más el empujón de los golpes.
+## Mueve el cuerpo con move_velocity más el empujón de los golpes y el viento.
 func apply_velocity() -> void:
-	velocity = move_velocity + knockback.velocity
+	var wind: Vector2 = _wind if Engine.get_physics_frames() - _wind_tick <= 1 else Vector2.ZERO
+	_wind = Vector2.ZERO
+	velocity = move_velocity + knockback.velocity + wind
 	move_and_slide()
+
+
+## Viento (el Soplo, el Cierzo): lo empuja a `wind_velocity` px por segundo este tick. Se llama en
+## cada tick que sopla; varios vientos del mismo tick se suman.
+func push(wind_velocity: Vector2) -> void:
+	var tick: int = Engine.get_physics_frames()
+	if tick != _wind_tick:
+		_wind = Vector2.ZERO
+		_wind_tick = tick
+	_wind += wind_velocity
 
 
 ## Frena en seco (al aparecer en otra sala).
@@ -240,8 +256,16 @@ func can_roll() -> bool:
 	return _roll_cooldown_left <= 0.0
 
 
-func start_roll_cooldown() -> void:
-	_roll_cooldown_left = roll_cooldown
+## `time` < 0 = el de rodar.
+func start_roll_cooldown(time: float = -1.0) -> void:
+	_roll_cooldown_left = roll_cooldown if time < 0.0 else time
+
+
+## El estado de esquivar del personaje: rodar o embestir (arriba de un armazón, siempre rodar).
+func dodge_state() -> StringName:
+	if RunState.character.dodge == CharacterData.Dodge.CHARGE and not is_piloting():
+		return &"Charge"
+	return &"Roll"
 
 
 ## Si se apretó el botón y quedan cargas, usa un Pulso: borra todas las balas enemigas y empuja

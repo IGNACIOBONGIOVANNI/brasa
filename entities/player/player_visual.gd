@@ -2,11 +2,12 @@
 class_name PlayerVisual
 extends Node2D
 ## Placeholder del jugador dibujado por código: sombra, cuerpo, ojos y arma que sigue la mira (con
-## el color y largo del arma equipada). También dibuja el rol (bolita que gira, sin arma), la muerte
+## el color y largo del arma equipada). Según el personaje (`look`) es la chispa o el carnero (lana,
+## cara oscura y cuernos enrulados; al embestir baja la cabeza con los cuernos adelante). También dibuja el rol (bolita que gira, sin arma), la muerte
 ## (tirado, ojos en cruz), el escudo del Caparazón y, si maneja un armazón, el armazón con la chispa
 ## en la cabina (MechDrawing).
 ## Se reemplaza por un sprite animado manteniendo set_aim(), play_fire(), set_rolling(), set_dead(),
-## set_gun(), set_body_color(), show_shield(), set_mech() y set_walking().
+## set_gun(), set_body_color(), show_shield(), set_mech(), set_walking() y set_charging().
 
 const FLASH_TIME: float = 0.05
 const RECOIL_PIXELS: float = 2.0
@@ -17,12 +18,22 @@ const ROLL_SPIN_SPEED: float = 26.0
 const SHIELD_COLOR: Color = Color("7ad1ff")
 ## Pasos por segundo de las patas del armazón.
 const MECH_STEPS_PER_SECOND: float = 6.0
+## El carnero: bollos de lana alrededor del cuerpo, cara y cuernos.
+const WOOL_PUFFS: Array[Vector2] = [Vector2(-4, -1), Vector2(4, -1), Vector2(-3, -6), Vector2(3, -6),
+		Vector2(-3, 2), Vector2(3, 2)]
+const RAM_FACE_COLOR: Color = Color("4a3a2e")
+const RAM_HORN_COLOR: Color = Color("c49a62")
+const RAM_EYE_COLOR: Color = Color("f2efe6")
 
 @export var body_color: Color = Color("e8c170")
 @export var outline_color: Color = Color("1b1420")
 @export var gun_color: Color = Color("8a8a9e")
 @export var gun_length: float = 6.0
 @export var flash_color: Color = Color("fff6d5")
+@export var look: CharacterData.Look = CharacterData.Look.SPARK:
+	set(value):
+		look = value
+		queue_redraw()
 
 var aim_direction: Vector2 = Vector2.RIGHT
 var _flash_left: float = 0.0
@@ -36,6 +47,8 @@ var _mech: MechData
 var _mech_armor: float = 1.0
 var _walking: bool = false
 var _walk_time: float = 0.0
+var _charging: bool = false
+var _charge_direction: Vector2 = Vector2.RIGHT
 
 
 ## El color del personaje elegido.
@@ -84,6 +97,13 @@ func set_rolling(rolling: bool) -> void:
 	queue_redraw()
 
 
+## Embistiendo hacia `direction` (cabeza baja, cuernos adelante).
+func set_charging(charging: bool, direction: Vector2) -> void:
+	_charging = charging
+	_charge_direction = direction
+	queue_redraw()
+
+
 func set_dead(dead: bool) -> void:
 	_dead = dead
 	queue_redraw()
@@ -117,6 +137,8 @@ func _draw() -> void:
 	elif _mech != null:
 		MechDrawing.draw(self, _mech, aim_direction, int(_walk_time * MECH_STEPS_PER_SECOND) % 2, body_color,
 				gun_color, gun_length, _recoil, _mech_armor, _time)
+	elif _charging:
+		_draw_charging()
 	elif _rolling:
 		_draw_rolling()
 	else:
@@ -134,13 +156,46 @@ func _draw_standing() -> void:
 	var gun_behind: bool = aim_direction.y < -0.3
 	if gun_behind:
 		_draw_gun()
-	draw_circle(Vector2(0, -2), 6.0, outline_color)
-	draw_circle(Vector2(0, -2), 5.0, body_color)
-	var look: Vector2 = (aim_direction * 1.5).round()
-	draw_rect(Rect2(Vector2(-3, -4) + look, Vector2(1, 2)), outline_color)
-	draw_rect(Rect2(Vector2(1, -4) + look, Vector2(1, 2)), outline_color)
+	if look == CharacterData.Look.RAM:
+		_draw_ram(Vector2(0, -2), aim_direction, false)
+	else:
+		draw_circle(Vector2(0, -2), 6.0, outline_color)
+		draw_circle(Vector2(0, -2), 5.0, body_color)
+		var eyes: Vector2 = (aim_direction * 1.5).round()
+		draw_rect(Rect2(Vector2(-3, -4) + eyes, Vector2(1, 2)), outline_color)
+		draw_rect(Rect2(Vector2(1, -4) + eyes, Vector2(1, 2)), outline_color)
 	if not gun_behind:
 		_draw_gun()
+
+
+## El carnero mirando hacia `facing`: lana, cara oscura con dos ojos y un cuerno enrulado a cada
+## lado. `lowered`: la cabeza gacha de la embestida (la cara adelantada, los cuernos al frente).
+func _draw_ram(center: Vector2, facing: Vector2, lowered: bool) -> void:
+	for puff: Vector2 in WOOL_PUFFS:
+		draw_circle(center + puff, 3.5, outline_color)
+	draw_circle(center, 6.0, outline_color)
+	for puff: Vector2 in WOOL_PUFFS:
+		draw_circle(center + puff, 2.5, body_color)
+	draw_circle(center, 5.0, body_color)
+	var face: Vector2 = center + (facing * (4.0 if lowered else 2.0)).round() + Vector2(0, 1 if lowered else 0)
+	var side: Vector2 = facing.orthogonal()
+	for sign_x: float in [-1.0, 1.0]:
+		var horn: Vector2 = (face + side * sign_x * 3.5 - facing * (0.0 if lowered else 1.5)).round()
+		draw_arc(horn, 2.0, 0.0, TAU * 0.8, 8, outline_color, 2.0)
+		draw_arc(horn, 2.0, 0.0, TAU * 0.8, 8, RAM_HORN_COLOR, 1.0)
+	draw_circle(face, 2.6, outline_color)
+	draw_circle(face, 2.0, RAM_FACE_COLOR)
+	if facing.y > -0.5:
+		for sign_x: float in [-1.0, 1.0]:
+			draw_rect(Rect2((face + side * sign_x * 1.0 + Vector2(-0.5, -1.0)).round(), Vector2(1, 1)), RAM_EYE_COLOR)
+
+
+## Embestida: el cuerpo inclinado hacia adelante (la chispa sin carnero, igual que rodar).
+func _draw_charging() -> void:
+	if look != CharacterData.Look.RAM:
+		_draw_rolling()
+		return
+	_draw_ram((Vector2(0, -1) + _charge_direction * 1.5).round(), _charge_direction, true)
 
 
 func _draw_gun() -> void:

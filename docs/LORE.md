@@ -76,6 +76,28 @@ encender y bajar otra vez.
 - **Reglas:** abajo el fuego suelto pone sus propias reglas en algunas salas (Furia, Coraza,
   Contrarreloj, Apagón, Sin Pulso, Frágil); aguantarlas tiene premio.
 
+## Capítulo 2: El monte
+
+Los carneros habían bajado del monte porque arriba se heló todo. Cuando la Fragua volvió a prender,
+el rebaño se quedó en el pueblo, calentito. Pero **Testa**, el carnero más joven y más cabeza dura,
+quiere volver a casa: sube el monte a ver qué lo heló. No rueda, embiste.
+
+1. **Esquiladero.** El galpón donde esquilaban al rebaño cada primavera, al pie del monte. Sin nadie
+   que las use, las tijeras siguen cortando solas; los **ovillos** ruedan por el piso, las
+   **tijeretas** cortan, los **abrojos** escupen espinas y las **polillas** comen lana. En el piso
+   asoman **tijeras**. **Tijerón**: las tijeras grandes de esquilar, que cierran sus hojas sobre
+   cualquier cosa con lana.
+2. **Cantera.** De donde el pueblo sacaba la piedra. Los **pedruscos** esperan a que te pongas en su
+   fila para embestir, los **cuervos** se tiran en picada y los **barrenos** explotan si pasás cerca.
+   **Rey Destronado**: el Rey Carnero, sin corona, que volvió por la revancha contra el rebaño que lo
+   dejó solo. Lo siguen sus carneros fieles; si se enoja, llama a la estampida.
+3. **Ventisquero.** La nieve de arriba no se derrite nunca. **Lobos** que rondan, **témpanos** que se
+   parten en esquirlas y **carámbanos** que caen del techo. **Alud**: la nieve que se juntó arriba y no
+   para de bajar; tira bolas de nieve y encierra a los carneros en rondas de carámbanos.
+4. **Cumbre.** Tormenta. **Nubarrones** que tiran granizo, **soplos** que empujan y **pararrayos**.
+   **Cierzo**: el viento que heló el monte. Sopla toda la sala, tira rayos, escarcha y granizo. Al
+   calmarlo el monte se deshiela y el rebaño puede volver a casa.
+
 ## Título
 
 **Brasa** (la protagonista). Otras opciones que se barajaron: Fragua Honda, La última chispa, Bajo la
@@ -85,6 +107,8 @@ guardado.
 
 ## Dónde está en el juego
 
+- **Intro del capítulo 2:** `intro` de `content/run/chapter_2.tres` (sale la primera vez que se lo
+  elige); su nombre, su línea y los textos del final están en el mismo archivo.
 - **Intro:** `ui/menus/intro_screen.gd` (`IntroScreen.LINES`). Sale la primera vez que se aprieta
   Jugar (`MetaProfile.intro_seen`) y desde Opciones → "Ver la historia". Enter sigue, Esc saltea.
 - **Una línea por piso:** `tagline` de cada `content/floors/floor_N.tres`, debajo del cartel "Piso N ·

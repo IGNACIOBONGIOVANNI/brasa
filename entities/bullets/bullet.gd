@@ -9,6 +9,7 @@ extends Area2D
 ## estáticos, y las balas atravesarían paredes y rocas.
 
 const GROUP: StringName = &"bullets"
+const SCENE_PATH: String = "res://entities/bullets/bullet.tscn"
 const PROJECTILES_GROUP: StringName = &"projectiles"
 const IMPACT_SCENE: PackedScene = preload("res://fx/bullet_impact.tscn")
 ## Distancia a la que una bala teledirigida "ve" enemigos.
@@ -37,6 +38,13 @@ var _trail_points: PackedVector2Array = []
 
 
 ## Crea una bala y la agrega al nodo del grupo "projectiles" (así no se mueve con el tirador).
+## La escena de las balas para los que las crean sueltas (explosiones, golpes de jefe, items). Se carga
+## al pedirla y no con preload: bullet.gd usa Enemy, que usa a varios de esos scripts, y un preload ahí
+## arma una carga circular que deja la escena vacía si lo primero que se carga es una bala.
+static func default_scene() -> PackedScene:
+	return load(SCENE_PATH) as PackedScene
+
+
 static func spawn(tree: SceneTree, scene: PackedScene, shot: ShotSpec, at: Vector2, direction: Vector2,
 		layer: int, mask: int) -> Bullet:
 	var bullet := scene.instantiate() as Bullet

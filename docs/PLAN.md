@@ -246,6 +246,10 @@ avanzan por el piso, zarpazos en la oscuridad, mira láser que obliga a rodar, m
 barre) y la dificultad sube de un jefe al otro. Los enemigos que caminan rodean rocas y fosos, y los
 que embisten ya no se quedan embistiendo contra un foso o una pared.
 
+**Hito 21 — Capítulo 2, "El monte"** (pedido del usuario): un segundo capítulo de cuatro pisos con un
+carnero jugable (Testa, que embiste en vez de rodar), jefes propios (uno es la venganza de un jefe del
+primero: el Rey Destronado), enemigos nuevos y una mecánica nueva (la embestida; también el viento).
+
 **Hito 20 — Guardado de la run** (pedido del usuario): al salir desde la pausa o cerrar el juego, la run
 queda guardada en la sala donde estaba el jugador; "Continuar la run" la sigue. Si salió en medio de
 una pelea, la pelea se repite. También se guarda sola al entrar y al limpiar cada sala.

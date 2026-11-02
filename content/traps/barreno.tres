@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="TrapData" format=3]
+
+[ext_resource type="Script" path="res://data/trap_data.gd" id="1_trap"]
+
+[resource]
+script = ExtResource("1_trap")
+id = &"barreno"
+display_name = "Barreno"
+look = 5
+trigger = 1
+trigger_radius = 18.0
+rest_time = 2.5
+warn_time = 0.7
+active_time = 0.3
+radius = 16.0
+enemy_damage = 12.0
+knockback = 140.0
+color = Color(1, 0.702, 0.3608, 1)
+sfx_id = &"explosion"

@@ -22,6 +22,8 @@ var wins: int = 0
 var total_kills: int = 0
 ## Ya vio la intro de la historia (se muestra la primera vez que se aprieta Jugar).
 var intro_seen: bool = false
+## Capítulos (RunConfig.id) cuya intro ya vio, sin contar el primero (ese es `intro_seen`).
+var seen_intros: Dictionary[StringName, bool] = {}
 
 
 func is_item_available(item: ItemData) -> bool:
@@ -81,6 +83,29 @@ func record_run(record: RunRecord, all_achievements: Array[AchievementData]) -> 
 	return rewards
 
 
+## Repone lo que desbloquean los logros que ya tiene (un logro puede desbloquear algo nuevo en una
+## versión más nueva del juego). Devuelve si cambió algo.
+func sync_unlocks(all_achievements: Array[AchievementData]) -> bool:
+	var changed: bool = false
+	for achievement: AchievementData in all_achievements:
+		if not has_achievement(achievement):
+			continue
+		for item: ItemData in achievement.unlock_items:
+			if not unlocked_items.has(item.id):
+				unlocked_items[item.id] = true
+				changed = true
+		for character: CharacterData in achievement.unlock_characters:
+			if not unlocked_characters.has(character.id):
+				unlocked_characters[character.id] = true
+				changed = true
+	return changed
+
+
+## Si vio la intro del capítulo (la del primero es `intro_seen`).
+func has_seen_intro(chapter_id: StringName, first: bool) -> bool:
+	return intro_seen if first else seen_intros.has(chapter_id)
+
+
 func to_dict() -> Dictionary:
 	return {
 		"version": SaveSchema.VERSION,
@@ -91,6 +116,7 @@ func to_dict() -> Dictionary:
 		"last_character": String(last_character),
 		"totals": {"runs": runs, "wins": wins, "kills": total_kills},
 		"intro_seen": intro_seen,
+		"seen_intros": _ids(seen_intros),
 	}
 
 
@@ -110,6 +136,7 @@ static func from_dict(data: Dictionary) -> MetaProfile:
 		profile.total_kills = maxi(0, _int(totals, "kills"))
 	var intro_value: Variant = data.get("intro_seen")
 	profile.intro_seen = typeof(intro_value) == TYPE_BOOL and intro_value
+	profile.seen_intros = _id_set(data.get("seen_intros"))
 	return profile
 
 

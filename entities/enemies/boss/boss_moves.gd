@@ -26,6 +26,16 @@ static func create(owner_enemy: Enemy, data: BossAttack) -> BossMove:
 			move = SweepMove.new()
 		BossAttack.Kind.MOLTEN:
 			move = MoltenMove.new()
+		BossAttack.Kind.SCISSORS:
+			move = ScissorsMove.new()
+		BossAttack.Kind.STAMPEDE:
+			move = StampedeMove.new()
+		BossAttack.Kind.SNOWBALL:
+			move = SnowballMove.new()
+		BossAttack.Kind.ICE_CAGE:
+			move = IceCageMove.new()
+		BossAttack.Kind.GUST:
+			move = GustMove.new()
 		_:
 			move = VolleyMove.new()
 	move.enemy = owner_enemy

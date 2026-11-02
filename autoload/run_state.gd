@@ -24,6 +24,8 @@ const MAX_COUNT: int = 99
 const ROOM_CLEAR_AMMO: float = 0.25
 
 var character: CharacterData
+## El capítulo que se juega (el del personaje): sus pisos los recorre FloorController.
+var chapter: RunConfig
 var base_stats: StatBlock = StatBlock.new()
 var stats: StatBlock = StatBlock.new()
 var blanks: int = START_BLANKS
@@ -56,7 +58,9 @@ func _ready() -> void:
 ## solo si `profile` los tiene desbloqueados (null = perfil nuevo). Sin `start_item` no le da el item
 ## inicial del personaje (al seguir una run guardada, que ya trae sus items).
 func start_run(run_character: CharacterData = null, profile: MetaProfile = null, start_item: bool = true) -> void:
-	character = run_character if run_character != null else MetaConfig.get_default().default_character()
+	var meta: MetaConfig = MetaConfig.get_default()
+	character = run_character if run_character != null else meta.default_character()
+	chapter = meta.chapter_of(character)
 	base_stats = character.stats.duplicate() as StatBlock
 	floor_index = 0
 	floor_name = ""

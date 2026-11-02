@@ -7,6 +7,7 @@ extends GutTest
 const MAIN_SCENE: PackedScene = preload("res://main/main.tscn")
 const GAME_SCENE: PackedScene = preload("res://main/game.tscn")
 const RUN: RunConfig = preload("res://content/run/run_config.tres")
+const CHAPTER_2: RunConfig = preload("res://content/run/chapter_2.tres")
 const SEED: int = 1234
 
 
@@ -36,7 +37,7 @@ func _boss() -> Enemy:
 
 
 func test_floors_and_bosses_have_their_music() -> void:
-	for theme: FloorTheme in RUN.floors:
+	for theme: FloorTheme in RUN.floors + CHAPTER_2.floors:
 		assert_not_null(theme.music, "%s: tiene tema" % theme.id)
 		assert_not_null(theme.boss_music, "%s: tiene tema de jefe" % theme.id)
 	assert_ne(RUN.floors[0].music, RUN.floors[1].music, "cada piso suena distinto")

@@ -10,7 +10,6 @@ const MAX_DASH_TIME: float = 1.0
 ## Pausa entre embestidas.
 const GAP_TIME: float = 0.2
 const BUMP_TRAUMA: float = 0.4
-const BULLET_SCENE: PackedScene = preload("res://entities/bullets/bullet.tscn")
 
 enum Step { AIM, DASH, GAP }
 
@@ -89,7 +88,7 @@ func _bump() -> void:
 	var spec := ShotSpec.from_pattern(attack.pattern)
 	spec.speed *= enemy.bullet_speed_multiplier
 	for direction: Vector2 in PatternMath.ring(attack.pattern.count, rng().randf() * TAU):
-		Bullet.spawn(enemy.get_tree(), BULLET_SCENE, spec, enemy.global_position + direction * enemy.data.body_radius,
+		Bullet.spawn(enemy.get_tree(), Bullet.default_scene(), spec, enemy.global_position + direction * enemy.data.body_radius,
 				direction, PhysicsLayers.ENEMY_BULLET, PhysicsLayers.WALL | PhysicsLayers.PLAYER_HURTBOX)
 
 

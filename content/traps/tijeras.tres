@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="TrapData" format=3]
+
+[ext_resource type="Script" path="res://data/trap_data.gd" id="1_trap"]
+
+[resource]
+script = ExtResource("1_trap")
+id = &"tijeras"
+display_name = "Tijeras del piso"
+look = 4
+trigger = 0
+rest_time = 1.6
+warn_time = 0.5
+active_time = 0.35
+radius = 7.0
+enemy_damage = 8.0
+color = Color(0.8745, 0.902, 0.9373, 1)
+sfx_id = &"snip"

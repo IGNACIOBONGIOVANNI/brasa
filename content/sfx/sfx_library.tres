@@ -788,6 +788,94 @@ attack = 0.1
 decay_power = 0.6
 volume = 0.3
 
+[sub_resource type="Resource" id="Sfx_ram"]
+script = ExtResource("2_sfx")
+id = &"ram"
+wave = 4
+freq_start = 700.0
+freq_end = 180.0
+duration = 0.22
+attack = 0.0
+decay_power = 1.0
+volume = 0.3
+
+[sub_resource type="Resource" id="Sfx_ram_hit"]
+script = ExtResource("2_sfx")
+id = &"ram_hit"
+wave = 0
+freq_start = 170.0
+freq_end = 55.0
+duration = 0.14
+attack = 0.0
+decay_power = 1.5
+volume = 0.36
+
+[sub_resource type="Resource" id="Sfx_snip"]
+script = ExtResource("2_sfx")
+id = &"snip"
+wave = 3
+freq_start = 1900.0
+freq_end = 900.0
+duration = 0.07
+attack = 0.0
+decay_power = 1.0
+volume = 0.22
+
+[sub_resource type="Resource" id="Sfx_stampede"]
+script = ExtResource("2_sfx")
+id = &"stampede"
+wave = 4
+freq_start = 140.0
+freq_end = 60.0
+duration = 0.7
+attack = 0.05
+decay_power = 0.8
+volume = 0.34
+
+[sub_resource type="Resource" id="Sfx_icicle"]
+script = ExtResource("2_sfx")
+id = &"icicle"
+wave = 1
+freq_start = 2600.0
+freq_end = 1500.0
+duration = 0.12
+attack = 0.0
+decay_power = 1.5
+volume = 0.24
+
+[sub_resource type="Resource" id="Sfx_snowball"]
+script = ExtResource("2_sfx")
+id = &"snowball"
+wave = 4
+freq_start = 220.0
+freq_end = 90.0
+duration = 0.25
+attack = 0.0
+decay_power = 1.0
+volume = 0.26
+
+[sub_resource type="Resource" id="Sfx_gust"]
+script = ExtResource("2_sfx")
+id = &"gust"
+wave = 4
+freq_start = 520.0
+freq_end = 300.0
+duration = 0.8
+attack = 0.25
+decay_power = 0.7
+volume = 0.2
+
+[sub_resource type="Resource" id="Sfx_bolt"]
+script = ExtResource("2_sfx")
+id = &"bolt"
+wave = 4
+freq_start = 3200.0
+freq_end = 180.0
+duration = 0.28
+attack = 0.0
+decay_power = 1.2
+volume = 0.34
+
 [resource]
 script = ExtResource("1_library")
-sounds = Array[ExtResource("2_sfx")]([SubResource("Sfx_shoot"), SubResource("Sfx_bullet_impact"), SubResource("Sfx_enemy_shoot"), SubResource("Sfx_enemy_hit"), SubResource("Sfx_enemy_die"), SubResource("Sfx_player_hurt"), SubResource("Sfx_player_die"), SubResource("Sfx_roll"), SubResource("Sfx_pulse"), SubResource("Sfx_empty"), SubResource("Sfx_telegraph"), SubResource("Sfx_charge"), SubResource("Sfx_door_close"), SubResource("Sfx_door_open"), SubResource("Sfx_room_clear"), SubResource("Sfx_pickup_coin"), SubResource("Sfx_pickup"), SubResource("Sfx_pickup_heart"), SubResource("Sfx_bomb_place"), SubResource("Sfx_explosion"), SubResource("Sfx_rock_break"), SubResource("Sfx_secret_found"), SubResource("Sfx_item_pickup"), SubResource("Sfx_buy"), SubResource("Sfx_unlock"), SubResource("Sfx_reload"), SubResource("Sfx_weapon_swap"), SubResource("Sfx_laser"), SubResource("Sfx_active_use"), SubResource("Sfx_active_ready"), SubResource("Sfx_boss_phase"), SubResource("Sfx_boss_die"), SubResource("Sfx_exit_open"), SubResource("Sfx_ui_select"), SubResource("Sfx_pause"), SubResource("Sfx_achievement"), SubResource("Sfx_lightning"), SubResource("Sfx_crossbow"), SubResource("Sfx_heartbeat"), SubResource("Sfx_boss_intro"), SubResource("Sfx_victory"), SubResource("Sfx_defeat"), SubResource("Sfx_medkit"), SubResource("Sfx_orb_throw"), SubResource("Sfx_revive"), SubResource("Sfx_hop"), SubResource("Sfx_beam"), SubResource("Sfx_burrow"), SubResource("Sfx_summon"), SubResource("Sfx_lob"), SubResource("Sfx_shield_block"), SubResource("Sfx_grenade"), SubResource("Sfx_rocket"), SubResource("Sfx_sniper"), SubResource("Sfx_rail_charge"), SubResource("Sfx_rail"), SubResource("Sfx_rule"), SubResource("Sfx_altar"), SubResource("Sfx_well"), SubResource("Sfx_trap_warn"), SubResource("Sfx_trap_spikes"), SubResource("Sfx_trap_gas"), SubResource("Sfx_trap_pop"), SubResource("Sfx_trap_fire"), SubResource("Sfx_mech_board"), SubResource("Sfx_mech_eject"), SubResource("Sfx_mech_break"), SubResource("Sfx_rumble"), SubResource("Sfx_debris"), SubResource("Sfx_root"), SubResource("Sfx_claw"), SubResource("Sfx_molten"), SubResource("Sfx_aim"), SubResource("Sfx_leap"), SubResource("Sfx_darkness")])
+sounds = Array[ExtResource("2_sfx")]([SubResource("Sfx_shoot"), SubResource("Sfx_bullet_impact"), SubResource("Sfx_enemy_shoot"), SubResource("Sfx_enemy_hit"), SubResource("Sfx_enemy_die"), SubResource("Sfx_player_hurt"), SubResource("Sfx_player_die"), SubResource("Sfx_roll"), SubResource("Sfx_pulse"), SubResource("Sfx_empty"), SubResource("Sfx_telegraph"), SubResource("Sfx_charge"), SubResource("Sfx_door_close"), SubResource("Sfx_door_open"), SubResource("Sfx_room_clear"), SubResource("Sfx_pickup_coin"), SubResource("Sfx_pickup"), SubResource("Sfx_pickup_heart"), SubResource("Sfx_bomb_place"), SubResource("Sfx_explosion"), SubResource("Sfx_rock_break"), SubResource("Sfx_secret_found"), SubResource("Sfx_item_pickup"), SubResource("Sfx_buy"), SubResource("Sfx_unlock"), SubResource("Sfx_reload"), SubResource("Sfx_weapon_swap"), SubResource("Sfx_laser"), SubResource("Sfx_active_use"), SubResource("Sfx_active_ready"), SubResource("Sfx_boss_phase"), SubResource("Sfx_boss_die"), SubResource("Sfx_exit_open"), SubResource("Sfx_ui_select"), SubResource("Sfx_pause"), SubResource("Sfx_achievement"), SubResource("Sfx_lightning"), SubResource("Sfx_crossbow"), SubResource("Sfx_heartbeat"), SubResource("Sfx_boss_intro"), SubResource("Sfx_victory"), SubResource("Sfx_defeat"), SubResource("Sfx_medkit"), SubResource("Sfx_orb_throw"), SubResource("Sfx_revive"), SubResource("Sfx_hop"), SubResource("Sfx_beam"), SubResource("Sfx_burrow"), SubResource("Sfx_summon"), SubResource("Sfx_lob"), SubResource("Sfx_shield_block"), SubResource("Sfx_grenade"), SubResource("Sfx_rocket"), SubResource("Sfx_sniper"), SubResource("Sfx_rail_charge"), SubResource("Sfx_rail"), SubResource("Sfx_rule"), SubResource("Sfx_altar"), SubResource("Sfx_well"), SubResource("Sfx_trap_warn"), SubResource("Sfx_trap_spikes"), SubResource("Sfx_trap_gas"), SubResource("Sfx_trap_pop"), SubResource("Sfx_trap_fire"), SubResource("Sfx_mech_board"), SubResource("Sfx_mech_eject"), SubResource("Sfx_mech_break"), SubResource("Sfx_rumble"), SubResource("Sfx_debris"), SubResource("Sfx_root"), SubResource("Sfx_claw"), SubResource("Sfx_molten"), SubResource("Sfx_aim"), SubResource("Sfx_leap"), SubResource("Sfx_darkness"), SubResource("Sfx_ram"), SubResource("Sfx_ram_hit"), SubResource("Sfx_snip"), SubResource("Sfx_stampede"), SubResource("Sfx_icicle"), SubResource("Sfx_snowball"), SubResource("Sfx_gust"), SubResource("Sfx_bolt")])

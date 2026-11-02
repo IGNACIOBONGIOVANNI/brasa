@@ -98,6 +98,7 @@ func slot_info(slot_index: int) -> SaveSlots.Info:
 		if slots == null or not slots.is_used(slot_index):
 			return info
 		slot_profile = MetaProfile.from_dict(slots.read(slot_index))
+		slot_profile.sync_unlocks(config.achievements)
 	info.used = slot_index != slot or _store_has_file()
 	info.completion = completion_of(slot_profile)
 	info.runs = slot_profile.runs
@@ -148,6 +149,9 @@ func open(save_path: String) -> void:
 				_run_store = null
 		if not data.is_empty():
 			profile = MetaProfile.from_dict(data)
+			# Un logro viejo puede desbloquear algo nuevo (Fragua encendida → Testa): se repone y se guarda.
+			if profile.sync_unlocks(config.achievements):
+				save()
 	profile_changed.emit()
 
 
@@ -230,11 +234,31 @@ func select_character(character: CharacterData) -> void:
 	_changed()
 
 
-func mark_intro_seen() -> void:
-	if profile.intro_seen:
-		return
-	profile.intro_seen = true
+## La intro de ese capítulo (null = la del primero) queda vista.
+func mark_intro_seen(chapter: RunConfig = null) -> void:
+	if chapter == null or chapter == config.chapters[0]:
+		if profile.intro_seen:
+			return
+		profile.intro_seen = true
+	else:
+		if profile.seen_intros.has(chapter.id):
+			return
+		profile.seen_intros[chapter.id] = true
 	_changed()
+
+
+## Si la partida abierta ya vio la intro de ese capítulo.
+func has_seen_intro(chapter: RunConfig) -> bool:
+	return profile.has_seen_intro(chapter.id, chapter == config.chapters[0])
+
+
+## Los capítulos que se pueden jugar en la partida abierta, en orden.
+func available_chapters() -> Array[RunConfig]:
+	var result: Array[RunConfig] = []
+	for chapter: RunConfig in config.chapters:
+		if config.is_chapter_available(chapter, profile):
+			result.append(chapter)
+	return result
 
 
 func set_volume(volume: float) -> void:

@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="2_pattern_script"]
+[ext_resource type="Resource" path="res://content/patterns/polilla_polvo.tres" id="p0"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"polilla"
+display_name = "Polilla"
+template_char = "P"
+max_health = 7.0
+move_style = 3
+move_speed = 45.0
+preferred_distance = 70.0
+attack_kind = 1
+attack_range = 150.0
+attack_cooldown = 1.7
+telegraph_time = 0.45
+recover_time = 0.5
+body_radius = 4.0
+hurtbox_radius = 6.0
+visual_style = 16
+visual_radius = 6.0
+body_color = Color(0.7843, 0.7059, 0.5412, 1)
+patterns = Array[ExtResource("2_pattern_script")]([ExtResource("p0")])

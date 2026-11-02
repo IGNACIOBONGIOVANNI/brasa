@@ -4,7 +4,6 @@ extends RefCounted
 ## sacudida; lastima al jugador si está dentro del radio (rodando no) y suelta un anillo de balas (el
 ## patrón que se le pase, si hay).
 
-const BULLET_SCENE: PackedScene = preload("res://entities/bullets/bullet.tscn")
 const WAVE_SCENE: PackedScene = preload("res://fx/pulse_wave.tscn")
 const BURST_SCENE: PackedScene = preload("res://fx/burst.tscn")
 const LIGHT_FLASH_SCENE: PackedScene = preload("res://fx/light_flash.tscn")
@@ -43,5 +42,5 @@ static func explode(tree: SceneTree, at: Vector2, radius: float, damage: float, 
 	var spec := ShotSpec.from_pattern(pattern)
 	spec.speed *= speed_multiplier
 	for direction: Vector2 in PatternMath.ring(pattern.count, deg_to_rad(pattern.angle_offset_degrees)):
-		Bullet.spawn(tree, BULLET_SCENE, spec, at + direction * REACH, direction, PhysicsLayers.ENEMY_BULLET,
+		Bullet.spawn(tree, Bullet.default_scene(), spec, at + direction * REACH, direction, PhysicsLayers.ENEMY_BULLET,
 				PhysicsLayers.WALL | PhysicsLayers.PLAYER_HURTBOX)

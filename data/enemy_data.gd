@@ -4,13 +4,18 @@ extends Resource
 ## Todos usan la misma escena (enemy.tscn) y los mismos estados; estos datos eligen el comportamiento.
 ## Movimiento: CHASE (persigue), KEEP_DISTANCE (mantiene distancia), HOP (a saltos), FLY (vuela en
 ## círculos alrededor del jugador, por arriba de los fosos), STAY (quieto), BURROW (bajo tierra,
-## invulnerable, y asoma para atacar) y PHASE (se vuelve fantasma un rato: ni pega ni recibe).
-## Ataque: CHARGE (embestida), SHOOT (patrones de balas), BEAM (rayo que avisa la línea), EXPLODE
-## (explota y muere), SUMMON (invoca otros enemigos) y LOB (tira bolas que caen donde estabas).
+## invulnerable, y asoma para atacar), PHASE (se vuelve fantasma un rato: ni pega ni recibe), BOUNCE
+## (rueda derecho y rebota en paredes, rocas y fosos) y PROWL (ronda al jugador en círculos, por el
+## piso: los fosos lo frenan).
+## Ataque: CHARGE (embestida; con `charge_axis_only`, solo en línea recta cuando el jugador queda
+## alineado), SHOOT (patrones de balas), BEAM (rayo que avisa la línea), EXPLODE (explota y muere),
+## SUMMON (invoca otros enemigos), LOB (tira bolas que caen donde estabas), SLASH (un tajo corto
+## adelante, con un saltito) y GUST (sopla: empuja al jugador para atrás).
 
-enum MoveStyle { CHASE, KEEP_DISTANCE, HOP, FLY, STAY, BURROW, PHASE }
-enum AttackKind { CHARGE, SHOOT, BEAM, EXPLODE, SUMMON, LOB }
-enum VisualStyle { HORNED, EYE, LANTERN, SPORE, BLOCK, SLIME, BAT, FUSE, NEST, MOLE, WISP, SHIELD, MORTAR }
+enum MoveStyle { CHASE, KEEP_DISTANCE, HOP, FLY, STAY, BURROW, PHASE, BOUNCE, PROWL }
+enum AttackKind { CHARGE, SHOOT, BEAM, EXPLODE, SUMMON, LOB, SLASH, GUST }
+enum VisualStyle { HORNED, EYE, LANTERN, SPORE, BLOCK, SLIME, BAT, FUSE, NEST, MOLE, WISP, SHIELD, MORTAR,
+		YARN, SHEARS, BURR, MOTH, BOULDER, CROW, WOLF, ICE, CLOUD, GALE, DETHRONED, AVALANCHE }
 
 @export var id: StringName = &""
 @export var display_name: String = ""
@@ -48,16 +53,21 @@ enum VisualStyle { HORNED, EYE, LANTERN, SPORE, BLOCK, SLIME, BAT, FUSE, NEST, M
 @export var telegraph_time: float = 0.5
 ## Pausa después de atacar.
 @export var recover_time: float = 0.6
+## CHARGE: px por segundo y cuánto dura. SLASH: el saltito hacia adelante. GUST: con cuánta fuerza
+## empuja (px por segundo).
 @export var charge_speed: float = 200.0
 @export var charge_time: float = 0.4
+## CHARGE solo cuando el jugador queda en la misma fila o columna: va derecho por ese eje hasta chocar
+## (y rompe las rocas que choca).
+@export var charge_axis_only: bool = false
 ## Patrones que dispara (SHOOT): uno por ataque, en orden. EXPLODE y LOB sueltan el primero (un
 ## anillo) donde explotan.
 @export var patterns: Array[BulletPatternData] = []
-## BEAM, EXPLODE y LOB: daño del rayo o de la explosión, en medios corazones.
+## BEAM, EXPLODE, LOB y SLASH: daño del rayo, de la explosión o del tajo, en medios corazones.
 @export var attack_damage: float = 1.0
-## BEAM: segundos que dura el rayo.
+## BEAM y GUST: segundos que dura el rayo o el soplido.
 @export var beam_time: float = 0.5
-## EXPLODE y LOB: radio de la explosión.
+## EXPLODE y LOB: radio de la explosión. SLASH: medio largo del tajo.
 @export var blast_radius: float = 24.0
 ## LOB: segundos que tarda en caer la bola.
 @export var lob_time: float = 0.9
@@ -70,6 +80,8 @@ enum VisualStyle { HORNED, EYE, LANTERN, SPORE, BLOCK, SLIME, BAT, FUSE, NEST, M
 ## Se divide en `split_count` copias de `split_into` (las babosas). Cada una puede dividirse de nuevo.
 @export var split_into: EnemyData
 @export var split_count: int = 2
+## Balas que suelta al morir (un anillo con `count` balas), como un témpano que se parte.
+@export var death_pattern: BulletPatternData
 
 @export_group("Escudo")
 ## Ancho del escudo frontal, en grados (0 = sin escudo). Mientras camina o avisa frena las balas y los

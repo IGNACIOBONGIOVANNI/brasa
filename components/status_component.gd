@@ -41,7 +41,6 @@ const TINTS: Dictionary[Kind, Color] = {
 	Kind.CORRUPT: Color(0.86, 0.68, 1.0),
 	Kind.DOUSE: Color(0.66, 0.76, 0.95),
 }
-const BULLET_SCENE: PackedScene = preload("res://entities/bullets/bullet.tscn")
 
 @export var health: HealthComponent
 @export var hurtbox: HurtboxComponent
@@ -174,7 +173,7 @@ static func _burst(tree: SceneTree, at: Vector2, damage: float) -> void:
 	spec.radius = 2.5
 	spec.color = COLORS[Kind.CORRUPT]
 	for direction: Vector2 in PatternMath.ring(CORRUPT_BURST, 0.0):
-		Bullet.spawn(tree, BULLET_SCENE, spec, at + direction * 6.0, direction, PhysicsLayers.PLAYER_BULLET,
+		Bullet.spawn(tree, Bullet.default_scene(), spec, at + direction * 6.0, direction, PhysicsLayers.PLAYER_BULLET,
 				PhysicsLayers.WALL | PhysicsLayers.ENEMY_HURTBOX)
 
 

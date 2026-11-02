@@ -27,10 +27,25 @@ extends Resource
 ##   por dónde empieza.
 ## - MOLTEN: `count` charcos de metal fundido cerca del jugador (el primero donde está); avisan
 ##   `warn_time` s, queman en `radius` y quedan `linger` s lastimando a quien los pise.
+## - SCISSORS: dos hojas (rayos) que salen del jefe abiertas `spread` grados alrededor del jugador y
+##   se cierran a `speed` grados por segundo; antes se ven `warn_time` s. Hay que salirse de entre las
+##   hojas o rodar a través de una. `count` cortes seguidos.
+## - STAMPEDE: una manada cruza la sala: `count` oleadas, una cada `interval` s, de franjas de punta a
+##   punta (horizontales y verticales alternadas) con un hueco libre cerca del jugador. Cada franja
+##   avisa `warn_time` s y lastima `linger` s mientras pasa la manada.
+## - SNOWBALL: `count` bolas de nieve gigantes (una cada `interval` s) que ruedan hacia el jugador a
+##   `speed` px/s, rebotan en las paredes, rompen rocas, crecen desde `radius` y duran `linger` s.
+## - ICE_CAGE: `count` carámbanos caen en ronda alrededor del jugador (a `spread` px), con un hueco de
+##   dos hacia el medio de la sala; quedan clavados `linger` s y en el medio cae uno enorme (avisa el
+##   doble de `warn_time` y suelta `pattern`): hay que salir por el hueco.
+## - GUST: sopla por toda la sala `linger` s (después de `warn_time` s de aviso) y empuja al jugador a
+##   `speed` px/s hacia donde está, de a ejes; mientras, tira `pattern` cada `interval` s.
+## DEBRIS usa `look` para lo que cae (piedras, carámbanos, rayos).
 
-enum Kind { VOLLEY, DEBRIS, FRAG_BOMBS, DARK_CLAWS, SNIPE, LEAP, CHARGES, SUMMON, GROUND_LINES, SWEEP, MOLTEN }
+enum Kind { VOLLEY, DEBRIS, FRAG_BOMBS, DARK_CLAWS, SNIPE, LEAP, CHARGES, SUMMON, GROUND_LINES, SWEEP, MOLTEN,
+		SCISSORS, STAMPEDE, SNOWBALL, ICE_CAGE, GUST }
 ## Cómo se ve un golpe avisado (BossStrike).
-enum Look { STONE, ROOT, CLAW, EMBER }
+enum Look { STONE, ROOT, CLAW, EMBER, BLADE, ICE, BOLT, HOOVES }
 
 @export var id: StringName = &""
 ## Nombre del movimiento (para la documentación y el menú de debug).

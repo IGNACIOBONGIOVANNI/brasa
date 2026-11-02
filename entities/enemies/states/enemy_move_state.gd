@@ -4,8 +4,11 @@ extends State
 ## Telegraph (el aviso) antes de atacar. CHASE persigue, KEEP_DISTANCE mantiene la distancia, HOP
 ## avanza a saltos, FLY vuela en círculos alrededor del jugador, STAY no se mueve, BURROW persigue bajo
 ## tierra (asoma recién al atacar) y PHASE persigue alternando entre sólido y fantasma (solo ataca
-## sólido). Los que caminan rodean rocas y fosos (Enemy.route_direction) y los que embisten solo
-## avisan si tienen el camino libre: así no se quedan embistiendo contra un foso o una roca.
+## sólido), BOUNCE rueda derecho rebotando en paredes, rocas y fosos y PROWL ronda al jugador por el
+## piso (si algo tapa el camino, lo rodea). Los que caminan rodean rocas y fosos
+## (Enemy.route_direction) y los que embisten solo avisan si tienen el camino libre: así no se quedan
+## embistiendo contra un foso o una roca. Los que embisten en línea recta (`charge_axis_only`) esperan
+## a que el jugador quede en su fila o columna.
 ## Un jefe con movimientos propios pasa a BossAttack en vez de Telegraph.
 
 ## Margen alrededor de preferred_distance donde se mueve de costado en vez de acercarse o alejarse.
@@ -17,6 +20,8 @@ const HOP_BURST: float = 3.2
 const ORBIT_SPEED: float = 1.3
 const FLUTTER: float = 0.5
 const FLUTTER_SPEED: float = 7.0
+## charge_axis_only: cuánto puede estar corrido el jugador de la fila o la columna (px).
+const AXIS_TOLERANCE: float = 10.0
 
 var _cooldown: float = 0.0
 var _strafe_sign: float = 1.0
@@ -24,6 +29,8 @@ var _hop_left: float = 0.0
 var _orbit_angle: float = 0.0
 var _phase_left: float = 0.0
 var _time: float = 0.0
+## BOUNCE: hacia dónde rueda (queda entre ataque y ataque).
+var _roll_direction: Vector2 = Vector2.ZERO
 
 @onready var enemy: Enemy = owner as Enemy
 
@@ -62,6 +69,13 @@ func physics_update(delta: float) -> void:
 			_hop(enemy.route_direction(delta), delta)
 		EnemyData.MoveStyle.FLY:
 			_fly(delta)
+		EnemyData.MoveStyle.PROWL:
+			if enemy.has_clear_path(enemy.target.global_position):
+				_fly(delta)
+			else:
+				enemy.move_toward_velocity(enemy.route_direction(delta) * enemy.behavior.move_speed, delta)
+		EnemyData.MoveStyle.BOUNCE:
+			_bounce(offset)
 		EnemyData.MoveStyle.STAY:
 			enemy.move_toward_velocity(Vector2.ZERO, delta)
 		_:
@@ -84,7 +98,27 @@ func _is_ghost() -> bool:
 func _can_attack() -> bool:
 	if enemy.behavior.attack_kind != EnemyData.AttackKind.CHARGE or enemy.has_boss_attacks():
 		return true
+	if enemy.behavior.charge_axis_only:
+		# Las rocas las rompe: solo un foso en el medio lo frena.
+		var offset: Vector2 = enemy.to_target()
+		if absf(offset.x) > AXIS_TOLERANCE and absf(offset.y) > AXIS_TOLERANCE:
+			return false
+		return enemy.has_clear_path(enemy.target.global_position, PhysicsLayers.PIT)
 	return enemy.has_clear_path(enemy.target.global_position)
+
+
+## Rueda derecho a move_speed; al chocar algo rebota. Arranca en diagonal, más o menos hacia el
+## jugador.
+func _bounce(offset: Vector2) -> void:
+	if _roll_direction == Vector2.ZERO:
+		_roll_direction = Vector2(1.0 if offset.x >= 0.0 else -1.0, 1.0 if offset.y >= 0.0 else -1.0).normalized()
+	enemy.move_velocity = _roll_direction * enemy.behavior.move_speed
+	enemy.apply_velocity()
+	if enemy.get_slide_collision_count() > 0:
+		var normal: Vector2 = enemy.get_slide_collision(0).get_normal()
+		if _roll_direction.dot(normal) < 0.0:
+			_roll_direction = _roll_direction.bounce(normal).normalized()
+	enemy.visual.set_look(_roll_direction)
 
 
 ## `toward`: hacia el jugador, rodeando lo que tape el camino.

@@ -1,0 +1,189 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://data/boss_phase.gd" id="3_phase"]
+[ext_resource type="Script" path="res://data/boss_attack.gd" id="4_attack"]
+[ext_resource type="Resource" path="res://content/patterns/destronado_cascotes.tres" id="x0"]
+[ext_resource type="Resource" path="res://content/patterns/destronado_clavos.tres" id="x1"]
+[ext_resource type="Resource" path="res://content/enemies/carnero.tres" id="x2"]
+
+[sub_resource type="Resource" id="Attack_embestidas"]
+script = ExtResource("4_attack")
+id = &"embestidas"
+display_name = "Embestidas"
+kind = 6
+windup = 0.6
+recover = 0.9
+count = 3
+warn_time = 0.55
+speed = 250.0
+
+[sub_resource type="Resource" id="Attack_derrumbe"]
+script = ExtResource("4_attack")
+id = &"derrumbe"
+display_name = "Derrumbe"
+kind = 1
+windup = 0.65
+recover = 0.8
+count = 5
+interval = 0.2
+warn_time = 0.85
+radius = 12.0
+spread = 50.0
+pattern = ExtResource("x0")
+
+[sub_resource type="Resource" id="Attack_clavos_sueltos"]
+script = ExtResource("4_attack")
+id = &"clavos_sueltos"
+display_name = "Clavos sueltos"
+kind = 2
+windup = 0.6
+recover = 0.8
+count = 3
+interval = 0.25
+warn_time = 1.0
+radius = 18.0
+spread = 55.0
+pattern = ExtResource("x1")
+
+[sub_resource type="Resource" id="Attack_estampida"]
+script = ExtResource("4_attack")
+id = &"estampida"
+display_name = "Estampida"
+kind = 12
+windup = 0.65
+recover = 1.0
+count = 2
+interval = 1.1
+warn_time = 0.9
+linger = 0.45
+damage = 1.0
+
+[sub_resource type="Resource" id="Attack_lluvia_clavos"]
+script = ExtResource("4_attack")
+id = &"lluvia_clavos"
+display_name = "Lluvia de clavos"
+kind = 2
+windup = 0.6
+recover = 0.8
+count = 4
+interval = 0.22
+warn_time = 0.95
+radius = 18.0
+spread = 60.0
+pattern = ExtResource("x1")
+
+[sub_resource type="Resource" id="Attack_fieles"]
+script = ExtResource("4_attack")
+id = &"fieles"
+display_name = "Los fieles"
+kind = 7
+windup = 0.6
+recover = 0.6
+count = 2
+cap = 3
+summon = ExtResource("x2")
+
+[sub_resource type="Resource" id="Attack_gran_estampida"]
+script = ExtResource("4_attack")
+id = &"gran_estampida"
+display_name = "Gran estampida"
+kind = 12
+windup = 0.55
+recover = 0.9
+count = 3
+interval = 0.95
+warn_time = 0.8
+linger = 0.45
+damage = 1.0
+
+[sub_resource type="Resource" id="Attack_embestidas_furia"]
+script = ExtResource("4_attack")
+id = &"embestidas_furia"
+display_name = "Embestidas de furia"
+kind = 6
+windup = 0.5
+recover = 0.8
+count = 4
+warn_time = 0.45
+speed = 290.0
+pattern = ExtResource("x0")
+
+[sub_resource type="Resource" id="Attack_tormenta_clavos"]
+script = ExtResource("4_attack")
+id = &"tormenta_clavos"
+display_name = "Tormenta de clavos"
+kind = 2
+windup = 0.5
+recover = 0.8
+count = 6
+interval = 0.16
+warn_time = 0.9
+radius = 18.0
+spread = 70.0
+pattern = ExtResource("x1")
+
+[sub_resource type="Resource" id="Behavior_0"]
+script = ExtResource("1_enemy")
+id = &"rey_destronado_fase_1"
+move_style = 0
+move_speed = 45.0
+acceleration = 500.0
+attack_range = 300.0
+attack_cooldown = 1.25
+recover_time = 0.8
+
+[sub_resource type="Resource" id="Phase_0"]
+script = ExtResource("3_phase")
+health_fraction = 1.0
+behavior = SubResource("Behavior_0")
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_embestidas"), SubResource("Attack_derrumbe"), SubResource("Attack_clavos_sueltos")])
+
+[sub_resource type="Resource" id="Behavior_1"]
+script = ExtResource("1_enemy")
+id = &"rey_destronado_fase_2"
+move_style = 0
+move_speed = 50.0
+acceleration = 500.0
+attack_range = 300.0
+attack_cooldown = 1.05
+recover_time = 0.7
+
+[sub_resource type="Resource" id="Phase_1"]
+script = ExtResource("3_phase")
+health_fraction = 0.65
+behavior = SubResource("Behavior_1")
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_estampida"), SubResource("Attack_lluvia_clavos"), SubResource("Attack_fieles")])
+
+[sub_resource type="Resource" id="Behavior_2"]
+script = ExtResource("1_enemy")
+id = &"rey_destronado_fase_3"
+move_style = 0
+move_speed = 58.0
+acceleration = 600.0
+attack_range = 300.0
+attack_cooldown = 0.9
+recover_time = 0.6
+
+[sub_resource type="Resource" id="Phase_2"]
+script = ExtResource("3_phase")
+health_fraction = 0.3
+behavior = SubResource("Behavior_2")
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_gran_estampida"), SubResource("Attack_embestidas_furia"), SubResource("Attack_tormenta_clavos")])
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"rey_destronado"
+display_name = "Rey Destronado"
+epithet = "Volvió sin corona, y viene por la revancha"
+template_char = "D"
+max_health = 230.0
+visual_style = 23
+visual_radius = 15.0
+body_color = Color(0.4196, 0.1647, 0.1333, 1)
+contact_damage = 1.0
+spawn_delay = 1.2
+knockback_resistance = 0.9
+body_radius = 11.0
+hurtbox_radius = 14.0
+phases = Array[ExtResource("3_phase")]([SubResource("Phase_0"), SubResource("Phase_1"), SubResource("Phase_2")])

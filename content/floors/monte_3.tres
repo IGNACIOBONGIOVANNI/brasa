@@ -1,0 +1,89 @@
+[gd_resource type="Resource" script_class="FloorTheme" format=3]
+
+[ext_resource type="Script" path="res://data/floor_theme.gd" id="1_theme"]
+[ext_resource type="Script" path="res://data/room_template.gd" id="2_template_script"]
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="3_enemy_script"]
+[ext_resource type="Script" path="res://data/pickup_data.gd" id="4_pickup_script"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/inicio.tres" id="s0"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/tesoro.tres" id="s1"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/tienda.tres" id="s2"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/secreta.tres" id="s3"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/altar.tres" id="s4"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/pozo.tres" id="s5"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/galpon.tres" id="s6"]
+[ext_resource type="Resource" path="res://content/rooms/monte_3/jefe_alud.tres" id="r0"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_entrada.tres" id="r1"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_tablones.tres" id="r2"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_abrojos.tres" id="r3"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_fardos.tres" id="r4"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_esquila.tres" id="r5"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_lana.tres" id="r6"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_tijeras.tres" id="r7"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_cruce.tres" id="r8"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_taller.tres" id="r9"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_madeja.tres" id="r10"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_trampas.tres" id="r11"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_pasillo.tres" id="r12"]
+[ext_resource type="Resource" path="res://content/rooms/monte_2/can_vagones.tres" id="r13"]
+[ext_resource type="Resource" path="res://content/rooms/monte_2/can_cuervos.tres" id="r14"]
+[ext_resource type="Resource" path="res://content/rooms/monte_2/can_barrenos.tres" id="r15"]
+[ext_resource type="Resource" path="res://content/rooms/monte_2/can_derrumbe.tres" id="r16"]
+[ext_resource type="Resource" path="res://content/rooms/monte_2/can_cantera.tres" id="r17"]
+[ext_resource type="Resource" path="res://content/rooms/monte_2/can_pozo_seco.tres" id="r18"]
+[ext_resource type="Resource" path="res://content/rooms/monte_3/ven_manada.tres" id="r19"]
+[ext_resource type="Resource" path="res://content/rooms/monte_3/ven_hielos.tres" id="r20"]
+[ext_resource type="Resource" path="res://content/rooms/monte_3/ven_carambanos.tres" id="r21"]
+[ext_resource type="Resource" path="res://content/rooms/monte_3/ven_grietas.tres" id="r22"]
+[ext_resource type="Resource" path="res://content/rooms/monte_3/ven_cumbrera.tres" id="r23"]
+[ext_resource type="Resource" path="res://content/rooms/monte_3/ven_ventisca.tres" id="r24"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_prueba.tres" id="r25"]
+[ext_resource type="Resource" path="res://content/rooms/monte_2/can_prueba.tres" id="r26"]
+[ext_resource type="Resource" path="res://content/rooms/monte_3/ven_prueba.tres" id="r27"]
+[ext_resource type="Resource" path="res://content/enemies/ovillo.tres" id="e0"]
+[ext_resource type="Resource" path="res://content/enemies/tijereta.tres" id="e1"]
+[ext_resource type="Resource" path="res://content/enemies/abrojo.tres" id="e2"]
+[ext_resource type="Resource" path="res://content/enemies/polilla.tres" id="e3"]
+[ext_resource type="Resource" path="res://content/enemies/pedrusco.tres" id="e4"]
+[ext_resource type="Resource" path="res://content/enemies/cuervo.tres" id="e5"]
+[ext_resource type="Resource" path="res://content/enemies/carnero.tres" id="e6"]
+[ext_resource type="Resource" path="res://content/enemies/lobo.tres" id="e7"]
+[ext_resource type="Resource" path="res://content/enemies/tempano.tres" id="e8"]
+[ext_resource type="Resource" path="res://content/enemies/alud.tres" id="e9"]
+[ext_resource type="Resource" path="res://content/pickups/coin.tres" id="p_coin"]
+[ext_resource type="Resource" path="res://content/pickups/heart.tres" id="p_heart"]
+[ext_resource type="Resource" path="res://content/pickups/bomb.tres" id="p_bomb"]
+[ext_resource type="Resource" path="res://content/pickups/key.tres" id="p_key"]
+[ext_resource type="AudioStream" path="res://content/music/monte_3.wav" id="m_music"]
+[ext_resource type="AudioStream" path="res://content/music/boss_monte.wav" id="m_boss"]
+[ext_resource type="Resource" path="res://content/traps/carambano.tres" id="trap"]
+
+[resource]
+script = ExtResource("1_theme")
+id = &"monte_3"
+display_name = "Ventisquero"
+tagline = "La nieve de arriba no se derrite nunca."
+ambient_light = Color(0.62, 0.7, 0.82, 1)
+mote_color = Color(0.95, 0.97, 1, 0.85)
+mote_velocity = Vector2(-6, 16)
+mote_amount = 40
+room_count_min = 10
+room_count_max = 12
+min_boss_distance = 5
+enemy_health_mult = 2.1
+enemy_bullet_speed_mult = 1.3
+difficulty_bonus = 2
+floor_color = Color(0.3608, 0.4196, 0.502, 1)
+floor_checker_color = Color(0.3882, 0.451, 0.5294, 1)
+wall_color = Color(0.2392, 0.2941, 0.3882, 1)
+outline_color = Color(0.102, 0.1294, 0.2, 1)
+rock_color = Color(0.7216, 0.8, 0.8784, 1)
+pit_color = Color(0.07843, 0.1216, 0.2, 1)
+music = ExtResource("m_music")
+boss_music = ExtResource("m_boss")
+templates = Array[ExtResource("2_template_script")]([ExtResource("s0"), ExtResource("s1"), ExtResource("s2"), ExtResource("s3"), ExtResource("s4"), ExtResource("s5"), ExtResource("s6"), ExtResource("r0"), ExtResource("r1"), ExtResource("r2"), ExtResource("r3"), ExtResource("r4"), ExtResource("r5"), ExtResource("r6"), ExtResource("r7"), ExtResource("r8"), ExtResource("r9"), ExtResource("r10"), ExtResource("r11"), ExtResource("r12"), ExtResource("r13"), ExtResource("r14"), ExtResource("r15"), ExtResource("r16"), ExtResource("r17"), ExtResource("r18"), ExtResource("r19"), ExtResource("r20"), ExtResource("r21"), ExtResource("r22"), ExtResource("r23"), ExtResource("r24"), ExtResource("r25"), ExtResource("r26"), ExtResource("r27")])
+enemies = Array[ExtResource("3_enemy_script")]([ExtResource("e0"), ExtResource("e1"), ExtResource("e2"), ExtResource("e3"), ExtResource("e4"), ExtResource("e5"), ExtResource("e6"), ExtResource("e7"), ExtResource("e8"), ExtResource("e9")])
+pickups = Array[ExtResource("4_pickup_script")]([ExtResource("p_coin"), ExtResource("p_heart"), ExtResource("p_bomb"), ExtResource("p_key")])
+extra_rooms = Array[int]([6, 7, 8, 9])
+extra_room_count = 2
+rule_chance = 0.35
+trap = ExtResource("trap")

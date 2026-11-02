@@ -14,6 +14,11 @@ static func songs() -> Dictionary[StringName, ChipTune.Song]:
 		&"floor_3": roots(),
 		&"floor_4": forge(),
 		&"boss": boss(),
+		&"monte_1": shearing(),
+		&"monte_2": quarry(),
+		&"monte_3": snowfield(),
+		&"monte_4": summit(),
+		&"boss_monte": mountain_boss(),
 	}
 
 
@@ -296,4 +301,177 @@ static func boss() -> ChipTune.Song:
 		v7 c4 [v5 o8 v3 h8]3 | [[v5 o8 v3 h8]4 |]7
 		v7 c4 [v5 h16 v3 h16]6 | [[v5 h16 v3 h16]8 |]7
 	""", 1.0)
+	return song
+
+
+## Esquiladero (monte, piso 1): sol mayor a 132, polka de pueblo con el bombo en el 1 y el 3. Bajo
+## que salta de la fundamental a la quinta y acordes de chip a contratiempo. A: Sol Re Mim Do Sol Re
+## Mim Sol · B: Do Re Sol Re Do Sol Re Sol.
+static func shearing() -> ChipTune.Song:
+	var song := ChipTune.Song.new(132.0)
+	song.pulse("""
+		o5 v11 q6 ~1
+		g4 b8 >d8< b4 g4 | a4 >c8< a8 f+4 d4 | e4 g8 b8 e4 g4 | c2 e4 g4 |
+		g4 b8 >d8< b4 g4 | a8 b8 >c8< a8 f+4 d4 | e8 f+8 g8 a8 b4 a4 | g2. r4 |
+		>c4.< b8 a4 g4 | f+4 a4 >d2< | b4. a8 g4 e4 | a4 f+4 d2 |
+		>c4.< b8 a4 >c4< | b4 g4 e2 | a8 b8 a8 g8 f+4 a4 | g2. r4 |
+""", 1.0, 1).echo(24, 0.2, 0.2)
+	song.pulse("""
+		o4 v6 q4
+		[r8 {gbd}8]4 | [r8 {df+a}8]4 | [r8 {egb}8]4 | [r8 {ceg}8]4 |
+		[r8 {gbd}8]4 | [r8 {df+a}8]4 | [r8 {egb}8]4 | [r8 {gbd}8]4 |
+		[r8 {ceg}8]4 | [r8 {df+a}8]4 | [r8 {gbd}8]4 | [r8 {df+a}8]4 |
+		[r8 {ceg}8]4 | [r8 {gbd}8]4 | [r8 {df+a}8]4 | [r8 {gbd}8]4 |
+""", 0.9, 0)
+	song.triangle("""
+		o3 v15 q5
+		g4 >d4< g4 >d4< | d4 a4 d4 a4 | e4 b4 e4 b4 | c4 g4 c4 g4 |
+		g4 >d4< g4 >d4< | d4 a4 d4 a4 | e4 b4 e4 b4 | g4 >d4< g4 d4 |
+		c4 g4 c4 g4 | d4 a4 d4 a4 | g4 >d4< g4 >d4< | d4 a4 d4 a4 |
+		c4 g4 c4 g4 | g4 >d4< g4 >d4< | d4 a4 d4 f+4 | g4 >d4< g4 r4 |
+""", 0.6)
+	song.noise("""
+		v12
+		[[k8 h8 s8 h8 k8 h8 s8 h8 |]7
+		k8 h8 s8 h8 s16 s16 m16 m16 t8 t8 |]2
+""", 0.7)
+	return song
+
+
+## Cantera (monte, piso 2): re dórico a 120, ritmo de trabajo. Bajo en corcheas parejas, acordes
+## largos y picos (yunque) a contratiempo. A: Rem Do Rem Do Sib Do Rem Rem · B: Fa Do Rem Lam Sib Do
+## La La.
+static func quarry() -> ChipTune.Song:
+	var song := ChipTune.Song.new(120.0)
+	song.pulse("""
+		o5 v11 q7 ~1
+		d8 d8 f8 g8 a4 g8 f8 | e8 e8 g8 a8 >c4< a8 g8 | d8 d8 f8 g8 a4 >c8 d8< | >e4 d8 c8< a2 |
+		b-4 a8 g8 f4 g4 | >c4< b-8 a8 g4 e4 | f8 e8 d8 e8 f4 a4 | d2. r4 |
+		a4. >c8< a4 f4 | g4. a8 g4 e4 | f4. g8 a4 >d4< | >c4.< b8 a2 |
+		b-4 >d4< b-4 f4 | >c4 e4 c4< g4 | a4 >c+4 e4 c+4< | a2. r4 |
+""", 1.0, 1).echo(36, 0.2, 0.2)
+	song.pulse("""
+		o4 v5 q8
+		{dfa}1 | {ceg}1 | {dfa}1 | {ceg}1 | {b-df}1 | {ceg}1 | {dfa}1 | {dfa}1 |
+		{fac}1 | {ceg}1 | {dfa}1 | {ace}1 | {b-df}1 | {ceg}1 | {ac+e}1 | {ac+e}1 |
+""", 0.9, 2)
+	song.triangle("""
+		o3 v15 q6
+		[d8 d8 >d8< d8]2 | [c8 c8 >c8< c8]2 | [d8 d8 >d8< d8]2 | [c8 c8 >c8< c8]2 |
+		<[b-8 b-8 >b-8< b-8]2> | [c8 c8 >c8< c8]2 | [d8 d8 >d8< d8]2 | [d8 d8 >d8< d8]2 |
+		[f8 f8 >f8< f8]2 | [c8 c8 >c8< c8]2 | [d8 d8 >d8< d8]2 | <[a8 a8 >a8< a8]2> |
+		<[b-8 b-8 >b-8< b-8]2> | [c8 c8 >c8< c8]2 | <[a8 a8 >a8< a8]2> | <[a8 a8 >a8< a8]2> |
+""", 0.6)
+	song.noise("""
+		v12
+		[[k8 r8 a8 r8 k8 k8 a8 r8 |]7
+		k8 r8 a8 r8 s16 s16 s16 s16 m16 m16 t16 t16 |]2
+""", 0.7)
+	song.noise("""
+		[[v5 h8 v2 h8]4 |]16
+""", 1.0)
+	return song
+
+
+## Ventisquero (monte, piso 3): mi menor a 84, frío y quieto. Arpegios de caja de música, una
+## melodía de triángulo con mucho eco y casi sin batería. A: Mim Do Lam Si Mim Sol Do Si · B: Lam Mim
+## Do Re Lam Mim Si Si.
+static func snowfield() -> ChipTune.Song:
+	var song := ChipTune.Song.new(84.0)
+	song.triangle("""
+		o5 v14 q7 ~2
+		b2 g4 e4 | g2. e4 | a2 >c4< a4 | f+2. r4 |
+		b2 >d4< b4 | >d2. c4< | >c2< g4 e4 | d+2. r4 |
+		>c4.< b8 a2 | g4. f+8 e2 | e4 g4 >c4 e4< | >d2.< r4 |
+		>c4.< b8 a4 >c4< | b4. a8 g4 e4 | f+2 a4 b4 | b2. r4 |
+""", 0.75).echo(48, 0.4, 0.35)
+	song.pulse("""
+		o4 v5 s2 q6
+		[e16 g16 b16 >e16<]4 | [c16 e16 g16 b16]4 | [a16 >c16 e16 a16<]4 | [b16 >d+16 f+16 b16<]4 |
+		[e16 g16 b16 >e16<]4 | [g16 b16 >d16 g16<]4 | [c16 e16 g16 >c16<]4 | [b16 >d+16 f+16 b16<]4 |
+		[a16 >c16 e16 a16<]4 | [e16 g16 b16 >e16<]4 | [c16 e16 g16 >c16<]4 | [d16 f+16 a16 >d16<]4 |
+		[a16 >c16 e16 a16<]4 | [e16 g16 b16 >e16<]4 | [b16 >d+16 f+16 b16<]4 | [b16 >d+16 f+16 b16<]4 |
+""", 0.9, 0).echo(36, 0.3, 0.3)
+	song.triangle("""
+		o2 v13 q8
+		e1 | c1 | a1 | b1 | e1 | g1 | c1 | b1 |
+		a1 | e1 | c1 | d1 | a1 | e1 | b1 | b1 |
+""", 0.55)
+	song.noise("""
+		[[v4 h8 v2 h8]4 |]8
+		[v8 k4 v4 h4 v6 k4 v4 h4 |]8
+""", 0.8)
+	return song
+
+
+## Cumbre (monte, piso 4): si menor a 150, tormenta. Bajo en semicorcheas, acordes en trémolo y una
+## melodía que sube como el viento. A: Sim Sol La Fa#m Sim Sol Mim Fa# · B: Sol La Sim Sim Sol La Fa#
+## Fa#.
+static func summit() -> ChipTune.Song:
+	var song := ChipTune.Song.new(150.0)
+	song.pulse("""
+		o5 v11 q7 ~1
+		b4 f+8 b8 >d4< c+8 b8 | >d4< b8 a8 g4 b4 | a4 e8 a8 >c+4< b8 a8 | f+2. r4 |
+		b4 >d8 f+8 e4 d4< | b4 >d8 c+8< b4 g4 | e4 g8 b8 >e4 d4< | a+2 >c+4 e4< |
+		>d2 c+4< b4 | >c+2< a4 e4 | f+4. e8 d4 c+4 | b2. r4 |
+		>d4. e8 d4< b4 | >c+4. d8 e4 c+4< | a+4 >c+4 f+4 e4< | f+2. r4 |
+""", 1.0, 1).echo(24, 0.25, 0.2)
+	song.pulse("""
+		o4 v4 q5
+		[{bdf+}16]16 | [{gbd}16]16 | [{ac+e}16]16 | [{f+ac+}16]16 |
+		[{bdf+}16]16 | [{gbd}16]16 | [{egb}16]16 | [{f+a+c+}16]16 |
+		[{gbd}16]16 | [{ac+e}16]16 | [{bdf+}16]16 | [{bdf+}16]16 |
+		[{gbd}16]16 | [{ac+e}16]16 | [{f+a+c+}16]16 | [{f+a+c+}16]16 |
+""", 0.8, 2)
+	song.triangle("""
+		o2 v15 q6
+		[b16 b16 >b16< b16]4 | >[g16 g16 >g16< g16]4< | >[a16 a16 >a16< a16]4< | >[f+16 f+16 >f+16< f+16]4< |
+		[b16 b16 >b16< b16]4 | >[g16 g16 >g16< g16]4< | >[e16 e16 >e16< e16]4< | >[f+16 f+16 >f+16< f+16]4< |
+		>[g16 g16 >g16< g16]4< | >[a16 a16 >a16< a16]4< | [b16 b16 >b16< b16]4 | [b16 b16 >b16< b16]4 |
+		>[g16 g16 >g16< g16]4< | >[a16 a16 >a16< a16]4< | >[f+16 f+16 >f+16< f+16]4< | >[f+16 f+16 >f+16< f+16]4< |
+""", 0.6)
+	song.noise("""
+		v13
+		[[k16 k16 s8 k8 s8 k16 k16 s8 k8 s8 |]7
+		s16 s16 s16 s16 m16 m16 m16 m16 t16 t16 t16 t16 c4 |]2
+""", 0.7)
+	song.noise("""
+		[[v6 h16 v3 h16]8 |]16
+""", 1.0)
+	return song
+
+
+## Jefe del monte: la menor a 172, más bruto que el del fondo. Riff en corcheas que trepa, acordes a
+## contratiempo y bajo de octavas. A: Lam Fa Sol Mi Lam Fa Rem Mi · B: Rem Lam Sib Mi Rem Lam Mi Mi.
+static func mountain_boss() -> ChipTune.Song:
+	var song := ChipTune.Song.new(172.0)
+	song.pulse("""
+		o5 v11 q6
+		a8 a8 >c8< a8 >e8< a8 >d8 c8< | f8 f8 a8 f8 >c8< f8 a8 g8 | g8 g8 b8 g8 >d8< g8 b8 a8 | g+8 b8 >e8 d8 c8< b8 g+8 e8 |
+		a8 a8 >c8< a8 >e8< a8 >d8 c8< | f8 f8 a8 f8 >c8< f8 a8 g8 | d8 f8 a8 >d8 f8 d8< a8 f8 | e8 g+8 b8 >e8< b4 g+4 |
+		q7 ~2 >d4. c8< a4 f4 | e4. d8 c4 <a4> | d4. f8 b-4 f4 | g+2 b2 |
+		>d4. e8 f4 d4< | >c4. d8 e4 c4< | b4 >d4 e4 g+4< | a2. r4 |
+""", 1.0, 1).echo(24, 0.2, 0.2)
+	song.pulse("""
+		o4 v6 q4
+		[r8 {ace}8]4 | [r8 {fac}8]4 | [r8 {gbd}8]4 | [r8 {eg+b}8]4 |
+		[r8 {ace}8]4 | [r8 {fac}8]4 | [r8 {dfa}8]4 | [r8 {eg+b}8]4 |
+		[r8 {dfa}8]4 | [r8 {ace}8]4 | [r8 {b-df}8]4 | [r8 {eg+b}8]4 |
+		[r8 {dfa}8]4 | [r8 {ace}8]4 | [r8 {eg+b}8]4 | [r8 {eg+b}8]4 |
+""", 1.0, 1)
+	song.triangle("""
+		o2 v15 q6
+		[a8 >a8<]4 | [f8 >f8<]4 | [g8 >g8<]4 | [e8 >e8<]4 |
+		[a8 >a8<]4 | [f8 >f8<]4 | [d8 >d8<]4 | [e8 >e8<]4 |
+		[d8 >d8<]4 | [a8 >a8<]4 | [b-8 >b-8<]4 | [e8 >e8<]4 |
+		[d8 >d8<]4 | [a8 >a8<]4 | [e8 >e8<]4 | [e8 >e8<]4 |
+""", 0.65)
+	song.noise("""
+		v13
+		[[k8 s8 k16 k16 s8 k8 s8 k16 k16 s8 |]7
+		s16 s16 s16 s16 m16 m16 m16 m16 t16 t16 t16 t16 c4 |]2
+""", 0.75)
+	song.noise("""
+		[[v6 h8 v3 h8]4 |]16
+""", 1.0)
 	return song

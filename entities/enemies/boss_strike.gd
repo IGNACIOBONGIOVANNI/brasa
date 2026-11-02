@@ -2,13 +2,13 @@ class_name BossStrike
 extends Node2D
 ## Golpe de jefe que avisa dónde va a pegar: durante `warn_time` se ve la marca (la sombra del
 ## cascote que cae, la grieta de la raíz que va a salir, los tres tajos del zarpazo, el círculo del
-## metal fundido) y después pega una vez a quien esté adentro. Con `linger` > 0 queda en el piso
+## metal fundido, el brillo de una tijera, la sombra de un carámbano, el círculo que titila antes del
+## rayo, la franja por donde pasa la manada) y después pega una vez a quien esté adentro. Con `linger` > 0 queda en el piso
 ## lastimando a quien lo pise (los i-frames del jugador marcan el ritmo). Rodando no lastima (el
 ## jugador está invulnerable). Un círculo de `radius`, o con `slash` un tajo de -slash a slash del
 ## ancho de `radius`. Se ve siempre, también en la oscuridad (sin sombra).
 
 const GROUP: StringName = &"boss_strikes"
-const BULLET_SCENE: PackedScene = preload("res://entities/bullets/bullet.tscn")
 const DUST_SCENE: PackedScene = preload("res://fx/dust_puff.tscn")
 const BURST_SCENE: PackedScene = preload("res://fx/burst.tscn")
 const UNSHADED: Material = preload("res://fx/unshaded.tres")
@@ -29,6 +29,12 @@ const STONE_COLOR: Color = Color("8a7f86")
 const ROOT_COLOR: Color = Color("9e6bc7")
 const CLAW_COLOR: Color = Color("ff5a5a")
 const EMBER_COLOR: Color = Color("ff8a3d")
+const BLADE_COLOR: Color = Color("e6ecf5")
+const ICE_COLOR: Color = Color("a8dcff")
+const BOLT_COLOR: Color = Color("fff27a")
+const HOOF_COLOR: Color = Color("c9a46a")
+const WOOL_COLOR: Color = Color("e9e1cf")
+const OUTLINE_COLOR_DARK: Color = Color("2a2230")
 const CORE_COLOR: Color = Color("fff6d5")
 const SHADOW_COLOR: Color = Color(0, 0, 0, 0.45)
 
@@ -103,10 +109,20 @@ func _strike() -> void:
 				AudioManager.play_sfx(&"claw", 0.1)
 			BossAttack.Look.EMBER:
 				AudioManager.play_sfx(&"molten", 0.15)
-	if look == BossAttack.Look.STONE:
+			BossAttack.Look.BLADE:
+				AudioManager.play_sfx(&"snip", 0.1)
+			BossAttack.Look.ICE:
+				AudioManager.play_sfx(&"icicle", 0.15)
+			BossAttack.Look.BOLT:
+				AudioManager.play_sfx(&"bolt", 0.1)
+			BossAttack.Look.HOOVES:
+				AudioManager.play_sfx(&"stampede", 0.1)
+	if look == BossAttack.Look.BOLT or look == BossAttack.Look.HOOVES:
+		EventBus.shake_requested.emit(TRAUMA)
+	if look == BossAttack.Look.STONE or look == BossAttack.Look.ICE:
 		EventBus.shake_requested.emit(TRAUMA)
 		var dust := Fx.spawn(get_tree(), DUST_SCENE, global_position) as CPUParticles2D
-		dust.color = STONE_COLOR
+		dust.color = STONE_COLOR if look == BossAttack.Look.STONE else ICE_COLOR
 	elif look == BossAttack.Look.CLAW:
 		var burst := Fx.spawn(get_tree(), BURST_SCENE, global_position) as CPUParticles2D
 		burst.color = CLAW_COLOR
@@ -115,7 +131,7 @@ func _strike() -> void:
 		var spec := ShotSpec.from_pattern(pattern)
 		spec.speed *= speed_multiplier
 		for direction: Vector2 in PatternMath.ring(pattern.count, deg_to_rad(pattern.angle_offset_degrees)):
-			Bullet.spawn(get_tree(), BULLET_SCENE, spec, global_position + direction * REACH, direction,
+			Bullet.spawn(get_tree(), Bullet.default_scene(), spec, global_position + direction * REACH, direction,
 					PhysicsLayers.ENEMY_BULLET, PhysicsLayers.WALL | PhysicsLayers.PLAYER_HURTBOX)
 
 
@@ -139,6 +155,14 @@ func _draw() -> void:
 			_draw_claw(warn, after, blink)
 		BossAttack.Look.EMBER:
 			_draw_ember(warn, after, blink)
+		BossAttack.Look.BLADE:
+			_draw_blade(warn, after, blink)
+		BossAttack.Look.ICE:
+			_draw_ice(warn, after, blink)
+		BossAttack.Look.BOLT:
+			_draw_bolt(warn, after)
+		BossAttack.Look.HOOVES:
+			_draw_hooves(warn, after, blink)
 
 
 ## La sombra crece y se oscurece; al final se ve caer la piedra.
@@ -215,3 +239,90 @@ func _draw_ember(warn: float, after: float, blink: float) -> void:
 		var bubble := Vector2.from_angle(_elapsed * 1.7 + TAU * i / 3.0) * radius * 0.6
 		draw_circle(bubble, 1.0 + 0.5 * sin(_elapsed * 6.0 + i), Color(CORE_COLOR, 0.7 * alpha))
 	draw_set_transform(Vector2.ZERO)
+
+
+## Un brillo fino que se estira; al pegar, el corte de una tijera (dos hojas cruzadas).
+func _draw_blade(warn: float, after: float, blink: float) -> void:
+	if not _struck:
+		draw_line(-slash * warn, slash * warn, Color(BLADE_COLOR, blink * 0.7), 1.0)
+		return
+	var fade: float = 1.0 - clampf(after / HIT_SHOW, 0.0, 1.0)
+	var side: Vector2 = slash.orthogonal().normalized() * 2.0
+	draw_line(-slash - side, slash + side, Color(BLADE_COLOR, fade), 2.0)
+	draw_line(-slash + side, slash - side, Color(BLADE_COLOR, fade), 2.0)
+	draw_line(-slash, slash, Color(CORE_COLOR, fade), 1.0)
+
+
+## La sombra crece y al final cae un carámbano; al pegar, astillas. Con `linger` queda clavado.
+func _draw_ice(warn: float, after: float, blink: float) -> void:
+	if not _struck:
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.55))
+		draw_circle(Vector2.ZERO, radius * (0.35 + 0.65 * warn), Color(SHADOW_COLOR, 0.2 + 0.35 * warn))
+		draw_arc(Vector2.ZERO, radius, 0.0, TAU, 24, Color(ICE_COLOR, blink * 0.7), 1.0)
+		draw_set_transform(Vector2.ZERO)
+		var fall: float = clampf((warn - (1.0 - DROP_PART)) / DROP_PART, 0.0, 1.0)
+		if fall > 0.0:
+			_draw_icicle(Vector2(0, -roundf(DROP_HEIGHT * (1.0 - fall * fall))), 1.0)
+		return
+	var fade: float = 1.0 - clampf(after / HIT_SHOW, 0.0, 1.0)
+	for i: int in 6:
+		var direction := Vector2.from_angle(TAU * i / 6.0 + 0.2)
+		draw_line(direction * radius * 0.3, direction * radius, Color(ICE_COLOR, fade), 1.0)
+	if linger > 0.0:
+		_draw_icicle(Vector2.ZERO, 1.0 - clampf((after - linger) / FADE_TIME, 0.0, 1.0))
+
+
+## Un carámbano clavado (la punta abajo, en `at`).
+func _draw_icicle(at: Vector2, alpha: float) -> void:
+	var width: float = minf(radius * 0.5, 6.0)
+	var height: float = minf(radius * 1.6, 22.0)
+	var shape := PackedVector2Array([at + Vector2(-width, -height), at + Vector2(width, -height), at])
+	draw_colored_polygon(shape, Color(ICE_COLOR, 0.9 * alpha))
+	draw_line(at + Vector2(-width * 0.3, -height), at + Vector2(0, -1), Color(CORE_COLOR, 0.8 * alpha), 1.0)
+
+
+## Un círculo que titila cada vez más rápido; al pegar, un rayo en zigzag que baja del cielo.
+func _draw_bolt(warn: float, after: float) -> void:
+	if not _struck:
+		var flicker: float = 0.35 + 0.65 * float(int(_elapsed * (6.0 + 26.0 * warn)) % 2)
+		draw_circle(Vector2.ZERO, radius * warn, Color(BOLT_COLOR, 0.12))
+		draw_arc(Vector2.ZERO, radius, 0.0, TAU, 24, Color(BOLT_COLOR, flicker * 0.8), 1.0)
+		return
+	var fade: float = 1.0 - clampf(after / HIT_SHOW, 0.0, 1.0)
+	var points := PackedVector2Array()
+	var y: float = -DROP_HEIGHT
+	var i: int = 0
+	while y < 0.0:
+		points.append(Vector2(0.0 if i == 0 else (4.0 if i % 2 == 0 else -4.0), y))
+		y += 12.0
+		i += 1
+	points.append(Vector2.ZERO)
+	draw_polyline(points, Color(BOLT_COLOR, fade), 3.0)
+	draw_polyline(points, Color(CORE_COLOR, fade), 1.0)
+	draw_circle(Vector2.ZERO, radius * (0.5 + 0.5 * fade), Color(BOLT_COLOR, 0.35 * fade))
+
+
+## Una franja de polvo con flechas hacia donde corre la manada; al pegar, carneros que la cruzan.
+func _draw_hooves(warn: float, after: float, blink: float) -> void:
+	var along: Vector2 = slash.normalized()
+	var half: float = slash.length()
+	var side: Vector2 = along.orthogonal() * radius
+	var band := PackedVector2Array([-slash - side, slash - side, slash + side, -slash + side])
+	if not _struck:
+		draw_colored_polygon(band, Color(HOOF_COLOR, 0.08 + 0.17 * warn))
+		draw_line(-slash - side, slash - side, Color(HOOF_COLOR, blink * 0.5), 1.0)
+		draw_line(-slash + side, slash + side, Color(HOOF_COLOR, blink * 0.5), 1.0)
+		for k: int in 5:
+			var at: Vector2 = along * (-half + half * 2.0 * (k + 0.5) / 5.0)
+			draw_line(at - along * 3.0 - side * 0.4, at, Color(HOOF_COLOR, blink), 1.0)
+			draw_line(at - along * 3.0 + side * 0.4, at, Color(HOOF_COLOR, blink), 1.0)
+		return
+	var alpha: float = 1.0 - clampf((after - linger) / FADE_TIME, 0.0, 1.0) if linger > 0.0 \
+			else 1.0 - clampf(after / HIT_SHOW, 0.0, 1.0)
+	draw_colored_polygon(band, Color(HOOF_COLOR.darkened(0.3), 0.35 * alpha))
+	var run: float = after * 260.0
+	for k: int in 4:
+		var at: Vector2 = along * (-half + fmod(run + k * half * 0.5, half * 2.0))
+		draw_circle(at, radius * 0.7, Color(OUTLINE_COLOR_DARK, alpha))
+		draw_circle(at, radius * 0.6, Color(WOOL_COLOR, alpha))
+		draw_circle(at + along * radius * 0.5, radius * 0.3, Color(HOOF_COLOR.darkened(0.5), alpha))

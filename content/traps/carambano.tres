@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="TrapData" format=3]
+
+[ext_resource type="Script" path="res://data/trap_data.gd" id="1_trap"]
+
+[resource]
+script = ExtResource("1_trap")
+id = &"carambano"
+display_name = "Carámbano"
+look = 6
+trigger = 0
+rest_time = 2.2
+warn_time = 0.8
+active_time = 0.25
+radius = 8.0
+enemy_damage = 10.0
+color = Color(0.6588, 0.8627, 1, 1)
+sfx_id = &"icicle"

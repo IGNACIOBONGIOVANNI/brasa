@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RoomTemplate" format=3]
+
+[ext_resource type="Script" path="res://data/room_template.gd" id="1_template"]
+
+[resource]
+script = ExtResource("1_template")
+id = &"can_cantera"
+kind = 0
+difficulty = 3
+layout = "...............
+..K.........K..
+...............
+..ooo.....ooo..
+....R..A..R....
+..ooo.....ooo..
+...............
+..c.........c..
+..............."

@@ -1,13 +1,15 @@
 class_name Main
 extends Node
 ## Raíz del juego y flujo de pantallas: partidas (elegir uno de los cuatro espacios de guardado) →
-## menú principal → (la primera vez, la intro) → elegir personaje → run → resumen (al morir o ganar,
+## menú principal → (la primera vez, la intro) → elegir capítulo (si hay más de uno; la primera vez
+## que se juega uno con intro propia, su intro) → elegir personaje (los del capítulo) → run → resumen (al morir o ganar,
 ## con lo ganado) → menú u otra run. Desde el menú también se va al Taller, a los logros, a las
 ## opciones (que pueden volver a mostrar la intro) y de vuelta a las partidas.
 ## Abre el guardado al arrancar y cierra el juego prolijo (corta el audio antes de salir). Fuera de
 ## la run suena el tema del menú (la run pone el de cada piso).
 ## Argumentos de usuario: --skip-menu o --demo-input arrancan directo en una run (--skip-menu en la
-## última partida, siguiendo la run guardada si hay); --save=RUTA usa un archivo suelto en vez de las
+## última partida, siguiendo la run guardada si hay; con --chapter=N, una nueva en ese capítulo con su
+## primer personaje, aunque esté bloqueado); --save=RUTA usa un archivo suelto en vez de las
 ## partidas (vacío = memoria); con --demo-input (y sin --save) el progreso queda solo en memoria.
 ## Run guardada (RunSnapshot, en SaveManager): la run se guarda sola (Game) y al salir al menú o del
 ## juego; "Continuar la run" la sigue. Se borra al morir, al ganar, al abandonarla desde la pausa o al
@@ -15,6 +17,7 @@ extends Node
 
 const MENU_SCENE: PackedScene = preload("res://ui/menus/main_menu.tscn")
 const CHARACTER_SCENE: PackedScene = preload("res://ui/menus/character_select.tscn")
+const CHAPTER_SCENE: PackedScene = preload("res://ui/menus/chapter_select.tscn")
 const WORKSHOP_SCENE: PackedScene = preload("res://ui/menus/workshop_menu.tscn")
 const ACHIEVEMENTS_SCENE: PackedScene = preload("res://ui/menus/achievements_menu.tscn")
 const OPTIONS_SCENE: PackedScene = preload("res://ui/menus/options_menu.tscn")
@@ -26,6 +29,7 @@ const MENU_MUSIC: AudioStream = preload("res://content/music/menu.wav")
 ## En el resumen el tema del menú entra despacio, después del sonido de victoria o derrota.
 const SUMMARY_MUSIC_FADE: float = 3.0
 const SAVE_ARG: String = "--save="
+const CHAPTER_ARG: String = "--chapter="
 ## Chispas que da el comando de debug.
 const DEV_SPARKS: int = 100
 ## Segundos entre la muerte del jugador y el resumen.
@@ -62,7 +66,10 @@ func _ready() -> void:
 	if "--skip-menu" in args or "--demo-input" in args:
 		if SaveManager.has_slots():
 			SaveManager.open_slot(SaveManager.last_slot())
-		if SaveManager.has_saved_run():
+		var chapter: RunConfig = chapter_from_args(args)
+		if chapter != null:
+			start_run(SaveManager.config.characters_of(chapter)[0])
+		elif SaveManager.has_saved_run():
 			continue_run()
 		else:
 			start_run()
@@ -86,6 +93,18 @@ static func uses_slots(args: PackedStringArray) -> bool:
 
 
 ## El archivo de --save=RUTA; si no hay, vacío (solo en memoria, como con --demo-input).
+## El capítulo de --chapter=N (null si no está o no existe).
+static func chapter_from_args(args: PackedStringArray) -> RunConfig:
+	var config: MetaConfig = MetaConfig.get_default()
+	for arg: String in args:
+		if arg.begins_with(CHAPTER_ARG):
+			var number: int = arg.trim_prefix(CHAPTER_ARG).to_int()
+			for chapter: RunConfig in config.chapters:
+				if chapter.number == number and not config.characters_of(chapter).is_empty():
+					return chapter
+	return null
+
+
 static func save_path_from_args(args: PackedStringArray) -> String:
 	for arg: String in args:
 		if arg.begins_with(SAVE_ARG):
@@ -113,19 +132,39 @@ func show_menu() -> void:
 	_set_screen(menu)
 
 
-## Muestra la intro y después llama a `next` (la intro queda marcada como vista).
-func show_intro(next: Callable) -> void:
+## Muestra la intro (la de `chapter`, o la de siempre) y después llama a `next` (queda marcada como
+## vista).
+func show_intro(next: Callable, chapter: RunConfig = null) -> void:
 	var intro := INTRO_SCENE.instantiate() as IntroScreen
+	if chapter != null and not chapter.intro.is_empty():
+		intro.lines = chapter.intro
 	intro.finished.connect(func() -> void:
-		SaveManager.mark_intro_seen()
+		SaveManager.mark_intro_seen(chapter)
 		next.call())
 	_set_screen(intro)
 
 
-func show_character_select() -> void:
-	var select := CHARACTER_SCENE.instantiate() as CharacterSelect
-	select.character_chosen.connect(start_run)
+## Con más de un capítulo disponible, a elegir cuál; si no, directo a los personajes del primero.
+func choose_chapter() -> void:
+	if SaveManager.available_chapters().size() > 1:
+		show_chapter_select()
+	else:
+		show_character_select(SaveManager.config.chapters[0])
+
+
+func show_chapter_select() -> void:
+	var select := CHAPTER_SCENE.instantiate() as ChapterSelect
+	select.chapter_chosen.connect(_on_chapter_chosen)
 	select.back_requested.connect(show_menu)
+	_set_screen(select)
+
+
+## Los personajes de `chapter` (null = el primero).
+func show_character_select(chapter: RunConfig = null) -> void:
+	var select := CHARACTER_SCENE.instantiate() as CharacterSelect
+	select.chapter = chapter
+	select.character_chosen.connect(start_run)
+	select.back_requested.connect(_on_character_back)
 	_set_screen(select)
 
 
@@ -241,9 +280,24 @@ func _on_change_slot_requested() -> void:
 
 func _on_play_requested() -> void:
 	if SaveManager.profile.intro_seen:
-		show_character_select()
+		choose_chapter()
 	else:
-		show_intro(show_character_select)
+		show_intro(choose_chapter)
+
+
+## La primera vez que se elige un capítulo con intro propia, la cuenta antes.
+func _on_chapter_chosen(chapter: RunConfig) -> void:
+	if chapter.intro.is_empty() or SaveManager.has_seen_intro(chapter):
+		show_character_select(chapter)
+	else:
+		show_intro(show_character_select.bind(chapter), chapter)
+
+
+func _on_character_back() -> void:
+	if SaveManager.available_chapters().size() > 1:
+		show_chapter_select()
+	else:
+		show_menu()
 
 
 ## Pausa → "Guardar y volver al menú".

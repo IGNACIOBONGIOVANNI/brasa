@@ -33,7 +33,10 @@ const LIGHT_FLASH_SCENE: PackedScene = preload("res://fx/light_flash.tscn")
 ## Chispas que suelta al morir (las de un jefe, muchas más).
 const DEATH_SPARKS: int = 3
 const BOSS_DEATH_SPARKS: int = 16
-const ENEMY_SCENE: PackedScene = preload("res://entities/enemies/enemy.tscn")
+## Su propia escena, para los hijos. Se carga al usarla (no con preload): enemy.tscn tiene la escena de
+## las balas y bullet.gd usa esta clase, así que un preload acá arma una carga circular si lo primero
+## que se carga es una bala (por ejemplo, el arma de un armazón al leer los capítulos).
+const ENEMY_SCENE_PATH: String = "res://entities/enemies/enemy.tscn"
 ## Empujón con el que salen disparados los hijos (al dividirse o al nacer).
 const CHILD_PUSH: float = 140.0
 ## Alfa del dibujo mientras es fantasma (PHASE).
@@ -120,7 +123,7 @@ func _ready() -> void:
 	visual.configure(data)
 	status.radius = data.visual_radius
 	if data.move_style == EnemyData.MoveStyle.FLY:
-		# Vuela: los fosos no lo frenan.
+		# Vuela: los fosos no lo frenan (a los que ruedan, PROWL o BOUNCE, sí).
 		collision_mask &= ~PhysicsLayers.PIT
 	if _birth_push != Vector2.ZERO:
 		knockback.apply(_birth_push, CHILD_PUSH)
@@ -192,8 +195,9 @@ func route_direction(delta: float) -> Vector2:
 
 
 ## true si el cuerpo puede ir derecho hasta tocar `to` sin chocar paredes, rocas ni fosos (a los que
-## vuelan los fosos no los frenan).
-func has_clear_path(to: Vector2) -> bool:
+## vuelan los fosos no los frenan). `layers`: qué cuenta como obstáculo (los que rompen rocas al
+## embestir solo miran los fosos).
+func has_clear_path(to: Vector2, layers: int = PhysicsLayers.WALL | PhysicsLayers.PIT) -> bool:
 	var offset: Vector2 = to - global_position
 	var reach: float = offset.length() - data.body_radius - TOUCH_MARGIN
 	if reach <= 0.0:
@@ -203,7 +207,7 @@ func has_clear_path(to: Vector2) -> bool:
 	query.shape = _probe_shape
 	query.transform = Transform2D(0.0, _body_shape.global_position)
 	query.motion = offset.normalized() * reach
-	query.collision_mask = collision_mask & (PhysicsLayers.WALL | PhysicsLayers.PIT)
+	query.collision_mask = collision_mask & layers
 	query.exclude = [get_rid()]
 	var result: PackedFloat32Array = get_world_2d().direct_space_state.cast_motion(query)
 	return result.is_empty() or result[0] >= 1.0
@@ -300,7 +304,7 @@ func next_pattern() -> BulletPatternData:
 ## Crea otro enemigo de `child_data` en `at` (global), empujado desde acá. Avisa con `spawned` en el
 ## acto y lo agrega al árbol diferido (puede pasar en un callback de física, al morir).
 func spawn_child(child_data: EnemyData, at: Vector2) -> Enemy:
-	var child := ENEMY_SCENE.instantiate() as Enemy
+	var child := (load(ENEMY_SCENE_PATH) as PackedScene).instantiate() as Enemy
 	child.data = child_data
 	child.health_multiplier = health_multiplier
 	child.bullet_speed_multiplier = bullet_speed_multiplier
@@ -352,6 +356,16 @@ func set_hidden(hide_it: bool) -> void:
 func _apply_touchable() -> void:
 	_hurtbox_shape.set_deferred(&"disabled", is_hidden())
 	hitbox.active = not is_hidden()
+
+
+## EnemyData.death_pattern: el anillo de balas al morir.
+static func _death_ring(tree: SceneTree, scene: PackedScene, pattern: BulletPatternData, at: Vector2,
+		speed_multiplier: float) -> void:
+	var spec := ShotSpec.from_pattern(pattern)
+	spec.speed *= speed_multiplier
+	for direction: Vector2 in PatternMath.ring(pattern.count, deg_to_rad(pattern.angle_offset_degrees)):
+		Bullet.spawn(tree, scene, spec, at + direction * 4.0, direction,
+				PhysicsLayers.ENEMY_BULLET, PhysicsLayers.WALL | PhysicsLayers.PLAYER_HURTBOX)
 
 
 ## Si el contenedor ya no está (fin de la run), el hijo se libera sin entrar. Se pasa el id porque un
@@ -420,6 +434,10 @@ func _die() -> void:
 		for i: int in data.split_count:
 			var angle: float = TAU * i / data.split_count + PI * 0.25
 			spawn_child(data.split_into, global_position + Vector2.from_angle(angle) * data.body_radius)
+	if data.death_pattern != null:
+		# Diferido: puede morir en un callback de física (una bala), donde no se agregan áreas.
+		_death_ring.call_deferred(get_tree(), emitter.bullet_scene, data.death_pattern, global_position,
+				bullet_speed_multiplier)
 	EventBus.enemy_killed.emit(self)
 	var burst := Fx.spawn(get_tree(), BURST_SCENE, global_position + Vector2(0, -2)) as CPUParticles2D
 	burst.color = data.body_color.lightened(0.2)
@@ -442,6 +460,8 @@ func _die() -> void:
 			(node as LobShell).fizzle()
 		for node: Node in get_tree().get_nodes_in_group(BossStrike.GROUP):
 			(node as BossStrike).vanish()
+		for node: Node in get_tree().get_nodes_in_group(RollingBall.GROUP):
+			(node as RollingBall).vanish()
 		burst.amount = 40
 		EventBus.shake_requested.emit(BOSS_DEATH_TRAUMA)
 		EventBus.hitstop_requested.emit(BOSS_DEATH_HITSTOP)

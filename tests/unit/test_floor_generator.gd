@@ -7,6 +7,7 @@ const SEEDS: int = 500
 ## Seeds por cada piso de la run (con los parámetros de su tema).
 const SEEDS_PER_FLOOR: int = 200
 const RUN: RunConfig = preload("res://content/run/run_config.tres")
+const CHAPTER_2: RunConfig = preload("res://content/run/chapter_2.tres")
 
 var _params := FloorParams.new()
 
@@ -54,7 +55,7 @@ func test_every_seed_generates_a_valid_floor() -> void:
 
 
 func test_every_floor_of_the_run_generates() -> void:
-	for theme: FloorTheme in RUN.floors:
+	for theme: FloorTheme in RUN.floors + CHAPTER_2.floors:
 		var params := FloorParams.new()
 		params.room_count_min = theme.room_count_min
 		params.room_count_max = theme.room_count_max

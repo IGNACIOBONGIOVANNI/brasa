@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BulletPatternData" format=3]
+
+[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="1_pattern"]
+
+[resource]
+script = ExtResource("1_pattern")
+id = &"polilla_polvo"
+kind = 2
+count = 3
+spread_degrees = 40.0
+volleys = 2
+volley_interval = 0.25
+bullet_speed = 80.0
+bullet_color = Color(0.8784, 0.8118, 0.651, 1)

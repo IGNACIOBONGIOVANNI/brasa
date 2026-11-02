@@ -5,9 +5,12 @@ estructura de los roguelites de salas + bullet hell, con contenido 100 % origina
 [docs/LORE.md](docs/LORE.md).
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 20 (guardado de la run) terminado: la run se guarda sola (al entrar a cada sala, al
-limpiarla y al salir desde la pausa o cerrando la ventana) y "Continuar la run" la sigue en la misma
-sala; si se salió en medio de una pelea, la pelea se repite como al entrar. Antes: hito 19 (cada jefe
+**Estado:** Hito 21 (capítulo 2, "El monte") terminado: un segundo capítulo de cuatro pisos
+(Esquiladero, Cantera, Ventisquero, Cumbre) que se juega con Testa, un carnero que embiste en vez de
+rodar; se desbloquea al vencer al Yunque. Diez enemigos nuevos, cuatro trampas, cuatro jefes (Tijerón,
+el Rey Destronado, la venganza del Rey Carnero, Alud y Cierzo) con cinco tipos de movimiento nuevos y
+cinco temas de música. Antes: hito 20 (la run se guarda sola y "Continuar la run" la sigue en la misma
+sala; si se salió en medio de una pelea, la pelea se repite), hito 19 (cada jefe
 con movimientos propios, `BossAttack`, y enemigos que rodean rocas y fosos, `RoomNav`), hito 18 (tres armazones que el jugador maneja,
 en el Galpón), hito 17 (una trampa por piso que lastima a jugador y enemigos), hito 16 (seis
 reglas de sala y las salas Prueba, Altar y Pozo), hito 15 (cuatro partidas con su progreso),
@@ -54,12 +57,15 @@ Todos los flags están confirmados con `--help` en 4.7.2. `sed 's/\x1b\[[0-9;]*m
 | Generar la música (todos o algunos temas) | `"$G" --headless --path . -s res://tools/compose_music.gd [-- floor_1 boss]` y después `--import` |
 | Medir el balance (bot) | `"$G" --headless --fixed-fps 60 --path . res://debug/balance_probe.tscn -- --seed=1234` |
 | Comparar un arma (bot) | `... balance_probe.tscn -- --seed=1234 --floors=2 --weapon=haz` |
+| Medir el capítulo 2 (bot) | `... balance_probe.tscn -- --seed=1234 --chapter=2` |
 
 Argumentos de usuario del juego (van después de `--`): `--seed=N` fija la seed de todas las runs,
 `--skip-menu` arranca directo en una run (en la última partida abierta; si tiene una run guardada, la
 sigue), `--demo-input` simula input (moverse en ocho, girar la mira,
 disparar, rodar, Pulso, bomba y "aceptar" en los menús cada 3 s; también salta el menú),
-`--debug-overlay` muestra el overlay, `--quit-frames=N` cierra el juego prolijo a los N frames y
+`--debug-overlay` muestra el overlay, `--quit-frames=N` cierra el juego prolijo a los N frames,
+`--chapter=N` (con `--skip-menu` o `--demo-input`) arranca una run nueva en ese capítulo con su primer
+personaje aunque esté bloqueado (por ejemplo `--chapter=2`) y
 `--save=RUTA` usa un archivo suelto en vez de las partidas (por ejemplo `--save=user://prueba.json`;
 las opciones quedan en memoria). **Para cortar corridas usar `--quit-frames`, no el `--quit-after` de
 Godot** (ver gotchas). Sin `--skip-menu`, `--demo-input` ni `--save=` el juego arranca en la pantalla de
@@ -199,6 +205,12 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
 - `--write-movie` en un `.exe` exportado necesita una ruta absoluta (`C:/.../f.png`).
 - Hay una clase global `State` (máquina de estados): ningún enum interno puede llamarse `State`
   (por eso `Door.Mode` y `Room.Phase`).
+- **Cargas circulares:** `bullet.gd` usa `Enemy`, y `Enemy` usa (directa o indirectamente) a casi todo
+  lo de combate. Un `preload` de `bullet.tscn` o `enemy.tscn` en esa cadena deja la escena **vacía** si
+  lo primero que se carga es una bala (pasa desde el hito 21: `MetaConfig` carga los capítulos al
+  arrancar, con armazones e items): "Failed to instantiate scene state" y "'setup' in base 'Nil'". Por
+  eso las balas sueltas usan `Bullet.default_scene()` y `Enemy.spawn_child` hace `load()` de su escena.
+  Nada nuevo de combate debería hacer `preload` de esas dos escenas.
 - Desde un callback de física (`body_entered`, `area_entered`) no se pueden agregar ni sacar cuerpos o
   áreas: cambiar de sala, armar salas o soltar pickups ahí va con `call_deferred` (ver
   `FloorController._on_room_door_entered`). Los efectos de `Fx.spawn` ya son diferidos.
@@ -230,7 +242,10 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   `_game.world`. Los del piso usan
   `main/game.tscn` con `GameRNG.start_run(seed)` antes de instanciarla.
 - Plantillas de sala: texto de 9 x 15 con la leyenda de `RoomTemplateParser`; cada `.tres` nuevo va
-  en `content/rooms/floor_N/` y en la lista `templates` del `FloorTheme` (lo exige un test). Las
+  en `content/rooms/<id del piso>/` (`floor_1`..`floor_4`, `monte_1`..`monte_4`) y en la lista
+  `templates` de ese `FloorTheme` (lo exige un test). Las letras de los enemigos son de cada piso: el
+  capítulo 2 reusa letras con otros enemigos. Las especiales comunes (inicio, tesoro, tienda,
+  secreta, Altar, Pozo, Galpón) son las de `floor_1/` en los dos capítulos. Las
   especiales usan `*` para lo que ponen: pedestales (tesoro 1, tienda 3, Altar 2, secreta 1, jefe y
   Prueba 1, que aparece al ganar) o el pozo (Pozo 1). La Prueba tiene enemigos en dos oleadas.
   `^` es una trampa (la del piso): solo en salas normales y nunca frente a una puerta. Cada piso
@@ -241,11 +256,15 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   adentro como sub-recurso, munición infinita) y en `run_config.mechs` (lo exige un test).
 - Jefes: un `EnemyData` con `phases`; cada `BossPhase` tiene su `behavior` (cómo camina, cada cuánto
   ataca) y al menos dos `attacks` (`BossAttack`, sub-recursos del mismo `.tres`). Un test exige que
-  cada jefe tenga un tipo de movimiento que ningún otro use y que la dificultad suba de piso en piso
+  cada jefe tenga un tipo de movimiento que ningún otro de su capítulo use (y los del capítulo 2, uno
+  que ningún jefe del primero hace) y que la dificultad suba de piso en piso dentro del capítulo
   (fases, cantidad y variedad de movimientos, avisos más cortos, ataques más seguidos, más vida), y
   que la mira trabada (SNIPE) dure menos que una rodada.
 - Reglas de sala: un `.tres` por regla en `content/rules/` (`RoomRule`) y en
-  `run_config.room_rules` (lo exige un test).
+  `run_config.room_rules` (lo exige un test); los capítulos tienen las mismas reglas y armazones.
+- Capítulos: un `RunConfig` por capítulo en `content/run/` (`run_config` es el 1, `chapter_2` el 2), en
+  orden en `meta_config.chapters` (con su `number`); cada piso de un capítulo nuevo es más difícil que
+  el mismo piso del anterior y sus personajes arrancan bloqueados (lo exigen los tests).
 - Items: un `.tres` por item en `content/items/` y en `catalog.tres` (lo exige un test), con su
   `quality` (C, B, A, S o S++; un test exige muy pocos S y S++ y que la tienda no venda S++). Un item
   `locked` tiene que tener `unlock_cost` (se vende en el Taller) o salir de un logro. Los efectos
@@ -254,6 +273,8 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   Las armas son items de tipo WEAPON que apuntan a un `WeaponData` de `content/weapons/`.
 - Personajes en `content/characters/` y logros en `content/achievements/`; los dos van en la lista
   de `content/meta/meta_config.tres` (lo exige un test). El primer personaje es el de por defecto.
+  Cada personaje dice su `chapter` (el capítulo que juega), cómo esquiva (`dodge`) y cómo se dibuja
+  (`look`).
 
 ## Configuración del proyecto (project.godot)
 
@@ -303,31 +324,35 @@ core/meta/                  MetaProfile (progreso de una partida), MetaRules (ch
 data/                       StatBlock, StatModifier, WeaponData, ItemData, ItemCatalog, EnemyData, BossPhase,
                             BulletPatternData, SfxData, SfxLibrary, RoomTemplate, FloorTheme, PickupData,
                             RunConfig, CharacterData, AchievementData, MetaConfig, RoomRule, TrapData,
-                            MechData, BossAttack (movimiento de jefe)
+                            MechData, BossAttack (movimiento de jefe); RunConfig es un capítulo
 content/                    weapons/ (pistola, trabuco, metralla, haz, órbita, ballesta, lanzagranadas, bazuca,
                             franco tirador, caño de riel), items/ (37 +
                             catalog), enemies/ (carnero, vigia, farol, centinela, espora, fundidor, grasa
                             (→ grasita → gotita), mecha, murcielago, nido (→ cria), topo, hollin, escudero,
-                            fogonero; jefes campanario, rey_carnero, raigon y yunque, con sus movimientos
-                            adentro), patterns/ (30),
-                            sfx/sfx_library, rooms/floor_1/ (24), floor_2/ (10), floor_3/ (10), floor_4/ (11),
+                            fogonero; del monte: ovillo, tijereta, abrojo, polilla, pedrusco, cuervo, lobo,
+                            tempano, nubarron, soplo; jefes campanario, rey_carnero, raigon, yunque,
+                            tijeron, rey_destronado, alud y cierzo, con sus movimientos adentro),
+                            patterns/ (47), sfx/sfx_library, rooms/floor_1/ (24), floor_2/ (10),
+                            floor_3/ (10), floor_4/ (11), monte_1/ (14), monte_2..4/ (8 cada uno),
                             mechs/ (caldera, zancos, fuelle),
-                            floors/ (Sótano, Cloacas, Raíces, Forja), run/run_config, rules/ (furia,
+                            floors/ (Sótano, Cloacas, Raíces, Forja; monte_1..4: Esquiladero, Cantera,
+                            Ventisquero, Cumbre), run/ (run_config = capítulo 1, chapter_2), rules/ (furia,
                             coraza, contrarreloj, apagon, sin_pulso, fragil), traps/ (pinchos, vapor,
-                            vaina, chorro),
-                            pickups/ (coin, heart, bomb, key), characters/ (brasa, musgo, ceniza),
-                            achievements/ (7), meta/meta_config, music/ (menu, floor_1..4, boss: .wav
-                            generados, no editar a mano)
+                            vaina, chorro, tijeras, barreno, carambano, pararrayos),
+                            pickups/ (coin, heart, bomb, key), characters/ (brasa, musgo, ceniza, testa),
+                            achievements/ (7), meta/meta_config, music/ (menu, floor_1..4, boss,
+                            monte_1..4, boss_monte: .wav generados, no editar a mano)
 items/                      ItemHook (base), HookContext, hooks/ (diente de leche, rencor, estallido,
                             caparazón, relámpago, botiquín, eco, esquirlas, segunda chispa)
 components/                 Weapon, LaserBeam, OrbitRing, RailGun, AimSight, Health, Hurtbox (con escudo y
                             multiplicador de daño), Hitbox, Knockback, Flash, BulletEmitter, EnemyBeam (rayo de
                             enemigo), StatusComponent (estados), ItemHookRunner, state_machine/
-entities/player/            player.tscn/.gd, player_visual.gd, states/ (move, roll, dead)
+entities/player/            player.tscn/.gd, player_visual.gd, states/ (move, roll, charge = embestida, dead)
 entities/enemies/           enemy.tscn/.gd, enemy_visual.gd, states/ (idle, move, telegraph, attack, recover,
                             boss_attack), enemy_blast.gd (explosiones), lob_shell.tscn/.gd (bola en arco o
-                            bomba con mecha), boss_strike.tscn/.gd (golpe de jefe avisado), boss/ (BossMove
-                            y una subclase por tipo de movimiento, BossMoves elige cuál)
+                            bomba con mecha), boss_strike.tscn/.gd (golpe de jefe avisado), rolling_ball
+                            .tscn/.gd (bola de nieve), boss/ (BossMove y una subclase por tipo de movimiento,
+                            BossMoves elige cuál)
 entities/bullets/           bullet.tscn/.gd (rebote, perforación, teledirigido, explosivas), grenade.tscn/.gd,
                             player_blast.gd (explosiones de armas del jugador)
 entities/pickups/           pickup.tscn/.gd, pickup_visual.gd, item_pedestal.tscn/.gd, item_pedestal_visual.gd,
@@ -343,9 +368,10 @@ fx/                         game_camera, hit_stop, fx (spawner), flash.gdshader,
                             partículas (bullet_impact, burst, dust_puff, step_dust), floor_stain,
                             pulse_wave, placeholder_shape, screen_fade, unshaded.tres, glow_texture.tres,
                             flicker_light (luz del jugador), light_flash (destellos), afterimage (rodar),
-                            spark_swarm (chispas al matar), ambient_motes (partículas del piso)
+                            spark_swarm (chispas al matar), ambient_motes (partículas del piso),
+                            wind_gust (rayitas de viento)
 ui/theme/                   ui_theme.tres (tema de todos los Control; gui/theme/custom en project.godot)
-ui/menus/                   main_menu, intro_screen, character_select, workshop_menu (Taller),
+ui/menus/                   main_menu, intro_screen, chapter_select, character_select, workshop_menu (Taller),
                             achievements_menu, options_menu, pause_menu, inventory_menu (Mochila) +
                             inventory_slot, run_summary, save_slots_menu (Partidas) + progress_meter,
                             menu_builder (arman la UI por código)
@@ -367,7 +393,7 @@ tests/unit/                 rng_streams, shot_spec, health_math, pattern_math, i
 tests/integration/          player_shooting, bullets, combat, main_flow, floor, rooms, items,
                             bullet_behaviors, weapons, boss, meta_flow, feedback, inventory, enemy_kinds,
                             weapons_statuses, music, save_slots_flow, special_rooms, traps, mechs,
-                            boss_attacks, pathing, run_resume
+                            boss_attacks, pathing, run_resume, chapters, mountain
 tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria, la música apagada y GameRNG con una seed fija
 docs/PLAN.md                plan, arquitectura e hitos
 docs/LORE.md                la historia y dónde está cada texto en el juego
@@ -392,7 +418,18 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   Con una run guardada el menú muestra "Continuar la run" (`continue_run`) y "Nueva run" (pide
   confirmación). `Game` conecta el HUD (y el minimapa si hay
   `FloorController`), cuenta `RunState.run_time`, tiene el `PauseMenu` (Esc) y registra comandos del F3.
-- **Pisos:** `FloorController` (en `game.tscn`) recorre los pisos de `RunConfig`. `load_floor(i)` borra
+- **Capítulos:** cada `RunConfig` es un capítulo (número, nombre, línea, historia de la primera vez,
+  textos del final y sus pisos); `MetaConfig.chapters` los tiene en orden. Cada personaje es de uno
+  (`CharacterData.chapter`): `RunState.start_run(personaje)` pone `RunState.chapter` y
+  `FloorController` toma de ahí los pisos (también al seguir una run guardada, que sale del
+  personaje). Un capítulo se juega si alguno de sus personajes está disponible
+  (`MetaConfig.is_chapter_available`; Testa lo desbloquea "Fragua encendida"). Jugar → (con más de uno)
+  `ChapterSelect` → la primera vez, su intro (`IntroScreen.lines`; vista en
+  `MetaProfile.seen_intros`, la del primero sigue siendo `intro_seen`) → `CharacterSelect` con los de
+  ese capítulo. `MetaProfile.sync_unlocks` repone al abrir una partida lo que desbloquean los logros que
+  ya tenía (así un guardado viejo con el Yunque vencido recibe a Testa). `RunSummary.story_text` usa
+  los textos del capítulo.
+- **Pisos:** `FloorController` (en `game.tscn`) recorre los pisos del capítulo (`RunConfig`). `load_floor(i)` borra
   el piso anterior, hace `GameRNG.set_floor(i)` y genera el layout con `FloorGenerator` (grilla 9x8,
   árbol sin ciclos que crece desde el centro; jefe en el callejón más lejano, tesoro, tienda y las
   especiales extra en otros callejones, secreta en una celda vacía con 2+ vecinas sin tocar al jefe),
@@ -494,8 +531,9 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   (`AchievementData` con condición DEFEAT_BOSS / TOTAL_KILLS / KILLS_IN_RUN / ITEMS_IN_RUN, se revisan
   con `MetaRules.is_met`) que desbloquean items y personajes. En el Taller se compran los items
   `locked` con `unlock_cost`. Los items bloqueados no entran al `ItemPool` de la run.
-- **Personajes:** `CharacterData` (stats base con la vida, item inicial, color). `RunState.character`;
-  el jugador toma el color con `PlayerVisual.set_body_color` y la vida de `stats.max_health`.
+- **Personajes:** `CharacterData` (stats base con la vida, item inicial, color, capítulo, `dodge` y
+  `look`). `RunState.character`; el jugador toma el color con `PlayerVisual.set_body_color`, el dibujo
+  con `PlayerVisual.look` (chispa o carnero) y la vida de `stats.max_health`.
 - **Items:** `RunState.add_item()` reparte por tipo: pasivo (a `items`, recalcula `stats` con
   `StatCalculator`), activo (reemplaza al anterior y lo devuelve para dejarlo en el pedestal), arma
   (`add_weapon`). `RunState.item_pool` (`ItemPool`) sortea sin repetir en la run: primero tira la
@@ -547,14 +585,26 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   `machine.physics_update(delta)` en su `_physics_process`. Transiciones con `transition_to(&"Nombre")`.
 - **Jugador:** `Player` registra en el `InputBuffer` (0.1 s) los toques de shoot, dodge, blank, bomb,
   reload, swap_weapon y use_active, y delega en Move (caminar, apuntar, disparar, Pulso, bomba,
-  recargar, cambiar de arma, usar el activo), Roll (0.32 s invulnerable, cooldown 0.3 s) y Dead.
+  recargar, cambiar de arma, usar el activo), Roll (0.32 s invulnerable, cooldown 0.3 s), Charge y
+  Dead. `Player.dodge_state()` elige rodar o embestir: la embestida de Testa (`PlayerChargeState`,
+  `CharacterData.Dodge.CHARGE`) es invulnerable lo mismo que una rodada, va más rápido y más lejos,
+  lastima una vez a cada enemigo que atropella (3 veces el daño, pasando por encima de los escudos),
+  rompe la roca que choca de frente y rebota en paredes y fosos; cooldown 0,45 s. Arriba de un armazón
+  siempre rueda (salta afuera). `Player.push(velocidad)` es el viento: se suma a la velocidad de ese
+  tick (el Soplo y el Cierzo lo llaman en cada tick que soplan).
   Sigue a `RunState`: el arma equipada (`weapons_changed`) y la vida máxima (`stats_changed`).
 - **Enemigos:** una sola escena `enemy.tscn` configurada por `EnemyData`. Moverse: CHASE, KEEP_DISTANCE,
   HOP (a saltos), FLY (vuela en círculos, sin chocar fosos), STAY, BURROW (bajo tierra, invulnerable,
-  asoma al atacar) o PHASE (fantasma un rato: ni pega ni recibe). Atacar: CHARGE, SHOOT (patrones en
-  orden), BEAM (`EnemyBeam`: la línea avisa, se fija y dispara; rodando se esquiva), EXPLODE
-  (`EnemyBlast` y muere), SUMMON (crea `summon` hasta `summon_cap` vivos) o LOB (`LobShell`: cae
-  donde estaba el jugador; el Pulso la apaga). `split_into` lo divide al morir y `shield_degrees`
+  asoma al atacar), PHASE (fantasma un rato: ni pega ni recibe), BOUNCE (rueda derecho y rebota) o
+  PROWL (ronda al jugador como FLY pero por el piso; si algo tapa el camino, lo rodea). Atacar: CHARGE
+  (con `charge_axis_only`, solo cuando el jugador queda en su fila o columna: va derecho por ese eje,
+  rompe la roca que choca y solo un foso lo frena), SHOOT (patrones en orden), BEAM (`EnemyBeam`: la
+  línea avisa, se fija y dispara; rodando se esquiva), EXPLODE (`EnemyBlast` y muere), SUMMON (crea
+  `summon` hasta `summon_cap` vivos), LOB (`LobShell`: cae donde estaba el jugador; el Pulso la
+  apaga), SLASH (un `BossStrike` tajo corto donde está el jugador, hasta `attack_range`, con un
+  saltito) o GUST (sopla `beam_time` s en un abanico y empuja al jugador con `Player.push`; se ve con
+  `WindGust`). `death_pattern` suelta un anillo de balas al morir (diferido: puede morir en un callback
+  de física). `split_into` lo divide al morir y `shield_degrees`
   le da un escudo frontal (`HurtboxComponent.guards`, que consultan balas, láser y orbes) mientras
   camina o avisa. Los hijos (división, invocación) los crea `Enemy.spawn_child`: avisa `spawned` en
   el acto y entra al árbol diferido; la sala los cuenta (`Room._register_enemy`) y escucha `killed`,
@@ -578,8 +628,13 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   (`EventBus.darkness_requested` apaga la luz, el jefe se esconde y tira tajos), SNIPE (salta a una
   esquina lejos, mira láser con `EnemyBeam.preview(steady, locked)` y rayo: hay que rodar), LEAP (salta,
   la sombra sigue al jugador y cae con una onda), CHARGES (embestidas con la línea marcada), SUMMON,
-  GROUND_LINES (golpes que avanzan por el piso, cortan en rocas y fosos), SWEEP (rayo que barre) y
-  MOLTEN (charcos que quedan quemando). Los golpes avisados son `BossStrike` (círculo o tajo; avisa
+  GROUND_LINES (golpes que avanzan por el piso, cortan en rocas y fosos), SWEEP (rayo que barre),
+  MOLTEN (charcos que quedan quemando) y los del monte: SCISSORS (dos rayos, el del jefe y un
+  `EnemyBeam` de más, que se cierran sobre el jugador), STAMPEDE (franjas de punta a punta, horizontales
+  y verticales alternadas, con un hueco al lado del jugador), SNOWBALL (`RollingBall`: rueda, rebota en
+  la sala, crece, rompe rocas y se deshace), ICE_CAGE (ronda de carámbanos que quedan clavados con un
+  hueco hacia el medio de la sala y uno enorme en el centro) y GUST (viento por toda la sala, de a ejes,
+  mientras tira granizo). DEBRIS usa `BossAttack.look` (piedras, carámbanos, rayos). Los golpes avisados son `BossStrike` (círculo o tajo; avisa
   `warn_time`, pega una vez y, con `linger`, queda lastimando). En el aire o escondido el jefe está
   `airborne` (`Enemy.set_airborne`: sin cuerpo, sin hurtbox, sin contacto; `EnemyVisual.set_lift`
   lo dibuja arriba de su sombra). Nunca cae en una roca o un foso (`Enemy.landing_spot`). `Game` junta

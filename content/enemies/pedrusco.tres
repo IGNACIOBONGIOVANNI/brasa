@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"pedrusco"
+display_name = "Pedrusco"
+template_char = "R"
+max_health = 22.0
+contact_damage = 2.0
+move_style = 4
+knockback_resistance = 1.0
+attack_kind = 0
+charge_axis_only = true
+attack_range = 400.0
+attack_cooldown = 1.2
+telegraph_time = 0.45
+recover_time = 0.8
+charge_speed = 230.0
+charge_time = 2.0
+body_radius = 6.0
+hurtbox_radius = 8.0
+visual_style = 17
+visual_radius = 8.0
+body_color = Color(0.5412, 0.498, 0.4314, 1)

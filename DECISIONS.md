@@ -757,3 +757,57 @@ que quede en la sala donde está el personaje y, si no completó el enfrentamien
 - **El mismo piso:** el layout no se guarda, sale de la seed de la run (que sí se guarda); lo sorteado
   en cada sala se guarda entero, así no depende de qué items ya salieron.
 - **Para probar:** `--skip-menu` sigue la run guardada de la última partida si hay una.
+
+## Hito 21 — capítulo 2, "El monte" (2026-11-02)
+
+Pedido del usuario: "un capítulo 2 con cuatro niveles, ahora como personaje jugable un carnero; cuatro
+niveles algo originales, jefes para cada uno (alguno del capítulo 1 en versión 2 o de venganza),
+enemigos originales y alguna mecánica nueva".
+
+- **Un capítulo es una run aparte**, no la continuación de la del primero: se elige al empezar
+  ("Elegí capítulo") y tiene sus cuatro pisos. Es lo más simple y respeta el largo de las runs.
+- **El carnero es el protagonista del capítulo 2 y solo de ese**: Testa, un carnero joven. Los
+  personajes dicen de qué capítulo son (`CharacterData.chapter`) y el capítulo de la run sale del
+  personaje (así "Otra run" y "Continuar la run" no necesitan guardar nada más).
+- **Se desbloquea al prender la Fragua** (vencer al Yunque, el logro "Fragua encendida", que ahora
+  también desbloquea a Testa). Los guardados que ya tenían ese logro reciben a Testa al abrir la
+  partida (`MetaProfile.sync_unlocks`). La pantalla de capítulos solo aparece cuando hay más de uno
+  disponible; antes, Jugar va directo a los personajes como siempre.
+- **La mecánica nueva es la embestida**: Testa no rueda, embiste. Dura lo mismo que una rodada y es
+  igual de invulnerable (todo lo que se esquiva rodando se esquiva embistiendo), pero va más lejos,
+  lastima a lo que atropella (tres veces su daño, una vez por enemigo, aunque tenga escudo) y rompe
+  rocas. Para que no sea solo ventaja, el cooldown es más largo (0,45 s contra 0,3) y al chocar de
+  frente con una pared o un foso rebota y se termina. Arriba de un armazón sigue rodando (saltar
+  afuera). El viento (`Player.push`) es la segunda novedad: lo usan el Soplo y el Cierzo.
+- **Historia:** los carneros bajaron del monte porque arriba se heló todo. Testa sube a ver qué lo
+  heló. Los pisos suben el monte: Esquiladero (el galpón de esquila, con tijeras que cortan solas),
+  Cantera (donde el Rey Carnero, sin corona, espera al rebaño que lo dejó), Ventisquero (nieve que no
+  se derrite, lobos) y Cumbre (tormenta; el Cierzo, el viento que heló el monte). Detalle en LORE.md.
+- **El jefe de venganza es el Rey Destronado**: el Rey Carnero sin corona. Tiene sus movimientos de
+  siempre (embestidas, clavos, el rebaño) más fuertes, cascotes de la cantera y uno nuevo, la
+  Estampida (la manada cruza la sala en franjas con un solo hueco).
+- **Cinco tipos de movimiento nuevos** (cada jefe del monte tiene uno que ningún jefe del primer
+  capítulo hace): SCISSORS (Tijerón: dos hojas que se cierran), STAMPEDE (Rey Destronado), SNOWBALL
+  (Alud: bolas de nieve que ruedan, rebotan y rompen rocas), ICE_CAGE (Alud y Cierzo: ronda de
+  carámbanos con un hueco y uno enorme en el medio) y GUST (Cierzo: viento por toda la sala). DEBRIS
+  ahora puede tirar carámbanos o rayos.
+- **Diez enemigos nuevos** con cuatro comportamientos nuevos: Ovillo (rueda y rebota), Tijereta (tajo
+  corto), Abrojo (torreta de espinas), Polilla (vuela y suelta polvo), Pedrusco (espera a que te
+  alinees y embiste derecho rompiendo rocas), Cuervo (se tira en picada), Lobo (ronda y se lanza),
+  Témpano (se parte en esquirlas al morir), Nubarrón (granizo que cae donde estabas) y Soplo (empuja).
+  En la Cantera vuelven los Carneros del primer capítulo, como fieles del Rey.
+- **Más difícil que el primero**, como pidió el usuario (el primero le resultaba fácil): vida de los
+  enemigos ×1,3 / 1,7 / 2,1 / 2,4 (contra 1 / 1,4 / 1,8 / 2) y balas más rápidas. Con el medidor, una
+  persona tardaría unos 35 a 38 minutos (el primero, unos 25).
+- **Salas:** 30 normales nuevas y una Prueba y una sala de jefe por piso; las especiales comunes
+  (inicio, tesoro, tienda, secreta, Altar, Pozo, Galpón) son las del primer capítulo. Las letras de
+  las plantillas son de cada piso, así que el capítulo 2 reusa letras con otros enemigos. Cada piso
+  tiene su trampa: tijeras, barrenos (explotan si alguien se acerca), carámbanos y pararrayos.
+- **Música:** cinco temas nuevos (uno por piso y el del jefe del monte), con la misma notación.
+- **Cargas circulares:** al cargar los capítulos al arrancar, la escena de las balas a veces se
+  cargaba primero y quedaba vacía para los scripts que la precargaban (explosiones, golpes de jefe,
+  items). Ahora esos scripts la piden con `Bullet.default_scene()` y el enemigo carga su escena al
+  usarla. Va en los gotchas de CLAUDE.md.
+- **Lo que no**: logros nuevos del capítulo 2 (no había qué desbloquear), hielo resbaloso en el piso
+  (el viento ya cumple el papel de lo nuevo del ambiente) y que los personajes del primer capítulo
+  jueguen el segundo.

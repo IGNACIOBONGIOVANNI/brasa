@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BulletPatternData" format=3]
+
+[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="1_pattern"]
+
+[resource]
+script = ExtResource("1_pattern")
+id = &"tijeron_spiral"
+kind = 1
+count = 4
+volleys = 10
+volley_interval = 0.12
+rotation_step_degrees = 14.0
+bullet_speed = 85.0
+bullet_color = Color(0.8745, 0.902, 0.9373, 1)

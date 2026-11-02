@@ -1,0 +1,125 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://data/boss_phase.gd" id="3_phase"]
+[ext_resource type="Script" path="res://data/boss_attack.gd" id="4_attack"]
+[ext_resource type="Resource" path="res://content/patterns/tijeron_agujas.tres" id="x0"]
+[ext_resource type="Resource" path="res://content/enemies/ovillo.tres" id="x1"]
+[ext_resource type="Resource" path="res://content/patterns/tijeron_spiral.tres" id="x2"]
+
+[sub_resource type="Resource" id="Attack_agujas"]
+script = ExtResource("4_attack")
+id = &"agujas"
+display_name = "Agujas"
+kind = 0
+windup = 0.7
+recover = 0.8
+count = 2
+interval = 0.4
+pattern = ExtResource("x0")
+
+[sub_resource type="Resource" id="Attack_tijeretazo"]
+script = ExtResource("4_attack")
+id = &"tijeretazo"
+display_name = "Tijeretazo"
+kind = 11
+windup = 0.75
+recover = 1.0
+count = 1
+warn_time = 0.8
+spread = 110.0
+speed = 100.0
+damage = 1.0
+
+[sub_resource type="Resource" id="Attack_ovillos"]
+script = ExtResource("4_attack")
+id = &"ovillos"
+display_name = "Ovillos sueltos"
+kind = 7
+windup = 0.7
+recover = 0.7
+count = 2
+cap = 3
+summon = ExtResource("x1")
+
+[sub_resource type="Resource" id="Attack_doble_tijeretazo"]
+script = ExtResource("4_attack")
+id = &"doble_tijeretazo"
+display_name = "Doble tijeretazo"
+kind = 11
+windup = 0.65
+recover = 0.9
+count = 2
+warn_time = 0.65
+spread = 120.0
+speed = 120.0
+damage = 1.0
+
+[sub_resource type="Resource" id="Attack_remolino_agujas"]
+script = ExtResource("4_attack")
+id = &"remolino_agujas"
+display_name = "Remolino de agujas"
+kind = 0
+windup = 0.65
+recover = 0.7
+pattern = ExtResource("x2")
+
+[sub_resource type="Resource" id="Attack_estocada"]
+script = ExtResource("4_attack")
+id = &"estocada"
+display_name = "Estocada"
+kind = 6
+windup = 0.6
+recover = 0.8
+count = 2
+warn_time = 0.55
+speed = 240.0
+
+[sub_resource type="Resource" id="Behavior_0"]
+script = ExtResource("1_enemy")
+id = &"tijeron_fase_1"
+move_style = 0
+move_speed = 40.0
+acceleration = 500.0
+attack_range = 300.0
+attack_cooldown = 1.5
+recover_time = 0.8
+
+[sub_resource type="Resource" id="Phase_0"]
+script = ExtResource("3_phase")
+health_fraction = 1.0
+behavior = SubResource("Behavior_0")
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_agujas"), SubResource("Attack_tijeretazo"), SubResource("Attack_ovillos")])
+
+[sub_resource type="Resource" id="Behavior_1"]
+script = ExtResource("1_enemy")
+id = &"tijeron_fase_2"
+move_style = 0
+move_speed = 50.0
+acceleration = 500.0
+attack_range = 300.0
+attack_cooldown = 1.2
+recover_time = 0.7
+
+[sub_resource type="Resource" id="Phase_1"]
+script = ExtResource("3_phase")
+health_fraction = 0.5
+behavior = SubResource("Behavior_1")
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_doble_tijeretazo"), SubResource("Attack_remolino_agujas"), SubResource("Attack_estocada"), SubResource("Attack_ovillos")])
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"tijeron"
+display_name = "Tijerón"
+epithet = "Las tijeras de esquilar, sin nadie que las sostenga"
+template_char = "J"
+max_health = 170.0
+visual_style = 14
+visual_radius = 15.0
+body_color = Color(0.6039, 0.6431, 0.7216, 1)
+contact_damage = 1.0
+spawn_delay = 1.2
+knockback_resistance = 0.9
+body_radius = 11.0
+hurtbox_radius = 14.0
+phases = Array[ExtResource("3_phase")]([SubResource("Phase_0"), SubResource("Phase_1")])

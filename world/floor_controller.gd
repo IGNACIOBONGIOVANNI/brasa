@@ -54,6 +54,9 @@ var _mechs_by_id: Dictionary[StringName, MechData] = {}
 
 
 func _ready() -> void:
+	# Los pisos son los del capítulo de la run (el de game.tscn queda para escenas sueltas).
+	if RunState.chapter != null:
+		run = RunState.chapter
 	EventBus.exploded.connect(_on_exploded)
 	_register_dev_commands()
 	var catalog := load(RunState.CATALOG_PATH) as ItemCatalog

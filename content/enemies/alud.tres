@@ -1,0 +1,212 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://data/boss_phase.gd" id="3_phase"]
+[ext_resource type="Script" path="res://data/boss_attack.gd" id="4_attack"]
+[ext_resource type="Resource" path="res://content/patterns/alud_fan.tres" id="x0"]
+[ext_resource type="Resource" path="res://content/patterns/alud_esquirlas.tres" id="x1"]
+[ext_resource type="Resource" path="res://content/patterns/alud_caida.tres" id="x2"]
+
+[sub_resource type="Resource" id="Attack_bola"]
+script = ExtResource("4_attack")
+id = &"bola"
+display_name = "Bola de nieve"
+kind = 13
+windup = 0.6
+recover = 0.8
+count = 1
+interval = 0.5
+warn_time = 0.4
+radius = 10.0
+speed = 120.0
+linger = 4.0
+damage = 1.0
+
+[sub_resource type="Resource" id="Attack_avalancha"]
+script = ExtResource("4_attack")
+id = &"avalancha"
+display_name = "Avalancha"
+kind = 1
+look = 5
+windup = 0.6
+recover = 0.8
+count = 6
+interval = 0.18
+warn_time = 0.85
+radius = 11.0
+spread = 55.0
+
+[sub_resource type="Resource" id="Attack_escarcha"]
+script = ExtResource("4_attack")
+id = &"escarcha"
+display_name = "Escarcha"
+kind = 0
+windup = 0.55
+recover = 0.7
+count = 2
+interval = 0.35
+pattern = ExtResource("x0")
+
+[sub_resource type="Resource" id="Attack_cerco"]
+script = ExtResource("4_attack")
+id = &"cerco"
+display_name = "Cerco de carámbanos"
+kind = 14
+windup = 0.6
+recover = 0.9
+count = 10
+warn_time = 0.7
+radius = 7.0
+spread = 34.0
+linger = 1.4
+damage = 1.0
+pattern = ExtResource("x1")
+
+[sub_resource type="Resource" id="Attack_dos_bolas"]
+script = ExtResource("4_attack")
+id = &"dos_bolas"
+display_name = "Dos bolas"
+kind = 13
+windup = 0.55
+recover = 0.8
+count = 2
+interval = 0.6
+warn_time = 0.4
+radius = 10.0
+speed = 135.0
+linger = 4.0
+damage = 1.0
+
+[sub_resource type="Resource" id="Attack_caida"]
+script = ExtResource("4_attack")
+id = &"caida"
+display_name = "Caída del alud"
+kind = 5
+windup = 0.55
+recover = 0.8
+count = 1
+warn_time = 0.9
+lock_time = 0.3
+radius = 26.0
+damage = 1.0
+pattern = ExtResource("x2")
+
+[sub_resource type="Resource" id="Attack_cerco_cerrado"]
+script = ExtResource("4_attack")
+id = &"cerco_cerrado"
+display_name = "Cerco cerrado"
+kind = 14
+windup = 0.5
+recover = 0.8
+count = 12
+warn_time = 0.6
+radius = 7.0
+spread = 38.0
+linger = 1.4
+damage = 1.0
+pattern = ExtResource("x1")
+
+[sub_resource type="Resource" id="Attack_tres_bolas"]
+script = ExtResource("4_attack")
+id = &"tres_bolas"
+display_name = "Tres bolas"
+kind = 13
+windup = 0.5
+recover = 0.8
+count = 3
+interval = 0.5
+warn_time = 0.4
+radius = 9.0
+speed = 150.0
+linger = 3.5
+damage = 1.0
+
+[sub_resource type="Resource" id="Attack_saltos"]
+script = ExtResource("4_attack")
+id = &"saltos"
+display_name = "Saltos del alud"
+kind = 5
+windup = 0.5
+recover = 0.8
+count = 2
+warn_time = 0.8
+lock_time = 0.28
+radius = 26.0
+damage = 1.0
+pattern = ExtResource("x2")
+
+[sub_resource type="Resource" id="Attack_ventisca"]
+script = ExtResource("4_attack")
+id = &"ventisca"
+display_name = "Ventisca"
+kind = 0
+windup = 0.5
+recover = 0.6
+count = 3
+interval = 0.3
+pattern = ExtResource("x0")
+
+[sub_resource type="Resource" id="Behavior_0"]
+script = ExtResource("1_enemy")
+id = &"alud_fase_1"
+move_style = 0
+move_speed = 32.0
+acceleration = 500.0
+attack_range = 300.0
+attack_cooldown = 1.2
+recover_time = 0.8
+
+[sub_resource type="Resource" id="Phase_0"]
+script = ExtResource("3_phase")
+health_fraction = 1.0
+behavior = SubResource("Behavior_0")
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_bola"), SubResource("Attack_avalancha"), SubResource("Attack_escarcha")])
+
+[sub_resource type="Resource" id="Behavior_1"]
+script = ExtResource("1_enemy")
+id = &"alud_fase_2"
+move_style = 0
+move_speed = 38.0
+acceleration = 500.0
+attack_range = 300.0
+attack_cooldown = 1.0
+recover_time = 0.7
+
+[sub_resource type="Resource" id="Phase_1"]
+script = ExtResource("3_phase")
+health_fraction = 0.65
+behavior = SubResource("Behavior_1")
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_cerco"), SubResource("Attack_dos_bolas"), SubResource("Attack_caida"), SubResource("Attack_avalancha")])
+
+[sub_resource type="Resource" id="Behavior_2"]
+script = ExtResource("1_enemy")
+id = &"alud_fase_3"
+move_style = 0
+move_speed = 45.0
+acceleration = 500.0
+attack_range = 300.0
+attack_cooldown = 0.85
+recover_time = 0.6
+
+[sub_resource type="Resource" id="Phase_2"]
+script = ExtResource("3_phase")
+health_fraction = 0.3
+behavior = SubResource("Behavior_2")
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_cerco_cerrado"), SubResource("Attack_tres_bolas"), SubResource("Attack_saltos"), SubResource("Attack_ventisca")])
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"alud"
+display_name = "Alud"
+epithet = "La nieve que se juntó arriba y no para de bajar"
+template_char = "U"
+max_health = 280.0
+contact_damage = 1.0
+spawn_delay = 1.2
+knockback_resistance = 0.95
+body_radius = 12.0
+hurtbox_radius = 15.0
+visual_style = 24
+visual_radius = 16.0
+body_color = Color(0.5608, 0.6902, 0.8471, 1)
+phases = Array[ExtResource("3_phase")]([SubResource("Phase_0"), SubResource("Phase_1"), SubResource("Phase_2")])

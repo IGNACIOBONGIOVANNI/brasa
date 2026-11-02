@@ -8,7 +8,7 @@ extends Resource
 
 enum Trigger { TIMED, PROXIMITY }
 ## Cómo se dibuja. NOZZLE además es un chorro en línea (largo `length`); las otras, un círculo.
-enum Look { SPIKES, VENT, POD, NOZZLE }
+enum Look { SPIKES, VENT, POD, NOZZLE, SHEARS, BLAST, ICICLE, BOLT }
 
 @export var id: StringName = &""
 @export var display_name: String = ""

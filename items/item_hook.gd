@@ -4,7 +4,6 @@ extends RefCounted
 ## sobreescriben solo los eventos que usan. ItemHookRunner (en el jugador) los llama; los eventos
 ## que vienen de la física llegan diferidos, así un hook puede crear balas sin problema.
 
-const BULLET_SCENE: PackedScene = preload("res://entities/bullets/bullet.tscn")
 
 var item: ItemData
 
@@ -54,5 +53,5 @@ static func fire_ring(player: Player, count: int) -> void:
 static func fire_from(player: Player, center: Vector2, directions: Array[Vector2]) -> void:
 	var spec := ShotSpec.build(RunState.stats, RunState.BASE_WEAPON)
 	for direction: Vector2 in directions:
-		Bullet.spawn(player.get_tree(), BULLET_SCENE, spec, center + direction * 6.0, direction,
+		Bullet.spawn(player.get_tree(), Bullet.default_scene(), spec, center + direction * 6.0, direction,
 				PhysicsLayers.PLAYER_BULLET, PhysicsLayers.WALL | PhysicsLayers.ENEMY_HURTBOX)

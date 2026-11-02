@@ -1,7 +1,8 @@
 class_name CharacterSelect
 extends Control
-## Elegir personaje antes de la run: uno por columna con su dibujo, corazones, descripción e item
-## inicial. Los bloqueados se ven en sombra, con el logro que los desbloquea. Esc vuelve al menú.
+## Elegir personaje antes de la run: los del capítulo elegido, uno por columna con su dibujo,
+## corazones, descripción e item inicial. Los bloqueados se ven en sombra, con el logro que los
+## desbloquea. Esc vuelve (al menú o a elegir capítulo).
 
 signal character_chosen(character: CharacterData)
 signal back_requested
@@ -11,6 +12,8 @@ const PORTRAIT_HEIGHT: float = 30.0
 const PORTRAIT_SCALE: float = 2.0
 const LOCKED_COLOR: Color = Color("2a2230")
 
+## El capítulo cuyos personajes muestra (null = el primero). Se pone antes de agregarla al árbol.
+var chapter: RunConfig
 var _row: HBoxContainer
 var _buttons: Dictionary[StringName, Button] = {}
 
@@ -44,9 +47,12 @@ func _refresh() -> void:
 		_row.remove_child(child)
 		child.queue_free()
 	_buttons.clear()
-	for character: CharacterData in SaveManager.config.characters:
+	var shown: RunConfig = chapter if chapter != null else SaveManager.config.chapters[0]
+	var characters: Array[CharacterData] = SaveManager.config.characters_of(shown)
+	for character: CharacterData in characters:
 		_row.add_child(_card(character))
-	MenuBuilder.focus_later(_buttons[SaveManager.selected_character().id])
+	var selected: CharacterData = SaveManager.selected_character()
+	MenuBuilder.focus_later(_buttons[selected.id] if _buttons.has(selected.id) else _buttons[characters[0].id])
 
 
 func _card(character: CharacterData) -> Control:
@@ -57,6 +63,7 @@ func _card(character: CharacterData) -> Control:
 	var portrait := Control.new()
 	portrait.custom_minimum_size = Vector2(CARD_WIDTH, PORTRAIT_HEIGHT)
 	var visual := PlayerVisual.new()
+	visual.look = character.look
 	visual.position = Vector2(CARD_WIDTH / 2.0, PORTRAIT_HEIGHT / 2.0 + 4.0)
 	visual.scale = Vector2.ONE * PORTRAIT_SCALE
 	visual.set_body_color(character.body_color if available else LOCKED_COLOR)

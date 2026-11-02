@@ -1,0 +1,70 @@
+[gd_resource type="Resource" script_class="FloorTheme" format=3]
+
+[ext_resource type="Script" path="res://data/floor_theme.gd" id="1_theme"]
+[ext_resource type="Script" path="res://data/room_template.gd" id="2_template_script"]
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="3_enemy_script"]
+[ext_resource type="Script" path="res://data/pickup_data.gd" id="4_pickup_script"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/inicio.tres" id="s0"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/tesoro.tres" id="s1"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/tienda.tres" id="s2"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/secreta.tres" id="s3"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/altar.tres" id="s4"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/pozo.tres" id="s5"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/galpon.tres" id="s6"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/jefe_tijeron.tres" id="r0"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_entrada.tres" id="r1"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_tablones.tres" id="r2"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_abrojos.tres" id="r3"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_fardos.tres" id="r4"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_esquila.tres" id="r5"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_lana.tres" id="r6"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_tijeras.tres" id="r7"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_cruce.tres" id="r8"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_taller.tres" id="r9"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_madeja.tres" id="r10"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_trampas.tres" id="r11"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_pasillo.tres" id="r12"]
+[ext_resource type="Resource" path="res://content/rooms/monte_1/esq_prueba.tres" id="r13"]
+[ext_resource type="Resource" path="res://content/enemies/ovillo.tres" id="e0"]
+[ext_resource type="Resource" path="res://content/enemies/tijereta.tres" id="e1"]
+[ext_resource type="Resource" path="res://content/enemies/abrojo.tres" id="e2"]
+[ext_resource type="Resource" path="res://content/enemies/polilla.tres" id="e3"]
+[ext_resource type="Resource" path="res://content/enemies/tijeron.tres" id="e4"]
+[ext_resource type="Resource" path="res://content/pickups/coin.tres" id="p_coin"]
+[ext_resource type="Resource" path="res://content/pickups/heart.tres" id="p_heart"]
+[ext_resource type="Resource" path="res://content/pickups/bomb.tres" id="p_bomb"]
+[ext_resource type="Resource" path="res://content/pickups/key.tres" id="p_key"]
+[ext_resource type="AudioStream" path="res://content/music/monte_1.wav" id="m_music"]
+[ext_resource type="AudioStream" path="res://content/music/boss_monte.wav" id="m_boss"]
+[ext_resource type="Resource" path="res://content/traps/tijeras.tres" id="trap"]
+
+[resource]
+script = ExtResource("1_theme")
+id = &"monte_1"
+display_name = "Esquiladero"
+tagline = "Las tijeras de esquilar siguen cortando solas."
+ambient_light = Color(0.66, 0.58, 0.5, 1)
+mote_color = Color(0.96, 0.94, 0.88, 0.55)
+mote_velocity = Vector2(6, 2)
+mote_amount = 18
+room_count_min = 8
+room_count_max = 10
+min_boss_distance = 3
+enemy_health_mult = 1.3
+enemy_bullet_speed_mult = 1.1
+difficulty_bonus = 0
+floor_color = Color(0.1804, 0.1294, 0.0902, 1)
+floor_checker_color = Color(0.2, 0.149, 0.102, 1)
+wall_color = Color(0.3608, 0.2549, 0.1569, 1)
+outline_color = Color(0.0902, 0.05882, 0.03922, 1)
+rock_color = Color(0.4314, 0.3529, 0.2353, 1)
+pit_color = Color(0.05098, 0.03137, 0.01961, 1)
+music = ExtResource("m_music")
+boss_music = ExtResource("m_boss")
+templates = Array[ExtResource("2_template_script")]([ExtResource("s0"), ExtResource("s1"), ExtResource("s2"), ExtResource("s3"), ExtResource("s4"), ExtResource("s5"), ExtResource("s6"), ExtResource("r0"), ExtResource("r1"), ExtResource("r2"), ExtResource("r3"), ExtResource("r4"), ExtResource("r5"), ExtResource("r6"), ExtResource("r7"), ExtResource("r8"), ExtResource("r9"), ExtResource("r10"), ExtResource("r11"), ExtResource("r12"), ExtResource("r13")])
+enemies = Array[ExtResource("3_enemy_script")]([ExtResource("e0"), ExtResource("e1"), ExtResource("e2"), ExtResource("e3"), ExtResource("e4")])
+pickups = Array[ExtResource("4_pickup_script")]([ExtResource("p_coin"), ExtResource("p_heart"), ExtResource("p_bomb"), ExtResource("p_key")])
+extra_rooms = Array[int]([6, 7, 8, 9])
+extra_room_count = 1
+rule_chance = 0.25
+trap = ExtResource("trap")

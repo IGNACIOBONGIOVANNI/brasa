@@ -13,6 +13,8 @@ const LINES: PackedStringArray = [
 	"La última chispa de esa fragua tomó forma: Brasa. Baja a buscar lo que se quedó con el fuego.",
 ]
 const TEXT_WIDTH: float = 230.0
+## Las líneas que cuenta (las de otro capítulo, si se cambian antes de agregarla al árbol).
+var lines: PackedStringArray = LINES
 ## Segundos entre una línea y la siguiente si no se aprieta nada.
 const LINE_DELAY: float = 2.6
 const FADE_TIME: float = 0.6
@@ -35,7 +37,7 @@ func _ready() -> void:
 	_ember.custom_minimum_size = Vector2(TEXT_WIDTH, 5 * EMBER_SCALE)
 	_ember.draw.connect(_draw_ember)
 	box.add_child(_ember)
-	for line: String in LINES:
+	for line: String in lines:
 		var label: Label = MenuBuilder.paragraph(line, TEXT_WIDTH)
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.modulate.a = 0.0

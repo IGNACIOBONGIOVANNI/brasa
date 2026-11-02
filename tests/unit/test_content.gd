@@ -1,6 +1,7 @@
 extends GutTest
 ## Contenido (.tres): enemigos, patrones, sonidos, plantillas de sala, pickups, items, armas, pisos,
-## reglas de sala, trampas, armazones, personajes y logros cargan bien y son coherentes entre sí.
+## capítulos, reglas de sala, trampas, armazones, personajes y logros cargan bien y son coherentes
+## entre sí. Lo de los pisos se revisa en cada capítulo (META.chapters).
 
 const ENEMIES_DIR: String = "res://content/enemies/"
 const PATTERNS_DIR: String = "res://content/patterns/"
@@ -36,6 +37,7 @@ const CODE_SFX: Array[StringName] = [
 	&"shield_block", &"rail_charge", &"rule", &"altar", &"well", &"trap_warn",
 	&"mech_board", &"mech_eject", &"mech_break",
 	&"rumble", &"debris", &"root", &"claw", &"molten", &"aim", &"leap", &"darkness",
+	&"ram", &"ram_hit", &"snip", &"stampede", &"icicle", &"snowball", &"gust", &"bolt",
 ]
 
 
@@ -44,6 +46,14 @@ func _load_all(dir: String) -> Array[Resource]:
 	for file: String in ResourceLoader.list_directory(dir):
 		if file.ends_with(".tres"):
 			result.append(load(dir + file))
+	return result
+
+
+## Todos los pisos de todos los capítulos.
+func _all_floors() -> Array[FloorTheme]:
+	var result: Array[FloorTheme] = []
+	for chapter: RunConfig in META.chapters:
+		result.append_array(chapter.floors)
 	return result
 
 
@@ -113,7 +123,7 @@ func test_room_templates_are_valid_and_resolvable() -> void:
 
 func test_enemies_spawn_away_from_doors() -> void:
 	var templates: Dictionary[RoomTemplate, bool] = {}
-	for theme: FloorTheme in RUN.floors:
+	for theme: FloorTheme in _all_floors():
 		for template: RoomTemplate in theme.templates:
 			templates[template] = true
 	for template: RoomTemplate in templates:
@@ -126,9 +136,14 @@ func test_enemies_spawn_away_from_doors() -> void:
 
 
 func test_floor_has_templates_for_every_room() -> void:
+	for chapter: RunConfig in META.chapters:
+		_check_first_floor(chapter.floors[0])
+
+
+func _check_first_floor(first: FloorTheme) -> void:
 	var by_kind: Dictionary[RoomSlot.Kind, int] = {}
 	var difficulties: Dictionary[int, bool] = {}
-	for template: RoomTemplate in FLOOR_1.templates:
+	for template: RoomTemplate in first.templates:
 		by_kind[template.kind] = by_kind.get(template.kind, 0) + 1
 		var grid: RoomGrid = RoomTemplateParser.parse(template.layout)
 		if template.kind == RoomSlot.Kind.NORMAL:
@@ -139,9 +154,9 @@ func test_floor_has_templates_for_every_room() -> void:
 		elif template.kind != RoomSlot.Kind.BOSS:
 			assert_eq(grid.enemies.size(), 0, "%s: las salas especiales no tienen enemigos" % template.id)
 	for kind: int in RoomSlot.Kind.size():
-		assert_gt(by_kind.get(kind, 0), 0, "hay plantillas de tipo %d" % kind)
-	assert_gte(by_kind.get(RoomSlot.Kind.NORMAL, 0), 10, "al menos 10 salas normales")
-	assert_eq(difficulties.size(), TemplatePicker.MAX_DIFFICULTY, "salas normales de cada dificultad")
+		assert_gt(by_kind.get(kind, 0), 0, "%s: hay plantillas de tipo %d" % [first.id, kind])
+	assert_gte(by_kind.get(RoomSlot.Kind.NORMAL, 0), 10, "%s: al menos 10 salas normales" % first.id)
+	assert_eq(difficulties.size(), TemplatePicker.MAX_DIFFICULTY, "%s: salas normales de cada dificultad" % first.id)
 
 
 func test_every_room_file_is_in_the_floor() -> void:
@@ -274,8 +289,13 @@ func test_treasure_and_shop_have_pedestal_spots() -> void:
 
 
 func test_run_floors_are_complete() -> void:
-	assert_eq(RUN.floors.size(), 4, "cuatro pisos")
-	for theme: FloorTheme in RUN.floors:
+	for chapter: RunConfig in META.chapters:
+		_check_chapter_floors(chapter)
+
+
+func _check_chapter_floors(chapter: RunConfig) -> void:
+	assert_eq(chapter.floors.size(), 4, "%s: cuatro pisos" % chapter.id)
+	for theme: FloorTheme in chapter.floors:
 		var kinds: Dictionary[RoomSlot.Kind, bool] = {}
 		for template: RoomTemplate in theme.templates:
 			kinds[template.kind] = true
@@ -289,16 +309,16 @@ func test_run_floors_are_complete() -> void:
 				assert_false(boss == null or boss.phases.is_empty(), "%s/%s: es un jefe con fases" % [theme.id, template.id])
 		for kind: int in RoomSlot.Kind.size():
 			assert_true(kinds.has(kind), "%s tiene plantillas de tipo %d" % [theme.id, kind])
-	for i: int in range(1, RUN.floors.size()):
-		var previous: FloorTheme = RUN.floors[i - 1]
-		var current: FloorTheme = RUN.floors[i]
+	for i: int in range(1, chapter.floors.size()):
+		var previous: FloorTheme = chapter.floors[i - 1]
+		var current: FloorTheme = chapter.floors[i]
 		assert_gt(current.enemy_health_mult, previous.enemy_health_mult, "el piso %d es más difícil" % (i + 1))
 		assert_gte(current.enemy_bullet_speed_mult, previous.enemy_bullet_speed_mult, "piso %d: balas" % (i + 1))
 		assert_gte(current.room_count_min, previous.room_count_min, "piso %d: salas" % (i + 1))
 
 
 func test_floors_choose_valid_extra_rooms_and_rules() -> void:
-	for theme: FloorTheme in RUN.floors:
+	for theme: FloorTheme in _all_floors():
 		var seen: Dictionary[RoomSlot.Kind, bool] = {}
 		for kind: RoomSlot.Kind in theme.extra_rooms:
 			assert_has(EXTRA_KINDS, kind, "%s: %d no es una especial extra" % [theme.id, kind])
@@ -331,14 +351,16 @@ func test_rules_are_valid_and_all_listed() -> void:
 		assert_true(changes, "%s: cambia algo" % rule.id)
 	for resource: Resource in _load_all(RULES_DIR):
 		assert_true(listed.has(resource.resource_path), "%s está en run_config.tres" % resource.resource_path)
+	for chapter: RunConfig in META.chapters:
+		assert_eq(chapter.room_rules, RUN.room_rules, "%s: las mismas reglas" % chapter.id)
+		assert_eq(chapter.mechs, RUN.mechs, "%s: los mismos armazones" % chapter.id)
 
 
 func test_each_floor_has_its_own_trap_and_rooms_with_traps() -> void:
 	var looks: Dictionary[TrapData.Look, bool] = {}
 	var used: Dictionary[String, bool] = {}
 	var sfx: Array[StringName] = _sfx_ids()
-	for i: int in RUN.floors.size():
-		var theme: FloorTheme = RUN.floors[i]
+	for theme: FloorTheme in _all_floors():
 		var trap: TrapData = theme.trap
 		assert_not_null(trap, "%s: tiene trampa" % theme.id)
 		if trap == null:
@@ -360,7 +382,7 @@ func test_each_floor_has_its_own_trap_and_rooms_with_traps() -> void:
 			var grid: RoomGrid = RoomTemplateParser.parse(template.layout)
 			if not grid.traps.is_empty():
 				assert_eq(template.kind, RoomSlot.Kind.NORMAL, "%s: las trampas van en salas normales" % template.id)
-				if template.resource_path.begins_with("res://content/rooms/floor_%d/" % (i + 1)):
+				if template.resource_path.begins_with("res://content/rooms/%s/" % theme.id):
 					own_with_traps += 1
 		assert_gt(own_with_traps, 0, "%s: tiene salas propias con trampas" % theme.id)
 	for resource: Resource in _load_all(TRAPS_DIR):
@@ -412,7 +434,7 @@ func test_bosses_have_valid_phases() -> void:
 			assert_gte(boss_phase.attacks.size(), 2, "%s: fase %d con al menos dos movimientos" % [enemy.id, i])
 			for attack: BossAttack in boss_phase.attacks:
 				_check_boss_attack(enemy, attack)
-	assert_gte(bosses, RUN.floors.size(), "un jefe por piso")
+	assert_gte(bosses, _all_floors().size(), "un jefe por piso")
 
 
 ## Que cada movimiento tenga lo que su tipo necesita y se pueda esquivar.
@@ -449,10 +471,10 @@ func _check_boss_attack(boss: EnemyData, attack: BossAttack) -> void:
 		assert_gt(attack.warn_time, 0.3, "%s: cada golpe avisa" % label)
 
 
-## El jefe de cada piso, en orden.
-func _floor_bosses() -> Array[EnemyData]:
+## El jefe de cada piso del capítulo, en orden.
+func _floor_bosses(chapter: RunConfig) -> Array[EnemyData]:
 	var result: Array[EnemyData] = []
-	for theme: FloorTheme in RUN.floors:
+	for theme: FloorTheme in chapter.floors:
 		for enemy: EnemyData in theme.enemies:
 			if not enemy.phases.is_empty():
 				result.append(enemy)
@@ -482,8 +504,24 @@ func _average_windup(boss: EnemyData) -> float:
 	return total / maxi(1, _attack_count(boss))
 
 
+## Dentro de cada capítulo, cada jefe tiene algo suyo; los de los capítulos nuevos, además, algo que
+## ningún jefe del primero hace (no son los mismos con otro dibujo).
 func test_each_boss_has_its_own_moves() -> void:
-	var bosses: Array[EnemyData] = _floor_bosses()
+	for chapter: RunConfig in META.chapters:
+		_check_own_moves(_floor_bosses(chapter))
+	var first_kinds: Dictionary[BossAttack.Kind, bool] = {}
+	for boss: EnemyData in _floor_bosses(META.chapters[0]):
+		first_kinds.merge(_attack_kinds(boss))
+	for chapter: RunConfig in META.chapters.slice(1):
+		for boss: EnemyData in _floor_bosses(chapter):
+			var new_kinds: int = 0
+			for kind: BossAttack.Kind in _attack_kinds(boss):
+				if not first_kinds.has(kind):
+					new_kinds += 1
+			assert_gte(new_kinds, 1, "%s: hace algo que ningún jefe del primer capítulo hace" % boss.id)
+
+
+func _check_own_moves(bosses: Array[EnemyData]) -> void:
 	for boss: EnemyData in bosses:
 		var own: int = 0
 		for kind: BossAttack.Kind in _attack_kinds(boss):
@@ -498,8 +536,13 @@ func test_each_boss_has_its_own_moves() -> void:
 
 
 func test_bosses_get_harder_floor_by_floor() -> void:
-	var bosses: Array[EnemyData] = _floor_bosses()
-	assert_eq(bosses.size(), RUN.floors.size())
+	for chapter: RunConfig in META.chapters:
+		_check_harder_bosses(chapter)
+
+
+func _check_harder_bosses(chapter: RunConfig) -> void:
+	var bosses: Array[EnemyData] = _floor_bosses(chapter)
+	assert_eq(bosses.size(), chapter.floors.size())
 	for i: int in range(1, bosses.size()):
 		var easier: EnemyData = bosses[i - 1]
 		var harder: EnemyData = bosses[i]
@@ -514,17 +557,19 @@ func test_bosses_get_harder_floor_by_floor() -> void:
 
 
 func test_every_room_file_is_in_its_floor() -> void:
-	for i: int in RUN.floors.size():
+	for theme: FloorTheme in _all_floors():
 		var in_theme: Dictionary[String, bool] = {}
-		for template: RoomTemplate in RUN.floors[i].templates:
+		for template: RoomTemplate in theme.templates:
 			in_theme[template.resource_path] = true
-		for resource: Resource in _load_all("res://content/rooms/floor_%d/" % (i + 1)):
-			assert_true(in_theme.has(resource.resource_path), "%s está en floor_%d.tres" % [resource.resource_path, i + 1])
+		var own: Array[Resource] = _load_all("res://content/rooms/%s/" % theme.id)
+		assert_gt(own.size(), 0, "%s: tiene salas propias en su carpeta" % theme.id)
+		for resource: Resource in own:
+			assert_true(in_theme.has(resource.resource_path), "%s está en %s.tres" % [resource.resource_path, theme.id])
 
 
 func test_each_floor_has_its_own_boss_and_enemy_letters_are_unique() -> void:
 	var bosses: Dictionary[EnemyData, bool] = {}
-	for theme: FloorTheme in RUN.floors:
+	for theme: FloorTheme in _all_floors():
 		var letters: Dictionary[String, bool] = {}
 		for enemy: EnemyData in theme.enemies:
 			assert_false(letters.has(enemy.template_char), "%s: letra %s repetida" % [theme.id, enemy.template_char])
@@ -532,12 +577,12 @@ func test_each_floor_has_its_own_boss_and_enemy_letters_are_unique() -> void:
 			if not enemy.phases.is_empty():
 				assert_false(bosses.has(enemy), "%s: el jefe %s ya está en otro piso" % [theme.id, enemy.id])
 				bosses[enemy] = true
-	assert_eq(bosses.size(), RUN.floors.size(), "un jefe distinto por piso")
+	assert_eq(bosses.size(), _all_floors().size(), "un jefe distinto por piso")
 
 
 func test_each_floor_has_its_own_mood() -> void:
 	var lights: Dictionary[Color, bool] = {}
-	for theme: FloorTheme in RUN.floors:
+	for theme: FloorTheme in _all_floors():
 		assert_false(lights.has(theme.ambient_light), "%s: penumbra propia" % theme.id)
 		lights[theme.ambient_light] = true
 		assert_gt(theme.mote_amount, 0, "%s: tiene partículas de ambiente" % theme.id)
@@ -546,7 +591,7 @@ func test_each_floor_has_its_own_mood() -> void:
 
 func test_floor_names_are_unique() -> void:
 	var names: Dictionary[String, bool] = {}
-	for theme: FloorTheme in RUN.floors:
+	for theme: FloorTheme in _all_floors():
 		assert_false(names.has(theme.display_name), "nombre repetido: %s" % theme.display_name)
 		assert_ne(theme.tagline, "", "%s: tiene su línea de historia" % theme.id)
 		names[theme.display_name] = true
@@ -568,6 +613,31 @@ func test_characters_are_valid() -> void:
 			assert_has(CATALOG.items, character.start_item, "%s: el item inicial está en el catálogo" % character.id)
 		if character.locked:
 			assert_not_null(META.achievement_unlocking(character), "%s: algún logro lo desbloquea" % character.id)
+		assert_eq(META.chapter_of(character).number, character.chapter, "%s: su capítulo existe" % character.id)
+
+
+func test_chapters_are_valid() -> void:
+	assert_gte(META.chapters.size(), 2, "dos capítulos")
+	var ids: Dictionary[StringName, bool] = {}
+	for i: int in META.chapters.size():
+		var chapter: RunConfig = META.chapters[i]
+		assert_eq(chapter.number, i + 1, "%s: en orden" % chapter.id)
+		assert_false(ids.has(chapter.id), "capítulo %s repetido" % chapter.id)
+		ids[chapter.id] = true
+		assert_ne(chapter.display_name, "", "%s: tiene nombre" % chapter.id)
+		assert_ne(chapter.description, "", "%s: tiene descripción" % chapter.id)
+		assert_ne(chapter.victory_text, "", "%s: tiene final" % chapter.id)
+		assert_ne(chapter.defeat_text, "", "%s: tiene derrota" % chapter.id)
+		assert_false(META.characters_of(chapter).is_empty(), "%s: tiene personajes" % chapter.id)
+		if i > 0:
+			assert_false(chapter.intro.is_empty(), "%s: cuenta su historia la primera vez" % chapter.id)
+			for character: CharacterData in META.characters_of(chapter):
+				assert_true(character.locked, "%s: se desbloquea jugando el anterior" % character.id)
+			for f: int in chapter.floors.size():
+				assert_gt(chapter.floors[f].enemy_health_mult, META.chapters[i - 1].floors[f].enemy_health_mult,
+						"%s: el piso %d es más difícil que el del capítulo anterior" % [chapter.id, f + 1])
+	assert_false(META.default_character().locked)
+	assert_eq(META.default_character().chapter, 1, "el de por defecto es del primero")
 
 
 func test_achievements_are_valid() -> void:

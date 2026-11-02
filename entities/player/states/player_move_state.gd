@@ -1,7 +1,8 @@
 class_name PlayerMoveState
 extends State
 ## Estado normal: caminar, apuntar, disparar, usar un Pulso, poner una bomba, recargar, cambiar de
-## arma, usar el activo y empezar a rodar (arriba de un armazón, rodar es saltar afuera).
+## arma, usar el activo y empezar a rodar o a embestir (Player.dodge_state; arriba de un armazón,
+## rodar es saltar afuera).
 
 ## Desde esta velocidad cuenta como caminando (las patas del armazón se mueven).
 const WALK_SPEED: float = 5.0
@@ -17,7 +18,7 @@ func physics_update(delta: float) -> void:
 	# Si todavía no puede rodar, el botón queda en el buffer unos ticks.
 	if player.can_roll() and player.input_buffer.consume(&"dodge"):
 		player.eject()
-		machine.transition_to(&"Roll")
+		machine.transition_to(player.dodge_state())
 		return
 	player.try_pulse()
 	player.try_bomb(delta)

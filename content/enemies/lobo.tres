@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"lobo"
+display_name = "Lobo"
+template_char = "W"
+max_health = 13.0
+move_style = 8
+move_speed = 60.0
+acceleration = 500.0
+preferred_distance = 55.0
+attack_kind = 0
+attack_range = 90.0
+attack_cooldown = 1.4
+telegraph_time = 0.35
+recover_time = 0.5
+charge_speed = 250.0
+charge_time = 0.35
+body_radius = 5.0
+hurtbox_radius = 7.0
+visual_style = 19
+visual_radius = 7.0
+body_color = Color(0.5529, 0.5843, 0.6392, 1)

@@ -20,6 +20,11 @@
 
 [resource]
 script = ExtResource("1_run")
+id = &"fragua"
+display_name = "La fragua"
+description = "Brasa baja a prender la Fragua Madre."
+victory_text = "La fragua vuelve a prender. Arriba, en Campana Honda, las casas se entibian."
+defeat_text = "Tu chispa vuelve flotando al Taller."
 floors = Array[ExtResource("2_theme_script")]([ExtResource("3_floor_1"), ExtResource("4_floor_2"), ExtResource("5_floor_3"), ExtResource("6_floor_4")])
 room_rules = Array[ExtResource("7_rule_script")]([ExtResource("rule_furia"), ExtResource("rule_coraza"), ExtResource("rule_contrarreloj"), ExtResource("rule_apagon"), ExtResource("rule_sin_pulso"), ExtResource("rule_fragil")])
 mechs = Array[ExtResource("8_mech_script")]([ExtResource("mech_caldera"), ExtResource("mech_zancos"), ExtResource("mech_fuelle")])

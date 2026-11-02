@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="RunConfig" format=3]
+
+[ext_resource type="Script" path="res://data/run_config.gd" id="1_run"]
+[ext_resource type="Script" path="res://data/floor_theme.gd" id="2_theme_script"]
+[ext_resource type="Resource" path="res://content/floors/monte_1.tres" id="f1"]
+[ext_resource type="Resource" path="res://content/floors/monte_2.tres" id="f2"]
+[ext_resource type="Resource" path="res://content/floors/monte_3.tres" id="f3"]
+[ext_resource type="Resource" path="res://content/floors/monte_4.tres" id="f4"]
+[ext_resource type="Script" path="res://data/room_rule.gd" id="7_rule_script"]
+[ext_resource type="Resource" path="res://content/rules/furia.tres" id="rule_furia"]
+[ext_resource type="Resource" path="res://content/rules/coraza.tres" id="rule_coraza"]
+[ext_resource type="Resource" path="res://content/rules/contrarreloj.tres" id="rule_contrarreloj"]
+[ext_resource type="Resource" path="res://content/rules/apagon.tres" id="rule_apagon"]
+[ext_resource type="Resource" path="res://content/rules/sin_pulso.tres" id="rule_sin_pulso"]
+[ext_resource type="Resource" path="res://content/rules/fragil.tres" id="rule_fragil"]
+[ext_resource type="Script" path="res://data/mech_data.gd" id="8_mech_script"]
+[ext_resource type="Resource" path="res://content/mechs/caldera.tres" id="mech_caldera"]
+[ext_resource type="Resource" path="res://content/mechs/zancos.tres" id="mech_zancos"]
+[ext_resource type="Resource" path="res://content/mechs/fuelle.tres" id="mech_fuelle"]
+
+[resource]
+script = ExtResource("1_run")
+number = 2
+id = &"monte"
+display_name = "El monte"
+description = "Testa sube el monte a ver qué lo heló."
+intro = PackedStringArray("Los carneros bajaron del monte porque arriba se heló todo.", "Cuando la Fragua volvió a prender, el rebaño se quedó en el pueblo, calentito.", "Pero Testa, el carnero más joven y más cabeza dura, quiere volver a casa.", "Sube el monte a ver qué lo heló. En la cantera lo espera el Rey Carnero, sin corona.")
+victory_text = "El Cierzo se calma y el monte se deshiela. El rebaño puede volver a casa."
+defeat_text = "Testa rueda cuesta abajo hasta el pueblo. Mañana lo intenta otra vez."
+floors = Array[ExtResource("2_theme_script")]([ExtResource("f1"), ExtResource("f2"), ExtResource("f3"), ExtResource("f4")])
+room_rules = Array[ExtResource("7_rule_script")]([ExtResource("rule_furia"), ExtResource("rule_coraza"), ExtResource("rule_contrarreloj"), ExtResource("rule_apagon"), ExtResource("rule_sin_pulso"), ExtResource("rule_fragil")])
+mechs = Array[ExtResource("8_mech_script")]([ExtResource("mech_caldera"), ExtResource("mech_zancos"), ExtResource("mech_fuelle")])

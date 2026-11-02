@@ -22,13 +22,23 @@ const STORY_FONT: int = 7
 var _retry: Button
 
 
+## La línea de historia debajo del título: la del capítulo de la run (o la de siempre).
+static func story_text(victory: bool) -> String:
+	var text: String = ""
+	if RunState.chapter != null:
+		text = RunState.chapter.victory_text if victory else RunState.chapter.defeat_text
+	if text.is_empty():
+		text = VICTORY_TEXT if victory else DEFEAT_TEXT
+	return text
+
+
 ## `rewards`: lo que dejó la run (null = nada, por ejemplo en los tests del resumen solo).
 func show_summary(victory: bool, rewards: MetaProfile.RunRewards = null) -> void:
 	MenuBuilder.background(self)
 	AudioManager.play_sfx(&"victory" if victory else &"defeat")
 	var box: VBoxContainer = MenuBuilder.centered_box(self, true)
 	box.add_child(MenuBuilder.label("¡Ganaste!" if victory else "Fin de la run", 16, WIN_COLOR if victory else LOSE_COLOR))
-	var story: Label = MenuBuilder.paragraph(VICTORY_TEXT if victory else DEFEAT_TEXT, STORY_WIDTH, MenuBuilder.MUTED_COLOR)
+	var story: Label = MenuBuilder.paragraph(story_text(victory), STORY_WIDTH, MenuBuilder.MUTED_COLOR)
 	story.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	story.add_theme_font_size_override(&"font_size", STORY_FONT)
 	box.add_child(story)

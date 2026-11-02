@@ -7,7 +7,8 @@ extends Node
 ## Uso: <godot_console> --headless --fixed-fps 60 --path . res://debug/balance_probe.tscn -- --seed=N
 ## (--fixed-fps hace que corra sin esperar al reloj real: una run entera tarda un par de minutos).
 ## --weapon=ID equipa esa arma (de content/weapons/) y le llena la munición cada vez que se vacía,
-## para comparar cuánto pega cada una; --floors=N juega solo los primeros N pisos.
+## para comparar cuánto pega cada una; --floors=N juega solo los primeros N pisos; --chapter=N juega ese
+## capítulo con su primer personaje.
 
 const MAIN_SCENE: PackedScene = preload("res://main/main.tscn")
 ## Items que suma el bot al empezar cada piso (uno más por piso): simulan lo que se junta en una run.
@@ -42,7 +43,8 @@ func _ready() -> void:
 
 
 func _run() -> void:
-	_main.start_run()
+	var chapter: RunConfig = Main.chapter_from_args(OS.get_cmdline_user_args())
+	_main.start_run(SaveManager.config.characters_of(chapter)[0] if chapter != null else null)
 	await get_tree().physics_frame
 	var game: Game = _main.game
 	var floor_controller: FloorController = game.floor_controller
@@ -67,7 +69,7 @@ func _run() -> void:
 			var seconds: float = await _clear(floor_controller, cell)
 			rooms_time += seconds
 			if seconds >= ROOM_TIMEOUT:
-				slow.append(String(layout.get_slot(cell).template.id))
+				slow.append("%s (quedaban: %s)" % [layout.get_slot(cell).template.id, _alive()])
 		var boss_time: float = await _clear(floor_controller, layout.first_of_kind(RoomSlot.Kind.BOSS))
 		total_combat += rooms_time + boss_time
 		total_rooms += layout.slots.size()
@@ -83,6 +85,16 @@ func _run() -> void:
 	AudioManager.stop_all()
 	OS.delay_msec(AUDIO_DRAIN_MSEC)
 	_main.quit_game()
+
+
+## Los enemigos vivos y dónde están (relativo al centro de la sala), para ver qué trabó al bot.
+func _alive() -> String:
+	var names: PackedStringArray = []
+	for node: Node in get_tree().get_nodes_in_group(Enemy.GROUP):
+		var enemy := node as Enemy
+		names.append("%s en %s, %s, vida %.0f" % [enemy.data.id, (enemy.global_position - enemy.nav_origin).round(),
+				enemy.machine.get_state_name(), enemy.health.current])
+	return "; ".join(names)
 
 
 ## Entra a la sala y pelea hasta limpiarla. Devuelve los segundos de juego que tardó.
