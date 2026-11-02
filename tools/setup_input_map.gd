@@ -26,6 +26,8 @@ func _initialize() -> void:
 	_action(&"blank", [_key(KEY_F), _button(JOY_BUTTON_Y)])
 	_action(&"reload", [_key(KEY_R), _button(JOY_BUTTON_B)])
 	_action(&"swap_weapon", [_key(KEY_TAB), _mouse(MOUSE_BUTTON_WHEEL_UP), _mouse(MOUSE_BUTTON_WHEEL_DOWN), _button(JOY_BUTTON_LEFT_SHOULDER)])
+	for i: int in 9:
+		_action(StringName("weapon_%d" % (i + 1)), [_key(KEY_1 + i)])
 	_action(&"pause", [_key(KEY_ESCAPE), _button(JOY_BUTTON_START)])
 	_action(&"inventory", [_key(KEY_I), _button(JOY_BUTTON_BACK)])
 

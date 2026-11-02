@@ -136,7 +136,7 @@ func _fill() -> void:
 		var weapon_slot: WeaponSlot = RunState.weapons[i]
 		var equipped: bool = i == RunState.current_weapon
 		var source: ItemData = _catalog.item_for_weapon(weapon_slot.weapon)
-		var cell := InventorySlot.new(weapon_slot.weapon.icon, weapon_slot.weapon.icon_color, equipped,
+		var cell := InventorySlot.new(weapon_slot.weapon.display_icon(), weapon_slot.weapon.icon_color, equipped,
 				quality_tint(source))
 		cell.focus_entered.connect(_show_weapon.bind(weapon_slot, equipped, source))
 		_weapons_row.add_child(cell)

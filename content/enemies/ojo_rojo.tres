@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="2_pattern_script"]
+[ext_resource type="Resource" path="res://content/patterns/ojo_disparo.tres" id="p0"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"ojo_rojo"
+display_name = "Ojo rojo"
+max_health = 6.0
+spawn_delay = 0.9
+move_style = 4
+knockback_resistance = 1.0
+attack_kind = 1
+attack_range = 400.0
+attack_cooldown = 2.0
+telegraph_time = 0.6
+recover_time = 0.5
+body_radius = 4.0
+hurtbox_radius = 6.0
+visual_style = 1
+visual_radius = 6.0
+body_color = Color(0.7686, 0.1882, 0.2275, 1)
+patterns = Array[ExtResource("2_pattern_script")]([ExtResource("p0")])

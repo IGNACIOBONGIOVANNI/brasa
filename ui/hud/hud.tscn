@@ -51,9 +51,9 @@ script = ExtResource("3_pulses")
 [node name="Counters" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 62.0
+offset_left = 66.0
 offset_top = 4.0
-offset_right = 116.0
+offset_right = 120.0
 offset_bottom = 9.0
 mouse_filter = 2
 script = ExtResource("4_counters")
@@ -71,9 +71,9 @@ script = ExtResource("5_minimap")
 [node name="Active" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 122.0
+offset_left = 126.0
 offset_top = 4.0
-offset_right = 142.0
+offset_right = 146.0
 offset_bottom = 16.0
 mouse_filter = 2
 script = ExtResource("6_active")
@@ -121,7 +121,7 @@ script = ExtResource("10_boss_bar")
 [node name="Rule" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 146.0
+offset_left = 150.0
 offset_top = 2.0
 offset_right = 234.0
 offset_bottom = 14.0
@@ -131,9 +131,9 @@ script = ExtResource("12_rule")
 [node name="Mech" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 62.0
+offset_left = 66.0
 offset_top = 12.0
-offset_right = 116.0
+offset_right = 120.0
 offset_bottom = 17.0
 mouse_filter = 2
 script = ExtResource("13_mech")

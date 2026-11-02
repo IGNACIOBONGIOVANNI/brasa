@@ -27,10 +27,19 @@ var _last_health: float = -1.0
 @onready var _danger: DangerOverlay = $Danger
 @onready var _rule: RuleDisplay = $Rule
 @onready var _mech: MechDisplay = $Mech
+## La rueda de armas (se arma acá: va arriba de todo lo del HUD).
+var weapon_wheel: WeaponWheel
+
+
+func _ready() -> void:
+	weapon_wheel = WeaponWheel.new()
+	weapon_wheel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(weapon_wheel)
 
 
 func bind_player(player: Player) -> void:
 	_player = player
+	player.weapon_wheel_requested.connect(weapon_wheel.open)
 	player.mech_changed.connect(_on_mech_changed)
 	player.mech_armor.health_changed.connect(_mech.set_armor)
 	player.health.health_changed.connect(_on_health_changed)
@@ -77,6 +86,8 @@ func _on_room_rule_changed(rule: RoomRule) -> void:
 
 func _on_health_changed(current: float, max_value: float) -> void:
 	_hearts.set_health(roundi(current), roundi(max_value))
+	# Los Pulsos van debajo de la última fila de corazones.
+	_pulses.position.y = _hearts.position.y + _hearts.rows() * HeartsDisplay.ROW_HEIGHT
 	if _last_health >= 0.0 and current < _last_health:
 		_danger.flash()
 	_last_health = current

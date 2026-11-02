@@ -56,7 +56,7 @@ func is_in_pool(pool: int) -> bool:
 
 func get_icon() -> PackedStringArray:
 	if icon.is_empty() and weapon != null:
-		return weapon.icon
+		return weapon.display_icon()
 	return icon
 
 

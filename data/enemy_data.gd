@@ -15,7 +15,7 @@ extends Resource
 enum MoveStyle { CHASE, KEEP_DISTANCE, HOP, FLY, STAY, BURROW, PHASE, BOUNCE, PROWL }
 enum AttackKind { CHARGE, SHOOT, BEAM, EXPLODE, SUMMON, LOB, SLASH, GUST }
 enum VisualStyle { HORNED, EYE, LANTERN, SPORE, BLOCK, SLIME, BAT, FUSE, NEST, MOLE, WISP, SHIELD, MORTAR,
-		YARN, SHEARS, BURR, MOTH, BOULDER, CROW, WOLF, ICE, CLOUD, GALE, DETHRONED, AVALANCHE }
+		YARN, SHEARS, BURR, MOTH, BOULDER, CROW, WOLF, ICE, CLOUD, GALE, DETHRONED, AVALANCHE, GHOST }
 
 @export var id: StringName = &""
 @export var display_name: String = ""
@@ -75,6 +75,11 @@ enum VisualStyle { HORNED, EYE, LANTERN, SPORE, BLOCK, SLIME, BAT, FUSE, NEST, M
 @export var summon: EnemyData
 @export var summon_count: int = 2
 @export var summon_cap: int = 3
+## SUMMON: aparecen en el borde de la sala, como si salieran del escenario (lejos de las puertas y del
+## jugador), en vez de al lado.
+@export var summon_anywhere: bool = false
+## Al morir se lleva a sus invocaciones: desaparecen sin soltar nada (los ojos de los poltergeist).
+@export var summons_die_with_me: bool = false
 
 @export_group("Al morir")
 ## Se divide en `split_count` copias de `split_into` (las babosas). Cada una puede dividirse de nuevo.

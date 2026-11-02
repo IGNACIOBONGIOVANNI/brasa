@@ -45,6 +45,8 @@ const GHOST_ALPHA: float = 0.3
 const ROUTE_REFRESH: float = 0.2
 ## Mitad del interior de una sala (para que los jefes no salten ni tiren cosas afuera).
 const ROOM_HALF: Vector2 = Vector2(120, 72)
+## Las invocaciones del escenario no aparecen más cerca que esto del jugador.
+const SCENERY_SPOT_CLEARANCE: float = 48.0
 ## Para llegar a alguien alcanza con tocarlo: el camino se revisa hasta esta distancia de más del
 ## propio cuerpo (si no, un jugador pegado a la pared "taparía" su propio camino).
 const TOUCH_MARGIN: float = 4.0
@@ -65,6 +67,8 @@ var target: Player
 var move_velocity: Vector2 = Vector2.ZERO
 var _attack_count: int = 0
 var _dead: bool = false
+## Desapareció porque murió quien lo invocó (no cuenta como muerte ni suelta nada).
+var dismissed: bool = false
 ## Dirección del empujón con el que nace (si lo creó otro enemigo).
 var _birth_push: Vector2 = Vector2.ZERO
 ## Bajo tierra (BURROW) o fantasma (PHASE): ni recibe ni hace daño.
@@ -358,6 +362,49 @@ func _apply_touchable() -> void:
 	hitbox.active = not is_hidden()
 
 
+## Desaparece sin morir de verdad (murió quien lo invocó): la sala lo descuenta, pero no suelta nada,
+## no cuenta como enemigo muerto ni dispara lo de los items.
+func dismiss() -> void:
+	if _dead:
+		return
+	_dead = true
+	dismissed = true
+	if is_inside_tree():
+		var puff := Fx.spawn(get_tree(), BURST_SCENE, global_position + Vector2(0, -2)) as CPUParticles2D
+		puff.color = data.body_color
+		puff.amount = 8
+		killed.emit()
+		queue_free()
+	else:
+		# Todavía no entró al árbol (lo acaban de crear): _attach_child lo libera en vez de agregarlo.
+		killed.emit()
+
+
+## Un lugar del borde de la sala para que aparezca algo "del escenario" (los ojos de los poltergeist):
+## una celda libre pegada a una pared, lejos de las puertas y del jugador. Global.
+func scenery_spot(rng: RandomNumberGenerator) -> Vector2:
+	for _attempt: int in 24:
+		var cell: Vector2i
+		match rng.randi_range(0, 3):
+			0:
+				cell = Vector2i(rng.randi_range(1, RoomGrid.WIDTH - 2), 0)
+			1:
+				cell = Vector2i(rng.randi_range(1, RoomGrid.WIDTH - 2), RoomGrid.HEIGHT - 1)
+			2:
+				cell = Vector2i(0, rng.randi_range(1, RoomGrid.HEIGHT - 2))
+			_:
+				cell = Vector2i(RoomGrid.WIDTH - 1, rng.randi_range(1, RoomGrid.HEIGHT - 2))
+		var near_door: bool = (absi(cell.x - RoomGrid.CENTER.x) <= 2 and (cell.y == 0 or cell.y == RoomGrid.HEIGHT - 1)) \
+				or (absi(cell.y - RoomGrid.CENTER.y) <= 2 and (cell.x == 0 or cell.x == RoomGrid.WIDTH - 1))
+		if near_door or (nav != null and not nav.is_open(cell)):
+			continue
+		var at: Vector2 = nav_origin + RoomGrid.cell_center(cell)
+		if has_target() and at.distance_to(target.global_position) < SCENERY_SPOT_CLEARANCE:
+			continue
+		return at
+	return global_position
+
+
 ## EnemyData.death_pattern: el anillo de balas al morir.
 static func _death_ring(tree: SceneTree, scene: PackedScene, pattern: BulletPatternData, at: Vector2,
 		speed_multiplier: float) -> void:
@@ -372,7 +419,7 @@ static func _death_ring(tree: SceneTree, scene: PackedScene, pattern: BulletPatt
 ## objeto liberado no se puede pasar como argumento tipado.
 static func _attach_child(container_id: int, child: Enemy, at: Vector2) -> void:
 	var container := instance_from_id(container_id) as Node2D
-	if container == null or not container.is_inside_tree():
+	if container == null or not container.is_inside_tree() or child._dead:
 		child.free()
 		return
 	child.position = container.to_local(at)
@@ -434,6 +481,11 @@ func _die() -> void:
 		for i: int in data.split_count:
 			var angle: float = TAU * i / data.split_count + PI * 0.25
 			spawn_child(data.split_into, global_position + Vector2.from_angle(angle) * data.body_radius)
+	if data.summons_die_with_me:
+		for id: int in _children:
+			var child := instance_from_id(id) as Enemy
+			if child != null and not child.is_queued_for_deletion():
+				child.dismiss()
 	if data.death_pattern != null:
 		# Diferido: puede morir en un callback de física (una bala), donde no se agregan áreas.
 		_death_ring.call_deferred(get_tree(), emitter.bullet_scene, data.death_pattern, global_position,

@@ -848,3 +848,26 @@ cercas, etc.; pensá muchas opciones, mejor si está relacionado al nivel".
 - **Lo que no**: decoración que tape el piso o salga de las paredes hacia adentro más de un par de
   píxeles (la sala tiene que leerse igual), y arte nuevo para las puertas (siguen como estaban, con
   el color de la especial del otro lado).
+
+## Hito 23 — pedidos tras probar (2026-11-02)
+
+- **El cuelgue al subir a la Caldera** no venía del juego sino del editor de Godot: al abrir el proyecto
+  reescribió 12 archivos (jefes, armazones, sonidos, HUD, tema) y en los armazones borró el ícono del
+  arma; el HUD intentaba medir ese ícono vacío y el error frenaba el juego. Se volvió a lo commiteado
+  (lo que había escrito el editor quedó guardado en un `git stash`, por si hace falta) y ahora un ícono
+  vacío nunca traba: se dibuja una pistola genérica. Un test avisa si el editor vuelve a borrar íconos.
+- **Rueda de armas:** tocar Tab sigue pasando a la siguiente (como antes); mantenerlo abre la rueda con
+  el juego en pausa (elegir con calma), y las teclas 1 a 9 equipan directo. En el joystick, mantener LB.
+- **Tijerón:** "Corte en el aire" (el tajo queda abierto unos segundos, lastima al tocarlo y suelta
+  agujas hacia el jugador) y "Clavada" (salta, cae clavándose y del piso salen seis rayos en estrella, uno
+  hacia el jugador). Para que el jefe del primer piso siga siendo el más fácil del capítulo, dejó la
+  Estocada y el Remolino de agujas: tiene 7 movimientos (el Rey Destronado, 9).
+- **Poltergeist** (en vez de "chamán": encaja con el sótano y las salas viejas): un fantasma que a ratos
+  se vuelve transparente y abre ojos rojos en el borde de la sala, que disparan. Si se lo mata, los ojos
+  desaparecen (sin soltar monedas ni contar como muertes, para que no se pueda farmear). El Poltergeist
+  rojo abre ojos que tiran rayos. Aparecen en Raíces y Forja (capítulo 1) y en Ventisquero y Cumbre
+  (capítulo 2), con una sala nueva en cada uno.
+- **Interfaz:** los corazones van en filas de 4 (con mucha vida bajan, y los Pulsos bajan con ellos) y
+  los contadores se corrieron unos píxeles: ya no se tapan, ni con los 4 corazones de Testa. El resumen
+  muestra los items en hasta dos filas (lo que sobra, "+N"), la seed en la línea del tiempo y los dos
+  botones lado a lado: siempre entra en la pantalla.

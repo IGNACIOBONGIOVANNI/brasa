@@ -10,7 +10,7 @@ extends Node2D
 ## SHEARS (tijera que corta sola), BURR (abrojo con púas), MOTH (polilla), BOULDER (piedra con
 ## grietas), CROW (cuervo), WOLF (lobo), ICE (témpano), CLOUD (nubarrón), GALE (cara de viento que
 ## sopla), DETHRONED (el Rey sin corona y con un cuerno roto) y AVALANCHE (montaña de nieve con
-## carámbanos).
+## carámbanos) y GHOST (sábana de poltergeist que flota, con los ojos huecos).
 ## Muestra la aparición, el aplastamiento al recibir un golpe y un "!" durante el telegraph.
 ## Se reemplaza por un sprite animado manteniendo la misma interfaz.
 
@@ -29,7 +29,8 @@ const WOLF_EYE: Color = Color("ffd166")
 const SNOW_COLOR: Color = Color("eef4fa")
 ## Los que flotan: sombra chica y lejos, y se bambolean.
 const FLYING_STYLES: Array[EnemyData.VisualStyle] = [EnemyData.VisualStyle.BAT, EnemyData.VisualStyle.WISP,
-		EnemyData.VisualStyle.MOTH, EnemyData.VisualStyle.CROW, EnemyData.VisualStyle.CLOUD, EnemyData.VisualStyle.GALE]
+		EnemyData.VisualStyle.MOTH, EnemyData.VisualStyle.CROW, EnemyData.VisualStyle.CLOUD, EnemyData.VisualStyle.GALE,
+		EnemyData.VisualStyle.GHOST]
 ## Centro del cuerpo respecto del origen (que está en los pies).
 const BODY_OFFSET: Vector2 = Vector2(0, -2)
 
@@ -202,6 +203,8 @@ func _draw() -> void:
 			_draw_dethroned()
 		EnemyData.VisualStyle.AVALANCHE:
 			_draw_avalanche()
+		EnemyData.VisualStyle.GHOST:
+			_draw_ghost()
 	draw_set_transform(Vector2.ZERO)
 	if _alert:
 		var origin := Vector2(0, BODY_OFFSET.y - radius - 7.0 - roundf(_lift))
@@ -626,3 +629,28 @@ func _draw_avalanche() -> void:
 	var eye_color: Color = ALERT_COLOR if _alert else Color("2a4a7a")
 	draw_rect(Rect2(Vector2(-6, -4) + look, Vector2(3, 3)), eye_color)
 	draw_rect(Rect2(Vector2(3, -4) + look, Vector2(3, 3)), eye_color)
+
+
+## Poltergeist: una sábana que flota, con el ruedo ondulado y dos ojos huecos que brillan al avisar.
+func _draw_ghost() -> void:
+	var sheet := PackedVector2Array()
+	sheet.append(Vector2(-radius, radius * 0.1))
+	for k: int in 13:
+		var angle: float = PI + PI * k / 12.0
+		sheet.append(Vector2(cos(angle), sin(angle)) * radius + Vector2(0, radius * 0.1))
+	var waves: int = 4
+	for k: int in waves * 2 + 1:
+		var x: float = radius - radius * 2.0 * k / (waves * 2)
+		var wave: float = sin(_time * 6.0 + k) * 1.0 + (2.0 if k % 2 == 0 else 0.0)
+		sheet.append(Vector2(x, radius * 0.9 + wave))
+	var outline := PackedVector2Array()
+	for point: Vector2 in sheet:
+		outline.append(point * (1.0 + 1.0 / radius))
+	draw_colored_polygon(outline, OUTLINE_COLOR)
+	draw_colored_polygon(sheet, body_color)
+	draw_line(Vector2(-radius * 0.6, -radius * 0.5), Vector2(-radius * 0.2, -radius * 0.8), body_color.lightened(0.3), 1.0)
+	var eye_color: Color = ALERT_COLOR if _alert else OUTLINE_COLOR
+	var look: Vector2 = (look_direction * 1.5).round()
+	for side: float in [-1.0, 1.0]:
+		draw_circle(Vector2(side * radius * 0.35, -radius * 0.15) + look, maxf(1.2, radius * 0.18), eye_color)
+	draw_circle(Vector2(0, radius * 0.3) + look, maxf(1.0, radius * 0.12), OUTLINE_COLOR)

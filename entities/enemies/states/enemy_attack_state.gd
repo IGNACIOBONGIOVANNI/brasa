@@ -133,10 +133,14 @@ func _summon() -> void:
 	var count: int = mini(enemy.behavior.summon_count, free_slots)
 	if enemy.behavior.summon == null or count <= 0:
 		return
-	var start: float = GameRNG.stream(RngStreams.COMBAT).randf() * TAU
+	var rng: RandomNumberGenerator = GameRNG.stream(RngStreams.COMBAT)
+	var start: float = rng.randf() * TAU
 	for i: int in count:
 		var direction: Vector2 = Vector2.from_angle(start + TAU * i / count)
-		enemy.spawn_child(enemy.behavior.summon, enemy.global_position + direction * SUMMON_DISTANCE)
+		var at: Vector2 = enemy.global_position + direction * SUMMON_DISTANCE
+		if enemy.behavior.summon_anywhere:
+			at = enemy.scenery_spot(rng)
+		enemy.spawn_child(enemy.behavior.summon, at)
 	enemy.visual.play_hit()
 	AudioManager.play_sfx(&"summon", 0.1)
 

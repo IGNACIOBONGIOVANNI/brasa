@@ -11,6 +11,9 @@ const LOSE_COLOR: Color = Color("e0464e")
 const ACHIEVEMENT_COLOR: Color = Color("7fb069")
 ## Logros nuevos que se listan uno por uno; si hay más, se resumen en una línea.
 const MAX_ACHIEVEMENT_LINES: int = 2
+## Los items del resumen van en filas; si no entran, "+N" (así los botones siempre se ven).
+const ITEMS_PER_ROW: int = 18
+const MAX_ITEM_ROWS: int = 2
 ## El aviso de logro suena después del de victoria o derrota.
 const ACHIEVEMENT_SFX_DELAY: float = 0.6
 ## Una línea de historia debajo del título (ver docs/LORE.md).
@@ -43,23 +46,41 @@ func show_summary(victory: bool, rewards: MetaProfile.RunRewards = null) -> void
 	story.add_theme_font_size_override(&"font_size", STORY_FONT)
 	box.add_child(story)
 	box.add_child(MenuBuilder.label("%s · Piso %d · %s" % [RunState.character.display_name, RunState.floor_index + 1, RunState.floor_name]))
-	box.add_child(MenuBuilder.label("Tiempo %s · Enemigos %d" % [format_time(RunState.run_time), RunState.kills]))
+	box.add_child(MenuBuilder.label("Tiempo %s · Enemigos %d · seed %d" % [format_time(RunState.run_time), RunState.kills,
+			GameRNG.get_run_seed()]))
 	var items: Array[ItemData] = RunState.items.duplicate()
 	if RunState.active_item != null:
 		items.append(RunState.active_item)
 	if not items.is_empty():
-		var row := ItemsDisplay.new()
-		row.custom_minimum_size = Vector2(items.size() * ItemsDisplay.SPACING, 8)
-		row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		row.set_items(items)
-		box.add_child(row)
-	box.add_child(MenuBuilder.label("seed %d" % GameRNG.get_run_seed(), 8, MenuBuilder.MUTED_COLOR))
+		box.add_child(items_grid(items))
 	if rewards != null:
 		_add_rewards(box, rewards)
+	var buttons := HBoxContainer.new()
+	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
+	buttons.add_theme_constant_override(&"separation", 8)
 	_retry = MenuBuilder.button("Otra run", retry_requested.emit)
-	box.add_child(_retry)
-	box.add_child(MenuBuilder.button("Menú", menu_requested.emit))
+	buttons.add_child(_retry)
+	buttons.add_child(MenuBuilder.button("Menú", menu_requested.emit))
+	box.add_child(buttons)
 	MenuBuilder.focus_later(_retry)
+
+
+## Los items en filas de ITEMS_PER_ROW, como mucho MAX_ITEM_ROWS (lo que sobra, "+N").
+static func items_grid(items: Array[ItemData]) -> Control:
+	var limit: int = ITEMS_PER_ROW * MAX_ITEM_ROWS
+	var shown: Array[ItemData] = items.slice(0, limit)
+	var extra: int = items.size() - shown.size()
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	var grid := ItemsDisplay.new()
+	grid.columns = ITEMS_PER_ROW
+	var rows: int = ceili(float(shown.size()) / ITEMS_PER_ROW)
+	grid.custom_minimum_size = Vector2(mini(shown.size(), ITEMS_PER_ROW) * ItemsDisplay.SPACING, rows * ItemsDisplay.ROW_HEIGHT)
+	grid.set_items(shown)
+	row.add_child(grid)
+	if extra > 0:
+		row.add_child(MenuBuilder.label("+%d" % extra, 8, MenuBuilder.MUTED_COLOR))
+	return row
 
 
 func _add_rewards(box: VBoxContainer, rewards: MetaProfile.RunRewards) -> void:

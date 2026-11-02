@@ -13,7 +13,7 @@ signal options_requested
 signal change_slot_requested
 signal quit_requested
 
-const CONTROLS: String = "WASD mover · mouse apuntar · click disparar · espacio rodar\nE bomba (mantené para tirarla) · F Pulso · Q activo · R recargar\nTab cambiar arma · I mochila · Esc pausa"
+const CONTROLS: String = "WASD mover · mouse apuntar · click disparar · espacio rodar\nE bomba (mantené para tirarla) · F Pulso · Q activo · R recargar\nTab cambiar arma (mantené: rueda) · 1-9 elegir arma · I mochila · Esc pausa"
 ## Tamaño de la ayuda de controles (más chica que los botones: son tres líneas).
 const CONTROLS_FONT: int = 7
 ## Alto que ocupa la ayuda de controles abajo: los botones se centran en lo que queda arriba.

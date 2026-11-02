@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Resource" path="res://content/enemies/ojo_rojo.tres" id="summon"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"poltergeist"
+display_name = "Poltergeist"
+template_char = "Q"
+max_health = 16.0
+move_style = 6
+move_speed = 32.0
+solid_time = 2.4
+ghost_time = 1.4
+attack_kind = 4
+attack_range = 400.0
+attack_cooldown = 3.0
+telegraph_time = 0.7
+recover_time = 0.6
+summon_count = 2
+summon_cap = 4
+summon_anywhere = true
+summons_die_with_me = true
+body_radius = 5.0
+hurtbox_radius = 7.0
+visual_style = 25
+visual_radius = 7.0
+body_color = Color(0.8471, 0.8314, 0.902, 1)
+summon = ExtResource("summon")

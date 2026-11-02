@@ -57,6 +57,9 @@
 [ext_resource type="AudioStream" path="res://content/music/boss_monte.wav" id="m_boss"]
 [ext_resource type="Resource" path="res://content/traps/carambano.tres" id="trap"]
 
+[ext_resource type="Resource" path="res://content/rooms/monte_3/ven_poltergeist.tres" id="rp0"]
+[ext_resource type="Resource" path="res://content/enemies/poltergeist.tres" id="ep0"]
+
 [resource]
 script = ExtResource("1_theme")
 id = &"monte_3"
@@ -81,8 +84,8 @@ rock_color = Color(0.7216, 0.8, 0.8784, 1)
 pit_color = Color(0.07843, 0.1216, 0.2, 1)
 music = ExtResource("m_music")
 boss_music = ExtResource("m_boss")
-templates = Array[ExtResource("2_template_script")]([ExtResource("s0"), ExtResource("s1"), ExtResource("s2"), ExtResource("s3"), ExtResource("s4"), ExtResource("s5"), ExtResource("s6"), ExtResource("r0"), ExtResource("r1"), ExtResource("r2"), ExtResource("r3"), ExtResource("r4"), ExtResource("r5"), ExtResource("r6"), ExtResource("r7"), ExtResource("r8"), ExtResource("r9"), ExtResource("r10"), ExtResource("r11"), ExtResource("r12"), ExtResource("r13"), ExtResource("r14"), ExtResource("r15"), ExtResource("r16"), ExtResource("r17"), ExtResource("r18"), ExtResource("r19"), ExtResource("r20"), ExtResource("r21"), ExtResource("r22"), ExtResource("r23"), ExtResource("r24"), ExtResource("r25"), ExtResource("r26"), ExtResource("r27")])
-enemies = Array[ExtResource("3_enemy_script")]([ExtResource("e0"), ExtResource("e1"), ExtResource("e2"), ExtResource("e3"), ExtResource("e4"), ExtResource("e5"), ExtResource("e6"), ExtResource("e7"), ExtResource("e8"), ExtResource("e9")])
+templates = Array[ExtResource("2_template_script")]([ExtResource("s0"), ExtResource("s1"), ExtResource("s2"), ExtResource("s3"), ExtResource("s4"), ExtResource("s5"), ExtResource("s6"), ExtResource("r0"), ExtResource("r1"), ExtResource("r2"), ExtResource("r3"), ExtResource("r4"), ExtResource("r5"), ExtResource("r6"), ExtResource("r7"), ExtResource("r8"), ExtResource("r9"), ExtResource("r10"), ExtResource("r11"), ExtResource("r12"), ExtResource("r13"), ExtResource("r14"), ExtResource("r15"), ExtResource("r16"), ExtResource("r17"), ExtResource("r18"), ExtResource("r19"), ExtResource("r20"), ExtResource("r21"), ExtResource("r22"), ExtResource("r23"), ExtResource("r24"), ExtResource("r25"), ExtResource("r26"), ExtResource("r27"), ExtResource("rp0")])
+enemies = Array[ExtResource("3_enemy_script")]([ExtResource("e0"), ExtResource("e1"), ExtResource("e2"), ExtResource("e3"), ExtResource("e4"), ExtResource("e5"), ExtResource("e6"), ExtResource("e7"), ExtResource("e8"), ExtResource("e9"), ExtResource("ep0")])
 pickups = Array[ExtResource("4_pickup_script")]([ExtResource("p_coin"), ExtResource("p_heart"), ExtResource("p_bomb"), ExtResource("p_key")])
 extra_rooms = Array[int]([6, 7, 8, 9])
 extra_room_count = 2

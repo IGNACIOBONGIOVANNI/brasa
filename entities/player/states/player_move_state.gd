@@ -22,5 +22,5 @@ func physics_update(delta: float) -> void:
 		return
 	player.try_pulse()
 	player.try_bomb(delta)
-	player.try_weapon_actions()
+	player.try_weapon_actions(delta)
 	player.try_shoot(delta)

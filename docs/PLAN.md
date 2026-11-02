@@ -246,6 +246,10 @@ avanzan por el piso, zarpazos en la oscuridad, mira láser que obliga a rodar, m
 barre) y la dificultad sube de un jefe al otro. Los enemigos que caminan rodean rocas y fosos, y los
 que embisten ya no se quedan embistiendo contra un foso o una pared.
 
+**Hito 23 — Pedidos tras probar** (pedido del usuario): arreglar el cuelgue al subir a un armazón, rueda
+de armas con Tab y números, más movimientos del Tijerón, Poltergeist que abren ojos en el escenario y
+arreglos de interfaz (resumen con muchos items, corazones que tapaban los contadores).
+
 **Hito 22 — Escenario por piso** (pedido del usuario): las paredes que delimitan cada sala (y sus rocas,
 fosos y piso) con el aspecto del lugar: árboles, cercas y todo lo que tenga que ver con cada piso.
 

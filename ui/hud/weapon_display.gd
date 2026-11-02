@@ -27,7 +27,7 @@ func _process(_delta: float) -> void:
 func _draw() -> void:
 	if _slot == null:
 		return
-	var icon: PackedStringArray = _slot.weapon.icon
+	var icon: PackedStringArray = _slot.weapon.display_icon()
 	PixelBitmap.paint_outlined(self, icon, Vector2.ZERO, _slot.weapon.icon_color, OUTLINE_COLOR)
 	var x: float = PixelIcons.size_of(icon).x + GAP
 	if _slot.is_infinite() and not _slot.has_magazine():

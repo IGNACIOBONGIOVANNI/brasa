@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
 [ext_resource type="Script" path="res://data/boss_phase.gd" id="3_phase"]
 [ext_resource type="Script" path="res://data/boss_attack.gd" id="4_attack"]
+[ext_resource type="Resource" path="res://content/patterns/tijeron_corte.tres" id="x_corte"]
 [ext_resource type="Resource" path="res://content/patterns/tijeron_agujas.tres" id="x0"]
 [ext_resource type="Resource" path="res://content/enemies/ovillo.tres" id="x1"]
 [ext_resource type="Resource" path="res://content/patterns/tijeron_spiral.tres" id="x2"]
@@ -55,25 +56,52 @@ spread = 120.0
 speed = 120.0
 damage = 1.0
 
-[sub_resource type="Resource" id="Attack_remolino_agujas"]
+[sub_resource type="Resource" id="Attack_corte"]
 script = ExtResource("4_attack")
-id = &"remolino_agujas"
-display_name = "Remolino de agujas"
-kind = 0
-windup = 0.65
-recover = 0.7
-pattern = ExtResource("x2")
+id = &"corte"
+display_name = "Corte en el aire"
+kind = 16
+windup = 0.7
+recover = 0.8
+count = 1
+interval = 0.5
+warn_time = 0.7
+radius = 3.0
+spread = 56.0
+linger = 2.4
+damage = 1.0
+pattern = ExtResource("x_corte")
 
-[sub_resource type="Resource" id="Attack_estocada"]
+[sub_resource type="Resource" id="Attack_cortes"]
 script = ExtResource("4_attack")
-id = &"estocada"
-display_name = "Estocada"
-kind = 6
-windup = 0.6
+id = &"cortes"
+display_name = "Cortes cruzados"
+kind = 16
+windup = 0.65
 recover = 0.8
 count = 2
-warn_time = 0.55
-speed = 240.0
+interval = 0.45
+warn_time = 0.6
+radius = 3.0
+spread = 64.0
+linger = 2.2
+damage = 1.0
+pattern = ExtResource("x_corte")
+
+[sub_resource type="Resource" id="Attack_clavada"]
+script = ExtResource("4_attack")
+id = &"clavada"
+display_name = "Clavada"
+kind = 17
+windup = 0.65
+recover = 0.9
+count = 6
+interval = 0.65
+warn_time = 0.8
+lock_time = 0.25
+radius = 20.0
+linger = 0.5
+damage = 1.0
 
 [sub_resource type="Resource" id="Behavior_0"]
 script = ExtResource("1_enemy")
@@ -89,7 +117,7 @@ recover_time = 0.8
 script = ExtResource("3_phase")
 health_fraction = 1.0
 behavior = SubResource("Behavior_0")
-attacks = Array[ExtResource("4_attack")]([SubResource("Attack_agujas"), SubResource("Attack_tijeretazo"), SubResource("Attack_ovillos")])
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_agujas"), SubResource("Attack_tijeretazo"), SubResource("Attack_corte")])
 
 [sub_resource type="Resource" id="Behavior_1"]
 script = ExtResource("1_enemy")
@@ -105,7 +133,7 @@ recover_time = 0.7
 script = ExtResource("3_phase")
 health_fraction = 0.5
 behavior = SubResource("Behavior_1")
-attacks = Array[ExtResource("4_attack")]([SubResource("Attack_doble_tijeretazo"), SubResource("Attack_remolino_agujas"), SubResource("Attack_estocada"), SubResource("Attack_ovillos")])
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_doble_tijeretazo"), SubResource("Attack_clavada"), SubResource("Attack_cortes"), SubResource("Attack_ovillos")])
 
 [resource]
 script = ExtResource("1_enemy")

@@ -1,11 +1,14 @@
 @tool
 class_name HeartsDisplay
 extends Control
-## Corazones del HUD dibujados por código (llenos, medios o vacíos). Tiembla al perder vida.
+## Corazones del HUD dibujados por código (llenos, medios o vacíos), en filas de PER_ROW (con mucha
+## vida bajan a otra fila en vez de taparse con los contadores). Tiembla al perder vida.
 
 ## Columnas que se pintan en un medio corazón (incluye la del centro).
 const HALF_COLUMNS: int = 4
 const SPACING: int = 9
+const PER_ROW: int = 4
+const ROW_HEIGHT: int = 8
 const SHAKE_TIME: float = 0.3
 const SHAKE_PIXELS: float = 1.0
 
@@ -32,6 +35,11 @@ func set_health(current: int, max_value: int) -> void:
 	max_half_hearts = max_value
 
 
+## Cuántas filas ocupan los corazones.
+func rows() -> int:
+	return maxi(1, ceili(ceilf(max_half_hearts / 2.0) / PER_ROW))
+
+
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint() or _shake_left <= 0.0:
 		return
@@ -46,7 +54,7 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	var states: Array[HealthMath.Heart] = HealthMath.heart_states(half_hearts, max_half_hearts)
 	for i: int in states.size():
-		var origin := Vector2(i * SPACING, 0) + _shake_offset
+		var origin := Vector2((i % PER_ROW) * SPACING, floori(float(i) / PER_ROW) * ROW_HEIGHT) + _shake_offset
 		PixelBitmap.paint_outlined(self, PixelIcons.HEART, origin, empty_color, outline_color)
 		if states[i] == HealthMath.Heart.FULL:
 			PixelBitmap.paint(self, PixelIcons.HEART, origin, full_color)

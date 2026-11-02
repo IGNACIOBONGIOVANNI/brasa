@@ -8,6 +8,10 @@ extends Resource
 
 enum FireMode { SINGLE, SPREAD, BURST, LASER, ORBITAL, GRENADE, RAIL }
 
+## Si el ícono quedó vacío (el editor de Godot lo borra al guardar un sub-recurso, ver CLAUDE.md), una
+## pistola genérica: así el HUD y la Mochila nunca se quedan sin qué dibujar.
+const FALLBACK_ICON: PackedStringArray = ["..#######", "#########", "..#......", "..#......", "........."]
+
 @export var id: StringName = &""
 @export var display_name: String = ""
 @export var fire_mode: FireMode = FireMode.SINGLE
@@ -72,3 +76,8 @@ enum FireMode { SINGLE, SPREAD, BURST, LASER, ORBITAL, GRENADE, RAIL }
 ## Ícono de píxeles para el HUD ("#" = píxel), 9 x 5.
 @export var icon: PackedStringArray = []
 @export var icon_color: Color = Color("c9c3d6")
+
+
+## El ícono para dibujar: el suyo o, si está vacío, FALLBACK_ICON.
+func display_icon() -> PackedStringArray:
+	return icon if not icon.is_empty() else FALLBACK_ICON

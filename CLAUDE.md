@@ -5,7 +5,11 @@ estructura de los roguelites de salas + bullet hell, con contenido 100 % origina
 [docs/LORE.md](docs/LORE.md).
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 22 (escenario por piso) terminado: cada piso tiene su escenario (`FloorTheme.scenery`):
+**Estado:** Hito 23 terminado (pedidos del usuario tras probar): arreglado el cuelgue al subir a un
+armazón (el editor le había borrado el ícono al arma; ahora un ícono vacío no traba nada), rueda de
+armas (mantener Tab) y teclas 1 a 9, el Tijerón con corte en el aire y clavada con rayos, los
+Poltergeist (común y rojo) que abren ojos en el borde de la sala, corazones en filas y un resumen que
+entra con muchos items. Antes: hito 22 (escenario por piso): cada piso tiene su escenario (`FloorTheme.scenery`):
 paredes con cosas del lugar (ladrillos con velas, caños, raíces con árboles, lava, cerca de tablas con
 fardos, andamios, pinos nevados, cerca de soga con banderines), rocas y fosos con su aspecto (cajones,
 toneles, tocones, fardos, hielo, agua, lava...) y detalles en el piso. Antes: hito 21 (capítulo 2, "El
@@ -209,6 +213,12 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
 - `--write-movie` en un `.exe` exportado necesita una ruta absoluta (`C:/.../f.png`).
 - Hay una clase global `State` (máquina de estados): ningún enum interno puede llamarse `State`
   (por eso `Door.Mode` y `Room.Phase`).
+- **El editor de Godot 4.7 reescribe recursos al abrir el proyecto y borra los `PackedStringArray` de los
+  sub-recursos** (pasó con los íconos de las armas de los armazones: el HUD se trababa al subir). Después
+  de usar el editor mirar `git status`: si cambió algo de `content/` sin querer, guardarlo aparte
+  (`git stash`) y volver a lo commiteado. Los tests de contenido lo detectan
+  (`test_hito23.test_every_weapon_icon_survives`) y `WeaponData.display_icon()` dibuja una pistola
+  genérica si un ícono quedó vacío; `PixelIcons.size_of` acepta un ícono vacío.
 - **Cargas circulares:** `bullet.gd` usa `Enemy`, y `Enemy` usa (directa o indirectamente) a casi todo
   lo de combate. Un `preload` de `bullet.tscn` o `enemy.tscn` en esa cadena deja la escena **vacía** si
   lo primero que se carga es una bala (pasa desde el hito 21: `MetaConfig` carga los capítulos al
@@ -385,7 +395,8 @@ ui/menus/                   main_menu, intro_screen, chapter_select, character_s
                             inventory_slot, run_summary, save_slots_menu (Partidas) + progress_meter,
                             menu_builder (arman la UI por código)
 ui/hud/                     hud.tscn/.gd, hearts_display, pulse_display, counters_display, active_display,
-                            items_display, weapon_display, item_banner, boss_bar, danger_overlay,
+                            items_display, weapon_display, weapon_wheel (rueda de armas), item_banner,
+                            boss_bar, danger_overlay,
                             rule_display (la regla de la sala), mech_display (blindaje del armazón)
 ui/minimap/                 minimap.gd
 debug/                      demo_input.gd, balance_probe.tscn/.gd (bot que mide cuánto dura una run)
@@ -402,7 +413,7 @@ tests/unit/                 rng_streams, shot_spec, health_math, pattern_math, i
 tests/integration/          player_shooting, bullets, combat, main_flow, floor, rooms, items,
                             bullet_behaviors, weapons, boss, meta_flow, feedback, inventory, enemy_kinds,
                             weapons_statuses, music, save_slots_flow, special_rooms, traps, mechs,
-                            boss_attacks, pathing, run_resume, chapters, mountain, scenery
+                            boss_attacks, pathing, run_resume, chapters, mountain, scenery, hito23
 tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria, la música apagada y GameRNG con una seed fija
 docs/PLAN.md                plan, arquitectura e hitos
 docs/LORE.md                la historia y dónde está cada texto en el juego
@@ -602,6 +613,16 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   siempre rueda (salta afuera). `Player.push(velocidad)` es el viento: se suma a la velocidad de ese
   tick (el Soplo y el Cierzo lo llaman en cada tick que soplan).
   Sigue a `RunState`: el arma equipada (`weapons_changed`) y la vida máxima (`stats_changed`).
+- **Rueda de armas:** tocar `swap_weapon` (Tab, LB, ruedita) pasa a la siguiente; mantenerlo
+  `Player.WHEEL_HOLD_TIME` emite `Player.weapon_wheel_requested` y el HUD abre `WeaponWheel` (pausa el
+  juego, se marca apuntando con el mouse desde el medio o con un stick, al soltar se equipa con
+  `RunState.select_weapon`; Esc cierra sin cambiar). `weapon_1`..`weapon_9` (teclas 1 a 9) equipan esa
+  arma directo. Nada de eso arriba de un armazón.
+- **Invocaciones del escenario:** `EnemyData.summon_anywhere` pone lo que invoca en una celda libre del
+  borde de la sala (`Enemy.scenery_spot`: lejos de las puertas y del jugador) y `summons_die_with_me` se
+  las lleva al morir (`Enemy.dismiss`: la sala las descuenta sin soltar monedas, no cuentan como
+  muertes). Los Poltergeist (Q) abren ojos rojos que disparan; los Poltergeist rojos (X), ojos que
+  tiran rayos.
 - **Enemigos:** una sola escena `enemy.tscn` configurada por `EnemyData`. Moverse: CHASE, KEEP_DISTANCE,
   HOP (a saltos), FLY (vuela en círculos, sin chocar fosos), STAY, BURROW (bajo tierra, invulnerable,
   asoma al atacar), PHASE (fantasma un rato: ni pega ni recibe), BOUNCE (rueda derecho y rebota) o
@@ -643,7 +664,8 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   y verticales alternadas, con un hueco al lado del jugador), SNOWBALL (`RollingBall`: rueda, rebota en
   la sala, crece, rompe rocas y se deshace), ICE_CAGE (ronda de carámbanos que quedan clavados con un
   hueco hacia el medio de la sala y uno enorme en el centro) y GUST (viento por toda la sala, de a ejes,
-  mientras tira granizo). DEBRIS usa `BossAttack.look` (piedras, carámbanos, rayos). Los golpes avisados son `BossStrike` (círculo o tajo; avisa
+  mientras tira granizo), HANGING_CUT (un tajo que queda en el aire lastimando y suelta balas desde el
+  corte) y DIVE (`LeapMove` que cae clavándose y saca rayos en estrella, uno al jugador). DEBRIS usa `BossAttack.look` (piedras, carámbanos, rayos). Los golpes avisados son `BossStrike` (círculo o tajo; avisa
   `warn_time`, pega una vez y, con `linger`, queda lastimando). En el aire o escondido el jefe está
   `airborne` (`Enemy.set_airborne`: sin cuerpo, sin hurtbox, sin contacto; `EnemyVisual.set_lift`
   lo dibuja arriba de su sombra). Nunca cae en una roca o un foso (`Enemy.landing_spot`). `Game` junta

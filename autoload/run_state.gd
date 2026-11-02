@@ -239,6 +239,15 @@ func current_weapon_slot() -> WeaponSlot:
 
 
 ## Pasa a la siguiente arma. Devuelve false si hay una sola.
+## Equipa el arma número `index` (desde 0). false si no existe o ya era la equipada.
+func select_weapon(index: int) -> bool:
+	if index < 0 or index >= weapons.size() or index == current_weapon:
+		return false
+	current_weapon = index
+	weapons_changed.emit()
+	return true
+
+
 func select_next_weapon() -> bool:
 	if weapons.size() < 2:
 		return false

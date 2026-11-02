@@ -11,14 +11,22 @@ extends CharacterBody2D
 ## Se apunta con el último dispositivo usado: mover el mouse vuelve a la mira por mouse,
 ## inclinar el stick derecho la pasa al stick.
 
+## Mantuvo el botón de cambiar de arma: abrir la rueda (WeaponWheel, en el HUD).
+signal weapon_wheel_requested
+
 ## Subió o bajó de un armazón (null al bajar).
 signal mech_changed(mech: MechData)
 
 const GROUP: StringName = &"player"
 const STICK_AIM_DEADZONE: float = 0.35
+## Tocar el botón de cambiar de arma pasa a la siguiente; mantenerlo esto abre la rueda.
+const WHEEL_HOLD_TIME: float = 0.22
+## Teclas que equipan cada arma directo (1 a 9).
+const WEAPON_KEYS: Array[StringName] = [&"weapon_1", &"weapon_2", &"weapon_3", &"weapon_4", &"weapon_5",
+		&"weapon_6", &"weapon_7", &"weapon_8", &"weapon_9"]
 ## Acciones que pasan por el InputBuffer.
 const BUFFERED_ACTIONS: Array[StringName] = [
-	&"shoot", &"dodge", &"blank", &"bomb", &"reload", &"swap_weapon", &"use_active",
+	&"shoot", &"dodge", &"blank", &"bomb", &"reload", &"use_active",
 ]
 const HURT_FLASH_TIME: float = 0.12
 const HURT_TRAUMA: float = 0.6
@@ -70,6 +78,8 @@ var move_velocity: Vector2 = Vector2.ZERO
 var input_buffer: InputBuffer = InputBuffer.new()
 var _aim_with_mouse: bool = true
 var _roll_cooldown_left: float = 0.0
+## Cuánto hace que se mantiene el botón de cambiar de arma (-1 = suelto o ya resuelto).
+var _swap_hold: float = -1.0
 var _step_left: float = STEP_DISTANCE
 ## Segundos que se viene manteniendo el botón de bomba (negativo = no se está apretando).
 var _bomb_hold: float = -1.0
@@ -242,14 +252,34 @@ func try_shoot(delta: float) -> void:
 		weapon.idle(RunState.stats)
 
 
-## Recargar, cambiar de arma y usar el activo.
-func try_weapon_actions() -> void:
+## Recargar, cambiar de arma (tocar: la siguiente; mantener: la rueda; 1 a 9: esa) y usar el activo.
+func try_weapon_actions(delta: float) -> void:
 	if input_buffer.consume(&"reload"):
 		weapon.reload()
-	if input_buffer.consume(&"swap_weapon") and not is_piloting() and RunState.select_next_weapon():
-		AudioManager.play_sfx(&"weapon_swap")
+	_try_swap(delta)
+	for i: int in WEAPON_KEYS.size():
+		if Input.is_action_just_pressed(WEAPON_KEYS[i]) and not is_piloting() and RunState.select_weapon(i):
+			AudioManager.play_sfx(&"weapon_swap")
 	if input_buffer.consume(&"use_active"):
 		_use_active()
+
+
+func _try_swap(delta: float) -> void:
+	if Input.is_action_just_pressed(&"swap_weapon"):
+		_swap_hold = 0.0
+	if _swap_hold < 0.0:
+		return
+	if Input.is_action_pressed(&"swap_weapon"):
+		_swap_hold += delta
+		if _swap_hold >= WHEEL_HOLD_TIME:
+			_swap_hold = -1.0
+			if not is_piloting() and RunState.weapons.size() > 1:
+				weapon_wheel_requested.emit()
+		return
+	# Lo soltó enseguida (o fue la ruedita del mouse): la siguiente.
+	_swap_hold = -1.0
+	if not is_piloting() and RunState.select_next_weapon():
+		AudioManager.play_sfx(&"weapon_swap")
 
 
 func can_roll() -> bool:

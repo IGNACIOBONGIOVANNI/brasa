@@ -40,10 +40,15 @@ extends Resource
 ##   doble de `warn_time` y suelta `pattern`): hay que salir por el hueco.
 ## - GUST: sopla por toda la sala `linger` s (después de `warn_time` s de aviso) y empuja al jugador a
 ##   `speed` px/s hacia donde está, de a ejes; mientras, tira `pattern` cada `interval` s.
+## - HANGING_CUT: un tajo largo donde está el jugador (`spread` px a cada lado, cruzado a la línea entre
+##   los dos) que avisa `warn_time` s y queda en el aire `linger` s: lastima al tocarlo y cada `interval`
+##   s suelta `pattern` hacia el jugador desde un punto del corte. `count` cortes seguidos.
+## - DIVE: salta como LEAP, cae clavándose (pega en `radius` y suelta `pattern`) y del piso salen
+##   `count` rayos en estrella (uno apunta al jugador): se ven `interval` s y queman `linger` s.
 ## DEBRIS usa `look` para lo que cae (piedras, carámbanos, rayos).
 
 enum Kind { VOLLEY, DEBRIS, FRAG_BOMBS, DARK_CLAWS, SNIPE, LEAP, CHARGES, SUMMON, GROUND_LINES, SWEEP, MOLTEN,
-		SCISSORS, STAMPEDE, SNOWBALL, ICE_CAGE, GUST }
+		SCISSORS, STAMPEDE, SNOWBALL, ICE_CAGE, GUST, HANGING_CUT, DIVE }
 ## Cómo se ve un golpe avisado (BossStrike).
 enum Look { STONE, ROOT, CLAW, EMBER, BLADE, ICE, BOLT, HOOVES }
 

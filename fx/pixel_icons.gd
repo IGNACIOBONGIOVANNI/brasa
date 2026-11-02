@@ -70,6 +70,8 @@ const QUALITY_GLYPHS: Dictionary[String, Array] = {
 
 ## Tamaño en píxeles de un ícono.
 static func size_of(icon: PackedStringArray) -> Vector2:
+	if icon.is_empty():
+		return Vector2.ZERO
 	return Vector2(icon[0].length(), icon.size())
 
 

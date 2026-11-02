@@ -241,10 +241,20 @@ func _draw_ember(warn: float, after: float, blink: float) -> void:
 	draw_set_transform(Vector2.ZERO)
 
 
-## Un brillo fino que se estira; al pegar, el corte de una tijera (dos hojas cruzadas).
+## Un brillo fino que se estira; al pegar, el corte de una tijera (dos hojas cruzadas). Con `linger`, el
+## corte queda abierto en el aire (titila) hasta cerrarse.
 func _draw_blade(warn: float, after: float, blink: float) -> void:
 	if not _struck:
 		draw_line(-slash * warn, slash * warn, Color(BLADE_COLOR, blink * 0.7), 1.0)
+		return
+	if linger > 0.0:
+		var alpha: float = 1.0 - clampf((after - linger) / FADE_TIME, 0.0, 1.0)
+		var shimmer: float = 0.7 + 0.3 * sin(_elapsed * 18.0)
+		var across: Vector2 = slash.orthogonal().normalized()
+		draw_line(-slash - across, slash - across, Color(CLAW_COLOR, 0.5 * alpha), 1.0)
+		draw_line(-slash + across, slash + across, Color(CLAW_COLOR, 0.5 * alpha), 1.0)
+		draw_line(-slash, slash, Color(BLADE_COLOR, shimmer * alpha), 2.0)
+		draw_line(-slash * 0.9, slash * 0.9, Color(CORE_COLOR, alpha), 1.0)
 		return
 	var fade: float = 1.0 - clampf(after / HIT_SHOW, 0.0, 1.0)
 	var side: Vector2 = slash.orthogonal().normalized() * 2.0

@@ -364,7 +364,8 @@ func _register_enemy(enemy: Enemy) -> void:
 
 func _on_enemy_died(enemy: Enemy) -> void:
 	_enemies.erase(enemy)
-	if GameRNG.stream(RngStreams.LOOT).randf() < _theme.enemy_coin_chance:
+	# Lo que desaparece con su invocador no suelta nada.
+	if not enemy.dismissed and GameRNG.stream(RngStreams.LOOT).randf() < _theme.enemy_coin_chance:
 		# Llega desde un callback de física: el pickup (un Area2D) se agrega diferido.
 		var coin: PickupData = _theme.pickup_of_kind(PickupData.Kind.COIN)
 		spawn_pickup.call_deferred(coin, to_local(enemy.global_position), true)
