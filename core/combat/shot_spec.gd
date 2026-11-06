@@ -30,6 +30,10 @@ var burn_chance: float = 0.0
 var poison_chance: float = 0.0
 var corrupt_chance: float = 0.0
 var douse_chance: float = 0.0
+## Balas que esperan (las de algunos jefes): se frenan a los `stall_after` s de salir, quedan quietas
+## `stall_time` s y después salen hacia el jugador. 0 = no se frenan.
+var stall_after: float = 0.0
+var stall_time: float = 0.0
 
 
 static func build(stats: StatBlock, weapon: WeaponData) -> ShotSpec:
@@ -65,6 +69,10 @@ static func from_pattern(pattern: BulletPatternData) -> ShotSpec:
 	spec.knockback = pattern.knockback
 	spec.radius = pattern.bullet_radius
 	spec.color = pattern.bullet_color
+	spec.bounces = pattern.bounces
+	spec.homing = pattern.homing
+	spec.stall_after = pattern.stall_after
+	spec.stall_time = pattern.stall_time
 	return spec
 
 

@@ -15,7 +15,7 @@ script = ExtResource("1_enemy")
 id = &"raigon_fase_1"
 move_style = 4
 attack_range = 300.0
-attack_cooldown = 1.35
+attack_cooldown = 1.01
 recover_time = 0.8
 
 [sub_resource type="Resource" id="Attack_raices"]
@@ -66,7 +66,7 @@ move_speed = 22.0
 acceleration = 300.0
 preferred_distance = 90.0
 attack_range = 300.0
-attack_cooldown = 1.1
+attack_cooldown = 0.83
 recover_time = 0.7
 
 [sub_resource type="Resource" id="Attack_raices_5"]
@@ -105,11 +105,26 @@ windup = 0.5
 recover = 0.6
 pattern = ExtResource("x2")
 
+[sub_resource type="Resource" id="Attack_cerco_de_espinas"]
+script = ExtResource("4_attack")
+id = &"cerco_de_espinas"
+display_name = "Cerco de espinas"
+kind = 28
+windup = 0.55
+recover = 0.8
+count = 2
+interval = 1.2
+warn_time = 0.8
+radius = 4.0
+spread = 60.0
+speed = 55.0
+damage = 1.0
+
 [sub_resource type="Resource" id="Phase_1"]
 script = ExtResource("3_phase")
 health_fraction = 0.65
 behavior = SubResource("Behavior_1")
-attacks = Array[ExtResource("4_attack")]([SubResource("Attack_raices_5"), SubResource("Attack_zarpazos"), SubResource("Attack_esporas_espiral"), SubResource("Attack_semillero")])
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_raices_5"), SubResource("Attack_zarpazos"), SubResource("Attack_esporas_espiral"), SubResource("Attack_semillero"), SubResource("Attack_cerco_de_espinas")])
 
 [sub_resource type="Resource" id="Behavior_2"]
 script = ExtResource("1_enemy")
@@ -119,7 +134,7 @@ move_speed = 30.0
 acceleration = 300.0
 preferred_distance = 80.0
 attack_range = 300.0
-attack_cooldown = 0.8
+attack_cooldown = 0.6
 recover_time = 0.6
 
 [sub_resource type="Resource" id="Attack_enredadera"]

@@ -5,7 +5,12 @@ estructura de los roguelites de salas + bullet hell, con contenido 100 % origina
 [docs/LORE.md](docs/LORE.md).
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 26 terminado: opción de temblor de pantalla (`GameOptions.screen_shake`), fosos que
+**Estado:** Hito 27 terminado: los jefes muestran todos sus ataques (`Enemy.next_boss_attack`: una
+vuelta por fase sin repetir, primero los tipos que no mostró, ataque enseguida al cambiar de fase;
+espera entre ataques 25 % más corta), balas de patrón que rebotan, persiguen o esperan en el aire
+(`BulletPatternData.bounces`, `homing`, `stall_after`) y diez ataques más (ORBITERS, CLOSING_RING,
+BULLET_WALL, BLINK_STRIKE y patrones nuevos). El bot de balance dice cuántos ataques llegó a mostrar
+cada jefe. Antes: hito 26: opción de temblor de pantalla (`GameOptions.screen_shake`), fosos que
 se leen como pozos (`RoomBuilder.pit_edges`), un ataque único nuevo para cada jefe (ver
 [docs/JEFES.md](docs/JEFES.md)), dibujos propios para los jefes y la historia reescrita con un tono
 más oscuro ([docs/LORE.md](docs/LORE.md)). Antes: hito 25: cada arma con su descripción (`WeaponData.description`; los items la
@@ -113,7 +118,8 @@ medidor de balance. La build **release** no tiene el autoload Debug activo (ni F
 Sin rcedit, el `.exe` lleva el ícono de Godot.
 
 **Balance:** `debug/balance_probe.tscn` juega una run con un bot invulnerable (con items típicos) y
-estima cuánto dura para una persona (combate del bot × 2 + 8 s por sala). Con `--fixed-fps 60` corre
+estima cuánto dura para una persona (combate del bot × 2 + 8 s por sala); de cada jefe dice cuántos
+tipos de ataque y movimientos llegó a mostrar antes de morir. Con `--fixed-fps 60` corre
 sin esperar al reloj real (un par de minutos). `--weapon=ID` le da esa arma con la munición siempre
 llena (para comparar armas) y `--floors=N` corta en el piso N. El tiempo real de una run se ve en F1
 ("tiempo").
@@ -388,7 +394,7 @@ entities/enemies/           enemy.tscn/.gd, enemy_visual.gd, states/ (idle, move
                             .tscn/.gd (bola de nieve), charged_orb.tscn/.gd (la bola de fuego que se junta),
                             boss/ (BossMove y una subclase por tipo de movimiento, BossMoves elige cuál;
                             boss/hazards/: lo que dejan andando solo: ShockRing, CrownBoomerang, Burrower,
-                            ThreadBall, Vortex)
+                            ThreadBall, Vortex, OrbitBall)
 entities/bullets/           bullet.tscn/.gd (rebote, perforación, teledirigido, explosivas), grenade.tscn/.gd,
                             player_blast.gd (explosiones de armas del jugador)
 entities/pickups/           pickup.tscn/.gd, pickup_visual.gd, item_pedestal.tscn/.gd, item_pedestal_visual.gd,
@@ -434,7 +440,7 @@ tests/integration/          player_shooting, bullets, combat, main_flow, floor, 
                             bullet_behaviors, weapons, boss, meta_flow, feedback, inventory, enemy_kinds,
                             weapons_statuses, music, save_slots_flow, special_rooms, traps, mechs,
                             boss_attacks, pathing, run_resume, chapters, mountain, scenery, hito23, hito24,
-                            hito25, hito26
+                            hito25, hito26, hito27
 tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria, la música apagada y GameRNG con una seed fija
 docs/PLAN.md                plan, arquitectura e hitos
 docs/LORE.md                la historia y dónde está cada texto en el juego
@@ -703,7 +709,16 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   ECHO_CHARGES (`EchoChargesMove` extiende `ChargesMove` y repite cada embestida con golpes avisados),
   ICE_SPIRAL (carámbanos en espiral) y VORTEX (`Vortex`: chupa al jugador con `Player.push`). Lo que
   queda andando solo va en el grupo `BossMove.HAZARD_GROUP` (lo borra la muerte del jefe), se agrega
-  con `BossMove.place` y lastima con `BossMove.hurt_players`. DEBRIS usa
+  con `BossMove.place` y lastima con `BossMove.hurt_players`. Del hito 27: ORBITERS (`OrbitBall`: bolas
+  con cadena que giran alrededor del jefe), CLOSING_RING (un `ShockRing` con `speed` negativa y
+  `thorny` que se cierra hacia el jefe), BULLET_WALL (paredes de balas con un hueco cerca del jugador)
+  y BLINK_STRIKE (se desvanece y reaparece detrás del jugador con un tajo). Las balas de cualquier
+  patrón pueden rebotar (`bounces`), perseguir al jugador (`homing`: `Bullet._steer` apunta al jugador
+  si la bala es enemiga) o frenarse en el aire y salir hacia él (`stall_after`, `stall_time`:
+  `Bullet._stall`). **Qué elige:** `Enemy.next_boss_attack` recorre la fase en una vuelta al azar
+  (`_attack_bag`) sin repetir hasta hacerlos todos, prefiere los tipos que todavía no mostró
+  (`used_kinds`) y al cambiar de fase vacía la vuelta y pide atacar enseguida (`take_phase_rush`, que
+  el estado Move usa para esperar solo `PHASE_RUSH` del cooldown). DEBRIS usa
   `BossAttack.look` (piedras, carámbanos, rayos, piñas) y MOLTEN con `look` LAVA hace brotar lava. Los golpes avisados son `BossStrike` (círculo o tajo; avisa
   `warn_time`, pega una vez y, con `linger`, queda lastimando). En el aire o escondido el jefe está
   `airborne` (`Enemy.set_airborne`: sin cuerpo, sin hurtbox, sin contacto; `EnemyVisual.set_lift`

@@ -3,7 +3,8 @@ extends Area2D
 ## Proyectil: avanza en línea recta y muere al llegar a su alcance, al chocar una pared o al golpear
 ## un HurtboxComponent. Si el hurtbox está invulnerable (rodando, i-frames) la bala sigue.
 ## Según su ShotSpec además rebota en las paredes (bounces), atraviesa enemigos (pierce) y dobla
-## hacia el enemigo más cercano (homing); las tres cosas se combinan solas.
+## hacia el enemigo más cercano (homing; las de los enemigos, hacia el jugador); las tres cosas se
+## combinan solas. Las que esperan (stall_after) se frenan en el aire y después salen hacia el jugador.
 ## Las capas de colisión las define quien dispara (bala del jugador o de un enemigo).
 ## Tiene que quedar monitorable: en Godot 4.7 un Area2D con monitorable = false no detecta cuerpos
 ## estáticos, y las balas atravesarían paredes y rocas.
@@ -12,7 +13,7 @@ const GROUP: StringName = &"bullets"
 const SCENE_PATH: String = "res://entities/bullets/bullet.tscn"
 const PROJECTILES_GROUP: StringName = &"projectiles"
 const IMPACT_SCENE: PackedScene = preload("res://fx/bullet_impact.tscn")
-## Distancia a la que una bala teledirigida "ve" enemigos.
+## Distancia a la que una bala teledirigida "ve" enemigos (las de los enemigos ven al jugador siempre).
 const HOMING_RANGE: float = 110.0
 ## Radianes por segundo que dobla una bala con homing 1.
 const HOMING_TURN_RATE: float = 9.0
@@ -31,6 +32,9 @@ var _pierce_left: int = 0
 var _hit_targets: Dictionary[int, bool] = {}
 ## Últimas posiciones (globales) para la estela.
 var _trail_points: PackedVector2Array = []
+## Las que esperan: cuánto hace que salió, y 0 = todavía no se frenó, 1 = quieta, 2 = ya salió de nuevo.
+var _age: float = 0.0
+var _stall_step: int = 0
 
 @onready var _shape: CollisionShape2D = $CollisionShape2D
 @onready var _visual: PlaceholderShape = $Visual
@@ -86,6 +90,10 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if spec.stall_after > 0.0 and _stall_step < 2:
+		_age += delta
+		if _stall():
+			return
 	if spec.homing > 0.0:
 		_steer(delta)
 	var step: Vector2 = _velocity * delta
@@ -136,18 +144,57 @@ func _try_bounce(step: Vector2) -> bool:
 	return true
 
 
-## Dobla un poco hacia el enemigo vivo más cercano (que todavía no atravesó).
-func _steer(delta: float) -> void:
-	var target: HurtboxComponent = null
-	var best_distance: float = HOMING_RANGE
-	for node: Node in get_tree().get_nodes_in_group(Enemy.GROUP):
-		var enemy := node as Enemy
-		if enemy.health.is_dead() or _hit_targets.has(enemy.hurtbox.get_instance_id()):
+## Las que esperan: true mientras está quieta en el aire. Al terminar la espera sale hacia el jugador.
+func _stall() -> bool:
+	if _stall_step == 0:
+		if _age < spec.stall_after:
+			return false
+		_stall_step = 1
+		_age = 0.0
+	if _age < spec.stall_time:
+		_trail.points = PackedVector2Array()
+		return true
+	_stall_step = 2
+	var player := _nearest_player()
+	var direction: Vector2 = (player.global_position - global_position).normalized() if player != null else _velocity.normalized()
+	if direction == Vector2.ZERO:
+		direction = Vector2.DOWN
+	_velocity = direction * spec.speed
+	rotation = _velocity.angle()
+	_trail_points.clear()
+	return false
+
+
+func _nearest_player() -> Player:
+	var best: Player = null
+	var best_distance: float = INF
+	for node: Node in get_tree().get_nodes_in_group(Player.GROUP):
+		var player := node as Player
+		if player.is_dead():
 			continue
-		var distance: float = enemy.hurtbox.global_position.distance_to(global_position)
+		var distance: float = player.global_position.distance_to(global_position)
 		if distance < best_distance:
 			best_distance = distance
-			target = enemy.hurtbox
+			best = player
+	return best
+
+
+## Dobla un poco hacia el enemigo vivo más cercano (que todavía no atravesó); las balas de los
+## enemigos, hacia el jugador.
+func _steer(delta: float) -> void:
+	var target: Node2D = null
+	if is_hostile_to_player():
+		target = _nearest_player()
+	else:
+		var best_distance: float = HOMING_RANGE
+		for node: Node in get_tree().get_nodes_in_group(Enemy.GROUP):
+			var enemy := node as Enemy
+			if enemy.health.is_dead() or _hit_targets.has(enemy.hurtbox.get_instance_id()):
+				continue
+			var distance: float = enemy.hurtbox.global_position.distance_to(global_position)
+			if distance < best_distance:
+				best_distance = distance
+				target = enemy.hurtbox
 	if target == null:
 		return
 	var wanted: float = (target.global_position - global_position).angle()

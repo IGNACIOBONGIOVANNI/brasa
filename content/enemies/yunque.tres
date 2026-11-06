@@ -9,6 +9,7 @@
 [ext_resource type="Resource" path="res://content/patterns/yunque_ring.tres" id="x3"]
 [ext_resource type="Resource" path="res://content/patterns/yunque_bola.tres" id="x4"]
 [ext_resource type="Resource" path="res://content/enemies/fueguito.tres" id="x5"]
+[ext_resource type="Resource" path="res://content/patterns/yunque_chispas_quietas.tres" id="xn_chispas_suspendidas"]
 
 [sub_resource type="Resource" id="Behavior_0"]
 script = ExtResource("1_enemy")
@@ -17,7 +18,7 @@ move_style = 0
 move_speed = 30.0
 acceleration = 400.0
 attack_range = 300.0
-attack_cooldown = 1.25
+attack_cooldown = 0.94
 recover_time = 0.8
 
 [sub_resource type="Resource" id="Attack_grietas"]
@@ -71,7 +72,7 @@ move_speed = 26.0
 acceleration = 300.0
 preferred_distance = 100.0
 attack_range = 300.0
-attack_cooldown = 1.1
+attack_cooldown = 0.83
 recover_time = 0.7
 
 [sub_resource type="Resource" id="Attack_mira"]
@@ -114,11 +115,20 @@ radius = 9.0
 aim_at_player = false
 look = 3
 
+[sub_resource type="Resource" id="Attack_chispas_suspendidas"]
+script = ExtResource("4_attack")
+id = &"chispas_suspendidas"
+display_name = "Chispas suspendidas"
+kind = 0
+windup = 0.45
+recover = 0.7
+pattern = ExtResource("xn_chispas_suspendidas")
+
 [sub_resource type="Resource" id="Phase_1"]
 script = ExtResource("3_phase")
 health_fraction = 0.75
 behavior = SubResource("Behavior_1")
-attacks = Array[ExtResource("4_attack")]([SubResource("Attack_mira"), SubResource("Attack_fundido_4"), SubResource("Attack_grietas_6")])
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_mira"), SubResource("Attack_fundido_4"), SubResource("Attack_grietas_6"), SubResource("Attack_chispas_suspendidas")])
 
 [sub_resource type="Resource" id="Behavior_2"]
 script = ExtResource("1_enemy")
@@ -128,7 +138,7 @@ move_speed = 32.0
 acceleration = 300.0
 preferred_distance = 90.0
 attack_range = 300.0
-attack_cooldown = 0.95
+attack_cooldown = 0.71
 recover_time = 0.6
 
 [sub_resource type="Resource" id="Attack_barrido"]
@@ -248,7 +258,7 @@ move_style = 0
 move_speed = 38.0
 acceleration = 400.0
 attack_range = 300.0
-attack_cooldown = 0.75
+attack_cooldown = 0.56
 recover_time = 0.5
 
 [sub_resource type="Resource" id="Attack_barrido_largo"]

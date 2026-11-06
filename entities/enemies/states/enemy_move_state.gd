@@ -23,6 +23,9 @@ const FLUTTER_SPEED: float = 7.0
 ## charge_axis_only: cuánto puede estar corrido el jugador de la fila o la columna (px).
 const AXIS_TOLERANCE: float = 10.0
 
+## Fracción del cooldown después de un cambio de fase.
+const PHASE_RUSH: float = 0.2
+
 var _cooldown: float = 0.0
 var _strafe_sign: float = 1.0
 var _hop_left: float = 0.0
@@ -37,8 +40,14 @@ var _roll_direction: Vector2 = Vector2.ZERO
 
 func enter(previous: StringName) -> void:
 	var rng: RandomNumberGenerator = GameRNG.stream(RngStreams.COMBAT)
-	# Recién aparecido ataca antes; después de un ataque espera el cooldown completo.
-	_cooldown = enemy.roll_attack_cooldown(0.5 if previous == &"Idle" else 1.0)
+	# Recién aparecido ataca antes; un jefe que acaba de cambiar de fase, enseguida (así se ve lo nuevo);
+	# después de un ataque espera el cooldown completo.
+	var factor: float = 1.0
+	if previous == &"Idle":
+		factor = 0.5
+	if enemy.take_phase_rush():
+		factor = PHASE_RUSH
+	_cooldown = enemy.roll_attack_cooldown(factor)
 	_strafe_sign = 1.0 if rng.randf() < 0.5 else -1.0
 	_hop_left = rng.randf_range(0.1, enemy.behavior.hop_interval)
 	if enemy.has_target():

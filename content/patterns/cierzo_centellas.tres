@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="BulletPatternData" format=3]
+
+[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="1_pattern"]
+
+[resource]
+script = ExtResource("1_pattern")
+id = &"cierzo_centellas"
+kind = 0
+count = 8
+bullet_speed = 120.0
+bullet_range = 420.0
+bullet_color = Color(1, 0.949, 0.4784, 1)
+stall_after = 0.4
+stall_time = 0.6
+homing = 0.25

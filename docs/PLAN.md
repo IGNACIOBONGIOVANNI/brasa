@@ -246,6 +246,11 @@ avanzan por el piso, zarpazos en la oscuridad, mira láser que obliga a rodar, m
 barre) y la dificultad sube de un jefe al otro. Los enemigos que caminan rodean rocas y fosos, y los
 que embisten ya no se quedan embistiendo contra un foso o una pared.
 
+**Hito 27 — Que se vean todos los ataques** (pedido del usuario): los jefes eligen primero lo que no
+mostraron, recorren cada fase entera antes de repetir y atacan más seguido; balas que rebotan,
+persiguen o esperan en el aire; y más ataques por jefe sacados de un segundo relevamiento de juegos
+del mismo estilo (docs/JEFES.md).
+
 **Hito 26 — Jefes, fosos, temblor e historia** (pedido del usuario): opción de temblor de pantalla,
 fosos que se leen como pozos, un ataque único nuevo para cada jefe (después de relevar jefes de más
 de 100 juegos, ver docs/JEFES.md), dibujos propios para los jefes y la historia reescrita con un

@@ -16,7 +16,7 @@ move_speed = 22.0
 acceleration = 300.0
 preferred_distance = 80.0
 attack_range = 300.0
-attack_cooldown = 1.6
+attack_cooldown = 1.2
 recover_time = 0.8
 
 [sub_resource type="Resource" id="Attack_tanido"]
@@ -41,11 +41,25 @@ warn_time = 1.05
 radius = 13.0
 spread = 50.0
 
+[sub_resource type="Resource" id="Attack_tanido_grave"]
+script = ExtResource("4_attack")
+id = &"tanido_grave"
+display_name = "Tañido grave"
+kind = 19
+windup = 0.7
+recover = 0.9
+count = 3
+interval = 0.9
+radius = 4.0
+spread = 70.0
+speed = 65.0
+damage = 1.0
+
 [sub_resource type="Resource" id="Phase_0"]
 script = ExtResource("3_phase")
 health_fraction = 1.0
 behavior = SubResource("Behavior_0")
-attacks = Array[ExtResource("4_attack")]([SubResource("Attack_tanido"), SubResource("Attack_cascotes")])
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_tanido"), SubResource("Attack_cascotes"), SubResource("Attack_tanido_grave")])
 
 [sub_resource type="Resource" id="Behavior_1"]
 script = ExtResource("1_enemy")
@@ -55,7 +69,7 @@ move_speed = 30.0
 acceleration = 300.0
 preferred_distance = 80.0
 attack_range = 300.0
-attack_cooldown = 1.25
+attack_cooldown = 0.94
 recover_time = 0.6
 
 [sub_resource type="Resource" id="Attack_repique"]
@@ -102,25 +116,25 @@ windup = 0.65
 recover = 0.7
 pattern = ExtResource("x3")
 
-[sub_resource type="Resource" id="Attack_tanido_grave"]
+[sub_resource type="Resource" id="Attack_badajos"]
 script = ExtResource("4_attack")
-id = &"tanido_grave"
-display_name = "Tañido grave"
-kind = 19
+id = &"badajos"
+display_name = "Badajos sueltos"
+kind = 27
 windup = 0.7
 recover = 0.9
 count = 3
-interval = 0.9
-radius = 4.0
+radius = 5.0
 spread = 70.0
-speed = 65.0
+speed = 150.0
+linger = 3.0
 damage = 1.0
 
 [sub_resource type="Resource" id="Phase_1"]
 script = ExtResource("3_phase")
 health_fraction = 0.5
 behavior = SubResource("Behavior_1")
-attacks = Array[ExtResource("4_attack")]([SubResource("Attack_repique"), SubResource("Attack_derrumbe"), SubResource("Attack_caida"), SubResource("Attack_badajo"), SubResource("Attack_tanido_grave")])
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_repique"), SubResource("Attack_derrumbe"), SubResource("Attack_caida"), SubResource("Attack_badajo"), SubResource("Attack_tanido_grave"), SubResource("Attack_badajos")])
 
 [resource]
 script = ExtResource("1_enemy")

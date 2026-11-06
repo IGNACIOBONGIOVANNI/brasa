@@ -90,6 +90,15 @@ var nav_origin: Vector2 = Vector2.ZERO
 var attack: BossAttack
 var next_recover: float = -1.0
 var _last_attack_index: int = -1
+## Jefes: los movimientos (por id) que ya hizo en esta pelea.
+var used_attacks: Dictionary[StringName, bool] = {}
+## Jefes: los tipos de movimiento que ya mostró (lo nuevo sale primero).
+var used_kinds: Dictionary[BossAttack.Kind, bool] = {}
+## Jefes: los movimientos de la fase que faltan en esta vuelta (índices). Se vuelve a llenar al vaciarse
+## y se vacía al cambiar de fase.
+var _attack_bag: Array[int] = []
+## Recién cambió de fase: el próximo ataque sale enseguida (Move lo consulta con take_phase_rush).
+var _phase_rush: bool = false
 ## Movimiento pedido desde el menú de debug: sale el próximo (una vez).
 var _forced_attack: BossAttack
 ## En el aire (un jefe que salta o se esconde en la oscuridad): ni recibe ni hace daño.
@@ -248,27 +257,78 @@ func has_boss_attacks() -> bool:
 	return is_boss() and not data.phases[phase].attacks.is_empty()
 
 
-## El próximo movimiento de jefe: uno al azar de la fase (stream de combate), nunca el mismo dos
-## veces seguidas si hay más de uno. Las embestidas no entran si un foso o una roca tapan el camino.
+## El próximo movimiento de jefe (stream de combate). Para que se vean todos aunque la pelea dure poco:
+## recorre los de la fase en una vuelta al azar sin repetir ninguno hasta hacerlos todos (ni el mismo
+## dos veces seguidas), y dentro de la vuelta elige primero los tipos que todavía no mostró en la pelea
+## (así lo nuevo de cada fase sale enseguida). Las embestidas no entran si un foso o una roca tapan el
+## camino.
 func next_boss_attack() -> BossAttack:
 	if _forced_attack != null:
 		var forced: BossAttack = _forced_attack
 		_forced_attack = null
+		_remember_attack(forced)
 		return forced
 	var attacks: Array[BossAttack] = data.phases[phase].attacks
-	var blocked: bool = has_target() and not has_clear_path(target.global_position)
-	var choices: Array[int] = []
-	for i: int in attacks.size():
-		var repeated: bool = i == _last_attack_index and attacks.size() > 1
-		if not repeated and not (blocked and attacks[i].kind == BossAttack.Kind.CHARGES):
-			choices.append(i)
-	if choices.is_empty():
+	if _attack_bag.is_empty():
 		for i: int in attacks.size():
 			if i != _last_attack_index or attacks.size() == 1:
+				_attack_bag.append(i)
+	var blocked: bool = has_target() and not has_clear_path(target.global_position)
+	var open: Array[int] = []
+	for i: int in _attack_bag:
+		if not (blocked and _is_charge(attacks[i])):
+			open.append(i)
+	if open.is_empty():
+		open = _attack_bag.duplicate()
+	var choices: Array[int] = []
+	for i: int in open:
+		if not used_kinds.has(attacks[i].kind):
+			choices.append(i)
+	if choices.is_empty():
+		for i: int in open:
+			if not used_attacks.has(attacks[i].id):
 				choices.append(i)
+	if choices.is_empty():
+		choices = open
 	var index: int = choices[GameRNG.stream(RngStreams.COMBAT).randi_range(0, choices.size() - 1)]
+	_attack_bag.erase(index)
 	_last_attack_index = index
+	_remember_attack(attacks[index])
 	return attacks[index]
+
+
+func _remember_attack(boss_attack: BossAttack) -> void:
+	used_attacks[boss_attack.id] = true
+	used_kinds[boss_attack.kind] = true
+
+
+static func _is_charge(boss_attack: BossAttack) -> bool:
+	return boss_attack.kind == BossAttack.Kind.CHARGES or boss_attack.kind == BossAttack.Kind.ECHO_CHARGES
+
+
+## true una vez después de cambiar de fase: el próximo ataque sale sin esperar el cooldown entero.
+func take_phase_rush() -> bool:
+	var rush: bool = _phase_rush
+	_phase_rush = false
+	return rush
+
+
+## Cuántos tipos de movimiento distintos tiene en todas sus fases.
+func boss_kind_total() -> int:
+	var kinds: Dictionary[BossAttack.Kind, bool] = {}
+	for boss_phase: BossPhase in data.phases:
+		for boss_attack: BossAttack in boss_phase.attacks:
+			kinds[boss_attack.kind] = true
+	return kinds.size()
+
+
+## Cuántos movimientos distintos tiene en todas sus fases (para medir cuántos llega a mostrar).
+func boss_attack_total() -> int:
+	var ids: Dictionary[StringName, bool] = {}
+	for boss_phase: BossPhase in data.phases:
+		for boss_attack: BossAttack in boss_phase.attacks:
+			ids[boss_attack.id] = true
+	return ids.size()
 
 
 ## Menú de debug: que haga `forced` ya si está caminando o en pausa; si no, apenas termine.
@@ -469,6 +529,8 @@ func _update_phase() -> void:
 	behavior = data.phases[phase].behavior
 	_attack_count = 0
 	_last_attack_index = -1
+	_attack_bag.clear()
+	_phase_rush = true
 	emitter.stop()
 	flash.flash(PHASE_FLASH_TIME)
 	EventBus.shake_requested.emit(PHASE_TRAUMA)

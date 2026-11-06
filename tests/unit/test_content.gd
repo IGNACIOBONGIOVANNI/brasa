@@ -494,10 +494,19 @@ func _check_boss_attack(boss: EnemyData, attack: BossAttack) -> void:
 		BossAttack.Kind.VORTEX:
 			assert_gt(attack.linger, 0.0, label)
 			assert_lt(attack.speed, PLAYER_MOVE_SPEED * 0.75, "%s: se le puede escapar caminando" % label)
+		BossAttack.Kind.ORBITERS:
+			assert_gt(attack.linger, 0.0, label)
+			assert_gt(attack.spread, 20.0, "%s: las bolas se alejan del jefe" % label)
+		BossAttack.Kind.CLOSING_RING:
+			assert_gt(attack.spread, 30.0, "%s: el hueco del cerco alcanza para pasar" % label)
+		BossAttack.Kind.BULLET_WALL:
+			assert_not_null(attack.pattern, "%s: con patrón (las balas de la pared)" % label)
+			assert_gt(attack.spread, 24.0, "%s: el hueco de la pared alcanza para pasar" % label)
 	# Los que no avisan cada golpe se ven venir solos: la ráfaga, la invocación, la onda que se agranda,
-	# la corona que vuela y el ovillo que rueda.
+	# la corona que vuela, el ovillo que rueda, las bolas que giran y la pared de balas.
 	var seen: Array[BossAttack.Kind] = [BossAttack.Kind.VOLLEY, BossAttack.Kind.SUMMON, BossAttack.Kind.TOLL,
-			BossAttack.Kind.CROWN_BOOMERANG, BossAttack.Kind.THREAD_TRAIL]
+			BossAttack.Kind.CROWN_BOOMERANG, BossAttack.Kind.THREAD_TRAIL, BossAttack.Kind.ORBITERS,
+			BossAttack.Kind.BULLET_WALL]
 	if not seen.has(attack.kind):
 		assert_gt(attack.warn_time, 0.3, "%s: cada golpe avisa" % label)
 

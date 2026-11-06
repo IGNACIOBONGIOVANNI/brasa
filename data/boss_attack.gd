@@ -68,12 +68,23 @@ extends Resource
 ##   `interval` s por brazo (avisan `warn_time` s, pegan en `radius`).
 ## - VORTEX: el ojo del huracán: después de `warn_time` s de aviso, durante `linger` s chupa al jugador
 ##   hacia el jefe a `speed` px/s (se puede caminar en contra) y tira `pattern` cada `interval` s.
+## - ORBITERS: `count` bolas con cadena giran alrededor del jefe a `speed` grados por segundo durante
+##   `linger` s: salen pegadas, se abren hasta `spread` px y vuelven. Lastiman al tocarlas (`radius`).
+## - CLOSING_RING: `count` cercos de espinas (uno cada `interval` s) que arrancan afuera de la sala y se
+##   cierran hacia el jefe a `speed` px/s, cada uno con un hueco de `spread` grados.
+## - BULLET_WALL: `count` paredes de balas (`pattern`, una cada `interval` s) que cruzan la sala a `speed`
+##   px/s, alternando el sentido, con un solo hueco de `spread` px cerca del jugador.
+## - BLINK_STRIKE: se desvanece y reaparece detrás del jugador: la sombra (un tajo) avisa `warn_time` s,
+##   pega en `radius` y suelta `pattern`. `count` veces seguidas.
+## Los patrones (`pattern`) también pueden tener balas que rebotan, que persiguen o que se frenan en el
+## aire y después salen hacia el jugador (BulletPatternData.bounces, homing, stall_after).
 ## DEBRIS usa `look` para lo que cae (piedras, carámbanos, rayos, piñas); MOLTEN con `look` LAVA
 ## hace brotar lava del piso (un chorro y después el charco) en vez de salpicar metal fundido.
 
 enum Kind { VOLLEY, DEBRIS, FRAG_BOMBS, DARK_CLAWS, SNIPE, LEAP, CHARGES, SUMMON, GROUND_LINES, SWEEP, MOLTEN,
 		SCISSORS, STAMPEDE, SNOWBALL, ICE_CAGE, GUST, HANGING_CUT, DIVE, CHARGED_ORB, TOLL, CROWN_BOOMERANG,
-		BURROWERS, BEAM_CROSS, THREAD_TRAIL, ECHO_CHARGES, ICE_SPIRAL, VORTEX }
+		BURROWERS, BEAM_CROSS, THREAD_TRAIL, ECHO_CHARGES, ICE_SPIRAL, VORTEX, ORBITERS, CLOSING_RING,
+		BULLET_WALL, BLINK_STRIKE }
 ## Cómo se ve un golpe avisado (BossStrike).
 enum Look { STONE, ROOT, CLAW, EMBER, BLADE, ICE, BOLT, HOOVES, PINECONE, LAVA }
 

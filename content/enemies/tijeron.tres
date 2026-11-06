@@ -7,6 +7,7 @@
 [ext_resource type="Resource" path="res://content/patterns/tijeron_agujas.tres" id="x0"]
 [ext_resource type="Resource" path="res://content/enemies/ovillo.tres" id="x1"]
 [ext_resource type="Resource" path="res://content/patterns/tijeron_spiral.tres" id="x2"]
+[ext_resource type="Resource" path="res://content/patterns/tijeron_costura.tres" id="xn_costura"]
 
 [sub_resource type="Resource" id="Attack_agujas"]
 script = ExtResource("4_attack")
@@ -110,7 +111,7 @@ move_style = 0
 move_speed = 40.0
 acceleration = 500.0
 attack_range = 300.0
-attack_cooldown = 1.5
+attack_cooldown = 1.12
 recover_time = 0.8
 
 [sub_resource type="Resource" id="Phase_0"]
@@ -126,7 +127,7 @@ move_style = 0
 move_speed = 50.0
 acceleration = 500.0
 attack_range = 300.0
-attack_cooldown = 1.2
+attack_cooldown = 0.9
 recover_time = 0.7
 
 [sub_resource type="Resource" id="Attack_hilo_suelto"]
@@ -143,11 +144,24 @@ speed = 95.0
 linger = 3.0
 damage = 1.0
 
+[sub_resource type="Resource" id="Attack_costura"]
+script = ExtResource("4_attack")
+id = &"costura"
+display_name = "Costura"
+kind = 29
+windup = 0.65
+recover = 0.8
+count = 3
+interval = 0.9
+spread = 34.0
+speed = 70.0
+pattern = ExtResource("xn_costura")
+
 [sub_resource type="Resource" id="Phase_1"]
 script = ExtResource("3_phase")
 health_fraction = 0.5
 behavior = SubResource("Behavior_1")
-attacks = Array[ExtResource("4_attack")]([SubResource("Attack_doble_tijeretazo"), SubResource("Attack_clavada"), SubResource("Attack_cortes"), SubResource("Attack_ovillos"), SubResource("Attack_hilo_suelto")])
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_doble_tijeretazo"), SubResource("Attack_clavada"), SubResource("Attack_cortes"), SubResource("Attack_ovillos"), SubResource("Attack_hilo_suelto"), SubResource("Attack_costura")])
 
 [resource]
 script = ExtResource("1_enemy")

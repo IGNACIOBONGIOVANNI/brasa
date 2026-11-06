@@ -28,6 +28,8 @@ var _main: Main
 ## Arma a probar (--weapon=ID); null = la pistola de siempre.
 var _weapon: WeaponData = null
 var _floors: int = -1
+## Lo último que se anotó del jefe de la sala (ver _note_bosses).
+var _boss_report: String = ""
 
 
 func _ready() -> void:
@@ -74,9 +76,9 @@ func _run() -> void:
 		var boss_time: float = await _clear(floor_controller, layout.first_of_kind(RoomSlot.Kind.BOSS))
 		total_combat += rooms_time + boss_time
 		total_rooms += layout.slots.size()
-		print("piso %d (%s): %d salas de combate en %.0f s (%.1f s por sala), jefe en %.0f s%s" % [
+		print("piso %d (%s): %d salas de combate en %.0f s (%.1f s por sala), jefe en %.0f s (%s)%s" % [
 			index + 1, RunState.floor_name, cells.size(), rooms_time, rooms_time / maxf(1.0, cells.size()),
-			boss_time, (" · sin terminar: " + ", ".join(slow)) if not slow.is_empty() else ""])
+			boss_time, _boss_report, (" · sin terminar: " + ", ".join(slow)) if not slow.is_empty() else ""])
 	var estimate: float = total_combat * HUMAN_FACTOR + total_rooms * ROOM_OVERHEAD
 	print("bot (%s): %s de combate en %d salas · estimado para una persona: %s" % [
 		_weapon.display_name if _weapon != null else "Pistola", RunSummary.format_time(total_combat),
@@ -105,13 +107,25 @@ func _clear(floor_controller: FloorController, cell: Vector2i) -> float:
 		await get_tree().physics_frame
 	var start: float = RunState.run_time
 	var room: Room = floor_controller.current_room()
+	_boss_report = ""
 	while room.phase != Room.Phase.CLEARED and RunState.run_time - start < ROOM_TIMEOUT:
 		if _weapon != null and RunState.current_weapon_slot().is_empty():
 			RunState.add_weapon(_weapon)
 		_drive(_main.game.player)
+		_note_bosses()
 		await get_tree().physics_frame
 	_release_all()
 	return minf(RunState.run_time - start, ROOM_TIMEOUT)
+
+
+## Anota cuántos movimientos distintos llegó a hacer cada jefe vivo (lo último visto queda en
+## _boss_report, que se imprime al terminar la sala).
+func _note_bosses() -> void:
+	for node: Node in get_tree().get_nodes_in_group(Enemy.GROUP):
+		var enemy := node as Enemy
+		if enemy != null and enemy.is_boss() and not enemy.health.is_dead():
+			_boss_report = "%s: %d de %d tipos de ataque, %d de %d movimientos" % [enemy.data.display_name,
+					enemy.used_kinds.size(), enemy.boss_kind_total(), enemy.used_attacks.size(), enemy.boss_attack_total()]
 
 
 ## Apunta y dispara al enemigo vivo más cercano; se acerca si está lejos, se aleja si está cerca y

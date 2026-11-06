@@ -8,6 +8,8 @@
 [ext_resource type="Resource" path="res://content/patterns/cierzo_esquirlas.tres" id="x2"]
 [ext_resource type="Resource" path="res://content/patterns/cierzo_ring.tres" id="x3"]
 [ext_resource type="Resource" path="res://content/patterns/cierzo_granizo.tres" id="xn_ojo_del_huracan"]
+[ext_resource type="Resource" path="res://content/patterns/cierzo_centellas.tres" id="xn_centellas"]
+[ext_resource type="Resource" path="res://content/patterns/cierzo_muro.tres" id="xn_muro_de_granizo"]
 
 [sub_resource type="Resource" id="Attack_ventarron"]
 script = ExtResource("4_attack")
@@ -157,7 +159,7 @@ move_style = 1
 move_speed = 40.0
 acceleration = 500.0
 attack_range = 300.0
-attack_cooldown = 1.1
+attack_cooldown = 0.83
 recover_time = 0.8
 preferred_distance = 90.0
 
@@ -174,15 +176,37 @@ move_style = 1
 move_speed = 42.0
 acceleration = 500.0
 attack_range = 300.0
-attack_cooldown = 1.0
+attack_cooldown = 0.75
 recover_time = 0.8
 preferred_distance = 90.0
+
+[sub_resource type="Resource" id="Attack_centellas"]
+script = ExtResource("4_attack")
+id = &"centellas"
+display_name = "Centellas"
+kind = 0
+windup = 0.5
+recover = 0.7
+pattern = ExtResource("xn_centellas")
+
+[sub_resource type="Resource" id="Attack_muro_de_granizo"]
+script = ExtResource("4_attack")
+id = &"muro_de_granizo"
+display_name = "Muro de granizo"
+kind = 29
+windup = 0.5
+recover = 0.8
+count = 3
+interval = 0.8
+spread = 32.0
+speed = 80.0
+pattern = ExtResource("xn_muro_de_granizo")
 
 [sub_resource type="Resource" id="Phase_1"]
 script = ExtResource("3_phase")
 health_fraction = 0.75
 behavior = SubResource("Behavior_1")
-attacks = Array[ExtResource("4_attack")]([SubResource("Attack_aliento"), SubResource("Attack_ventarron"), SubResource("Attack_cerco")])
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_aliento"), SubResource("Attack_ventarron"), SubResource("Attack_cerco"), SubResource("Attack_centellas"), SubResource("Attack_muro_de_granizo")])
 
 [sub_resource type="Resource" id="Behavior_2"]
 script = ExtResource("1_enemy")
@@ -191,7 +215,7 @@ move_style = 1
 move_speed = 46.0
 acceleration = 500.0
 attack_range = 300.0
-attack_cooldown = 0.9
+attack_cooldown = 0.68
 recover_time = 0.7
 preferred_distance = 85.0
 
@@ -208,7 +232,7 @@ move_style = 1
 move_speed = 50.0
 acceleration = 500.0
 attack_range = 300.0
-attack_cooldown = 0.8
+attack_cooldown = 0.6
 recover_time = 0.5
 preferred_distance = 80.0
 

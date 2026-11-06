@@ -43,7 +43,7 @@ la historia y el dibujo de cada jefe nuestro.
 | Bola que se carga | acción y anime | Bola de fuego gigante (Yunque) |
 | Segunda forma | jefes finales en general | La coraza rota del Yunque |
 
-## Los ataques nuevos (uno por jefe, ninguno lo hace otro)
+## Los ataques nuevos del hito 26 (uno por jefe, ninguno lo hace otro)
 
 - **Campanario — Tañido grave** (`TOLL`): tres ondas de sonido que se agrandan desde la campana, cada una
   con un hueco que va girando. El hueco de la primera queda del lado contrario al jugador.
@@ -109,3 +109,79 @@ de jefes ([wayline.io](https://www.wayline.io/blog/crafting-legendary-boss-battl
 intención de los enemigos ([game-mechanics](https://saschb2b.github.io/game-mechanics/concepts/enemy-intent-telegraph))
 y las páginas de jefes de la wiki de Enter the Gungeon
 ([wiki.gg](https://enterthegungeon.wiki.gg/wiki/Boss)).
+
+## Segundo relevamiento (hito 27): más juegos del mismo estilo
+
+Para el hito 27 se miraron muchos más juegos del mismo estilo que Brasa (vista desde arriba, salas,
+disparos, "bullet hell", "twin-stick", roguelites de oleadas) para buscar movimientos de jefe que
+todavía no estaban. Igual que antes: conocimiento general de los juegos y búsquedas puntuales, nada
+copiado, solo tipos de ataque.
+
+### Lo que se encontró
+
+- **Los jefes que se recuerdan muestran todo su repertorio.** En muchos juegos del género el jefe
+  recorre sus patrones en orden (o en una vuelta al azar sin repetir) en vez de tirar siempre al azar:
+  así ningún ataque se queda sin ver. En Brasa pasaba lo contrario: el azar repetía algunos y el jefe
+  moría antes de mostrar los de la última fase.
+- **Balas con comportamiento.** Lo que más se repite en el género además de anillos y abanicos: balas
+  que **rebotan** en las paredes, que **persiguen** despacio y que **se frenan en el aire** y después
+  salen hacia el jugador (dan un respiro y cambian de ritmo).
+- **Paredes de balas con un hueco**, que cruzan la sala y obligan a buscar el agujero.
+- **Una maza o bolas con cadena girando** alrededor del jefe.
+- **El cerco que se cierra**: la sala se achica con un hueco para escapar.
+- **Aparecer detrás del jugador** (el jefe se desvanece y la sombra avisa dónde vuelve).
+
+### Lo que se cambió
+
+- **Elección de ataques (`Enemy.next_boss_attack`):** cada fase se recorre en una vuelta al azar sin
+  repetir ninguno hasta hacerlos todos, y dentro de la vuelta salen primero los tipos de ataque que el
+  jefe todavía no mostró en la pelea. Al cambiar de fase ataca enseguida. Nunca el mismo dos veces
+  seguidas.
+- **Ritmo:** la espera entre ataques de los ocho jefes bajó un 25 %.
+- **Balas nuevas** (`BulletPatternData.bounces`, `homing`, `stall_after` / `stall_time`): sirven para
+  cualquier patrón.
+- **Un ataque más por jefe**, en la segunda fase para que se vea:
+  - Campanario — **Badajos sueltos** (`ORBITERS`): tres bolas con cadena giran alrededor de la campana,
+    se abren y se cierran.
+  - Rey Carnero — **Clavos rebotones**: un abanico de clavos que rebotan dos veces en las paredes.
+  - Raigón — **Cerco de espinas** (`CLOSING_RING`): un anillo de espinas que se cierra hacia él con un
+    hueco que va girando.
+  - Yunque — **Chispas suspendidas**: un anillo de chispas que se frena en el aire y después sale hacia
+    el jugador.
+  - Tijerón — **Costura** (`BULLET_WALL`): tres paredes de agujas que cruzan la sala, cada una con un
+    solo hueco cerca del jugador.
+  - Rey Destronado — **Paso de sombra** (`BLINK_STRIKE`): se desvanece y reaparece detrás del jugador
+    con un tajo y una ronda de clavos.
+  - Alud — **Ventisca que persigue** (copos que doblan hacia el jugador) y **Rocas en órbita**.
+  - Cierzo — **Centellas** (esperan en el aire y después persiguen) y **Muro de granizo**.
+
+### Juegos del segundo relevamiento
+
+Roguelites y "twin-stick" de vista desde arriba: Star of Providence, The Void Rains Upon Her Heart,
+Nova Drift, Voidigo, Maniac, Power Fantasy, Doomsday Hunters, Myriad Death, Nimrods, Dust & Neon,
+Hell is Other Demons, Hyperparasite, Nex Machina, Atomicrops, Beat Hazard 3, Minishoot' Adventures,
+Arms of God, Blazing Beaks, Synthetik, Synthetik 2, Tiny Rogues, Assault Android Cactus, Geometry Wars
+3, Resogun, Alienation, Helldivers, Ruiner, Tormentor X Punisher, The Swords of Ditto, Moon Hunters,
+Curse of the Dead Gods, Wizard of Legend 2, Black Future '88, Hotline Miami 2, Riverbond, Eldest Souls,
+Bleak Sword, Sparklite, Rogue Heroes: Ruins of Tasos, Unsighted, CrossCode, Garden Story, Xeno Crisis,
+Neon Chrome, Smash TV, Robotron: 2084, Total Carnage, Alien Breed, Gauntlet (2014), Endless Dungeon,
+Rabbit and Steel, Ravenswatch, Windblown.
+
+Juegos de oleadas ("survivors"): Halls of Torment, HoloCure, Soulstone Survivors, Death Must Die, Deep
+Rock Galactic: Survivor, Spirit Hunters: Infinite Horde, Army of Ruin, Boneraiser Minions, Magic
+Survival, Rogue: Genesia, Bullet Heaven 2.
+
+Plataformas y acción con jefes de patrones: Skul: The Hero Slayer, Have a Nice Death, Dungreed, Revita,
+Death's Gambit, Gunfire Reborn, Roboquest, Ziggurat.
+
+"Bullet hell" de naves: Mushihimesama Futari, Espgaluda II, Deathsmiles, DoDonPachi Resurrection,
+Battle Garegga, Raiden V, Rolling Gunner, Ghost Blade HD, Sine Mora EX, Steredenn, Graze Counter, Blue
+Revolver, Super Galaxy Squadron, Mecha Ritz, Sophstar, Danmaku Unlimited 3.
+
+Fuentes consultadas: listas de juegos del estilo
+([rogueranker](https://rogueranker.com/best-bullet-hell-games/), [nodal.gg](https://nodal.gg/tag/twin-stick-shooter),
+[50gameslike](https://www.50gameslike.com/best-games-by-type/twin-stick/2?o=relevance)) y guías de
+jefes y patrones ([Minishoot' Adventures](https://casualgameguides.com/walkthroughs/minishoot-adventures/boss-guides-pattern-counters),
+[Arms of God](https://guide-arms-of-god-bzw.pages.dev/guides/arms-of-god-boss-guide-how-to-beat-every-major-boss),
+[Star of Providence](https://starofprovidence.wiki.gg/wiki/Database),
+[Sparen's Danmaku Design Studio](https://sparen.github.io/ph3tutorials/ddsga4.html)).

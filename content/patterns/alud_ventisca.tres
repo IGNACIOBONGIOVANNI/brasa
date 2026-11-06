@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="BulletPatternData" format=3]
+
+[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="1_pattern"]
+
+[resource]
+script = ExtResource("1_pattern")
+id = &"alud_ventisca"
+kind = 3
+volleys = 3
+volley_interval = 0.3
+bullet_speed = 70.0
+bullet_range = 420.0
+bullet_radius = 3.0
+bullet_color = Color(0.902, 0.9647, 1, 1)
+homing = 0.5

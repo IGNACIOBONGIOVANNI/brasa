@@ -976,3 +976,32 @@ cercas, etc.; pensá muchas opciones, mejor si está relacionado al nivel".
   con qué." En el monte, el Cierzo es el último aliento de los pastores que no bajaron. Se cambiaron la
   intro, los textos de los capítulos, las líneas de cada piso, los apodos de jefes y minijefes y las
   descripciones de los personajes. Lo oscuro se dice a medias: el juego nunca muestra nada.
+
+## Hito 27 — que se vean todos los ataques, y más ataques (2026-11-06)
+
+- **El problema, medido:** el bot de balance ahora dice cuántos tipos de ataque y movimientos llegó a
+  mostrar cada jefe antes de morir. Antes del cambio (seed 1234): Campanario 3 de 7 movimientos, Rey
+  Carnero 6 de 9, Raigón 9 de 11, Yunque 10 de 20, Tijerón 6 de 8, Rey Destronado 8 de 10, Alud 9 de 11,
+  Cierzo 11 de 12. El azar repetía algunos y los de la última fase casi no salían.
+- **Cómo elige ahora (`Enemy.next_boss_attack`):** recorre cada fase en una vuelta al azar sin repetir
+  ninguno hasta hacerlos todos (como hacen muchos jefes del género, que pasan por todos sus patrones),
+  dentro de la vuelta prefiere los tipos de ataque que todavía no mostró en la pelea, y al cambiar de
+  fase empieza una vuelta nueva y ataca enseguida (el primer ataque de la fase espera solo el 20 % del
+  cooldown). Sigue sin hacer el mismo dos veces seguidas y sin embestir con el camino tapado.
+- **Ritmo:** la espera entre ataques de los ocho jefes bajó un 25 % (las pausas después de cada ataque,
+  la ventana para pegarles, quedaron igual).
+- **Después (seed 1234; tipos de ataque mostrados):** Campanario 4 de 5, Rey Carnero 5 de 5, Raigón 6
+  de 6, Yunque 8 de 8, Tijerón 7 de 7, Rey Destronado 7 de 7, Alud 7 de 7, Cierzo 7 de 7 (en el capítulo
+  2 también todos los movimientos del Alud y el Cierzo). El Campanario solo se queda corto cuando el bot
+  lo mata en 15 s (tres ataques); en una pelea de 30 s muestra los cinco. No se lo hizo más agresivo: es
+  el jefe del primer piso. Para que su primera fase tenga más variedad, el Tañido grave también está ahí.
+- **Duración:** el bot estima el capítulo 1 en ~29 min y el 2 en ~34 min para una persona (casi igual
+  que antes: los jefes atacan más seguido pero la pelea no se alarga).
+- **Balas nuevas** para cualquier patrón: que rebotan, que persiguen al jugador y que se frenan en el
+  aire y después salen hacia él. El Pulso las borra como a todas.
+- **Ataques nuevos** (de un segundo relevamiento de juegos del mismo estilo, en `docs/JEFES.md`), en la
+  segunda fase de cada jefe para que se vean: Badajos sueltos (Campanario), Clavos rebotones (Rey
+  Carnero), Cerco de espinas (Raigón), Chispas suspendidas (Yunque), Costura (Tijerón), Paso de sombra
+  (Rey Destronado), Ventisca que persigue y Rocas en órbita (Alud) y Centellas y Muro de granizo
+  (Cierzo). Al Alud y al Cierzo les tocaron dos para que cada jefe siga teniendo al menos la variedad
+  del anterior (lo exige un test).

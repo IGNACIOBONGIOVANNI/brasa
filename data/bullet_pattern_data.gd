@@ -32,3 +32,11 @@ enum Kind { RING, SPIRAL, FAN, AIMED }
 @export var knockback: float = 110.0
 @export var bullet_radius: float = 3.0
 @export var bullet_color: Color = Color("ff6b8a")
+## Rebotes en las paredes antes de morir.
+@export_range(0, 8) var bounces: int = 0
+## Qué tanto dobla hacia el jugador (0 a 1): las balas que persiguen.
+@export_range(0.0, 1.0) var homing: float = 0.0
+## Balas que esperan: a los `stall_after` s de salir se frenan en el aire `stall_time` s y después
+## salen derecho hacia donde está el jugador (0 = no se frenan).
+@export var stall_after: float = 0.0
+@export var stall_time: float = 0.0
