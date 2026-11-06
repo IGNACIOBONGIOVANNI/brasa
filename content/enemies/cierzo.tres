@@ -7,6 +7,7 @@
 [ext_resource type="Resource" path="res://content/patterns/cierzo_spiral.tres" id="x1"]
 [ext_resource type="Resource" path="res://content/patterns/cierzo_esquirlas.tres" id="x2"]
 [ext_resource type="Resource" path="res://content/patterns/cierzo_ring.tres" id="x3"]
+[ext_resource type="Resource" path="res://content/patterns/cierzo_granizo.tres" id="xn_ojo_del_huracan"]
 
 [sub_resource type="Resource" id="Attack_ventarron"]
 script = ExtResource("4_attack")
@@ -211,17 +212,31 @@ attack_cooldown = 0.8
 recover_time = 0.5
 preferred_distance = 80.0
 
+[sub_resource type="Resource" id="Attack_ojo_del_huracan"]
+script = ExtResource("4_attack")
+id = &"ojo_del_huracan"
+display_name = "Ojo del huracán"
+kind = 26
+windup = 0.5
+recover = 0.9
+interval = 0.7
+warn_time = 0.9
+speed = 45.0
+linger = 3.5
+damage = 1.0
+pattern = ExtResource("xn_ojo_del_huracan")
+
 [sub_resource type="Resource" id="Phase_3"]
 script = ExtResource("3_phase")
 health_fraction = 0.25
 behavior = SubResource("Behavior_3")
-attacks = Array[ExtResource("4_attack")]([SubResource("Attack_huracan"), SubResource("Attack_tormenta"), SubResource("Attack_cerco_cerrado"), SubResource("Attack_anillos")])
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_huracan"), SubResource("Attack_tormenta"), SubResource("Attack_cerco_cerrado"), SubResource("Attack_anillos"), SubResource("Attack_ojo_del_huracan")])
 
 [resource]
 script = ExtResource("1_enemy")
 id = &"cierzo"
 display_name = "Cierzo"
-epithet = "El viento que heló el monte"
+epithet = "El último aliento de los pastores"
 template_char = "Z"
 max_health = 340.0
 contact_damage = 1.0
@@ -229,7 +244,7 @@ spawn_delay = 1.2
 knockback_resistance = 0.95
 body_radius = 12.0
 hurtbox_radius = 15.0
-visual_style = 22
+visual_style = 39
 visual_radius = 16.0
 body_color = Color(0.498, 0.6118, 0.7529, 1)
 phases = Array[ExtResource("3_phase")]([SubResource("Phase_0"), SubResource("Phase_1"), SubResource("Phase_2"), SubResource("Phase_3")])

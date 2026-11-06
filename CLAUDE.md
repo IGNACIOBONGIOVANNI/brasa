@@ -5,7 +5,10 @@ estructura de los roguelites de salas + bullet hell, con contenido 100 % origina
 [docs/LORE.md](docs/LORE.md).
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 25 terminado: cada arma con su descripción (`WeaponData.description`; los items la
+**Estado:** Hito 26 terminado: opción de temblor de pantalla (`GameOptions.screen_shake`), fosos que
+se leen como pozos (`RoomBuilder.pit_edges`), un ataque único nuevo para cada jefe (ver
+[docs/JEFES.md](docs/JEFES.md)), dibujos propios para los jefes y la historia reescrita con un tono
+más oscuro ([docs/LORE.md](docs/LORE.md)). Antes: hito 25: cada arma con su descripción (`WeaponData.description`; los items la
 toman con `ItemData.describe`), que sale en un cartel al acercarse a un pedestal fuera de combate
 (`PedestalInfo`, también para los demás items) y en la Mochila, y un símbolo para cada sala especial
 (`PixelIcons.room_symbol`) en el minimapa y en su puerta. Antes: hito 24: cada armazón con su chasis (`MechData.frame`: pesado, zancudo,
@@ -383,7 +386,9 @@ entities/enemies/           enemy.tscn/.gd, enemy_visual.gd, states/ (idle, move
                             boss_attack), enemy_blast.gd (explosiones), lob_shell.tscn/.gd (bola en arco o
                             bomba con mecha), boss_strike.tscn/.gd (golpe de jefe avisado), rolling_ball
                             .tscn/.gd (bola de nieve), charged_orb.tscn/.gd (la bola de fuego que se junta),
-                            boss/ (BossMove y una subclase por tipo de movimiento, BossMoves elige cuál)
+                            boss/ (BossMove y una subclase por tipo de movimiento, BossMoves elige cuál;
+                            boss/hazards/: lo que dejan andando solo: ShockRing, CrownBoomerang, Burrower,
+                            ThreadBall, Vortex)
 entities/bullets/           bullet.tscn/.gd (rebote, perforación, teledirigido, explosivas), grenade.tscn/.gd,
                             player_blast.gd (explosiones de armas del jugador)
 entities/pickups/           pickup.tscn/.gd, pickup_visual.gd, item_pedestal.tscn/.gd, item_pedestal_visual.gd,
@@ -429,11 +434,12 @@ tests/integration/          player_shooting, bullets, combat, main_flow, floor, 
                             bullet_behaviors, weapons, boss, meta_flow, feedback, inventory, enemy_kinds,
                             weapons_statuses, music, save_slots_flow, special_rooms, traps, mechs,
                             boss_attacks, pathing, run_resume, chapters, mountain, scenery, hito23, hito24,
-                            hito25
+                            hito25, hito26
 tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria, la música apagada y GameRNG con una seed fija
 docs/PLAN.md                plan, arquitectura e hitos
 docs/LORE.md                la historia y dónde está cada texto en el juego
 docs/OBJETOS.md             ficha para que el usuario mande objetos nuevos
+docs/JEFES.md               tipos de ataque de jefes de otros juegos y de dónde salió cada uno de Brasa
 ```
 
 ## Arquitectura
@@ -690,7 +696,14 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   hueco hacia el medio de la sala y uno enorme en el centro) y GUST (viento por toda la sala, de a ejes,
   mientras tira granizo), HANGING_CUT (un tajo que queda en el aire lastimando y suelta balas desde el
   corte), DIVE (`LeapMove` que cae clavándose y saca rayos en estrella, uno al jugador) y CHARGED_ORB
-  (junta una `ChargedOrb` arriba de la cabeza y la tira como una bala enorme y lenta). DEBRIS usa
+  (junta una `ChargedOrb` arriba de la cabeza y la tira como una bala enorme y lenta), y uno propio por
+  jefe del hito 26: TOLL (ondas `ShockRing` con un hueco), CROWN_BOOMERANG (coronas `CrownBoomerang`
+  que van y vuelven), BURROWERS (`Burrower`: raíces que persiguen bajo tierra y revientan), BEAM_CROSS
+  (rayos `EnemyBeam` que giran), THREAD_TRAIL (`ThreadBall`: ovillos con un hilo que corta),
+  ECHO_CHARGES (`EchoChargesMove` extiende `ChargesMove` y repite cada embestida con golpes avisados),
+  ICE_SPIRAL (carámbanos en espiral) y VORTEX (`Vortex`: chupa al jugador con `Player.push`). Lo que
+  queda andando solo va en el grupo `BossMove.HAZARD_GROUP` (lo borra la muerte del jefe), se agrega
+  con `BossMove.place` y lastima con `BossMove.hurt_players`. DEBRIS usa
   `BossAttack.look` (piedras, carámbanos, rayos, piñas) y MOLTEN con `look` LAVA hace brotar lava. Los golpes avisados son `BossStrike` (círculo o tajo; avisa
   `warn_time`, pega una vez y, con `linger`, queda lastimando). En el aire o escondido el jefe está
   `airborne` (`Enemy.set_airborne`: sin cuerpo, sin hurtbox, sin contacto; `EnemyVisual.set_lift`
@@ -719,7 +732,8 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
 - **Avisos:** `DangerOverlay` (en el HUD) pone bordes rojos al recibir daño y, con un corazón o menos,
   late con un sonido de corazón. Al aparecer un jefe: cartel con su nombre, sonido y sacudida. El
   resumen suena distinto al ganar o perder.
-- **Opciones:** volumen general, de la música, pantalla completa, resolución y la última partida
+- **Opciones:** volumen general, de la música, pantalla completa, resolución, temblor de pantalla
+  (`screen_shake`: fuerte, suave o no; `GameCamera.add_trauma` lo multiplica) y la última partida
   abierta, en `GameOptions` (`SaveManager.options`, archivo `options.json`): las mismas para todas las
   partidas. `SaveManager.apply_options()` las aplica al abrir las partidas y al cambiarlas.
 - **HUD:** `ui/hud` (CanvasLayer), dibujado con `PixelBitmap` + `PixelIcons`. `PedestalInfo` (lo arma
@@ -749,6 +763,8 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   un hijo `Glow` sin sombra para lo que brilla o se mueve (velas, gotas, hongos, lava, faroles, chispas
   de nieve, banderines), animado solo en la sala actual (`Room.set_present` → `set_animated`). Las
   rocas y fosos usan `SceneryShape` (hereda de `PlaceholderShape`: con PLAIN es el bloque de siempre).
+  Cada foso recibe sus `edges` (`RoomBuilder.pit_edges`: qué lados dan al piso) y
+  `SceneryDrawing.draw_pit` dibuja el canto y la pared del fondo solo ahí, así un foso grande es un pozo.
   Todo lo dibuja `SceneryDrawing` con la paleta del piso; lo que varía sale de `SceneryDrawing.noise`
   con una semilla por sala (`hash` de piso, plantilla y celda), así la sala se ve igual al volver o al
   seguir una run guardada y no se gasta ningún stream de `GameRNG`.

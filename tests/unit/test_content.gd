@@ -21,6 +21,8 @@ const TRAPS_DIR: String = "res://content/traps/"
 const MECHS_DIR: String = "res://content/mechs/"
 ## Lo que dura la rodada del jugador (entities/player/player.tscn usa el valor por defecto).
 const PLAYER_ROLL_TIME: float = 0.32
+## Lo que camina el personaje más lento (Musgo).
+const PLAYER_MOVE_SPEED: float = 78.0
 ## Salas especiales que un piso puede sumar con FloorTheme.extra_rooms.
 const EXTRA_KINDS: Array[RoomSlot.Kind] = [RoomSlot.Kind.CHALLENGE, RoomSlot.Kind.ALTAR, RoomSlot.Kind.WELL,
 		RoomSlot.Kind.HANGAR]
@@ -478,7 +480,25 @@ func _check_boss_attack(boss: EnemyData, attack: BossAttack) -> void:
 			assert_not_null(attack.pattern, "%s: con patrón (color de la bola)" % label)
 			assert_gt(attack.speed, 0.0, label)
 			assert_gt(attack.radius, 0.0, label)
-	if attack.kind != BossAttack.Kind.VOLLEY and attack.kind != BossAttack.Kind.SUMMON:
+		BossAttack.Kind.TOLL:
+			assert_gt(attack.spread, 30.0, "%s: el hueco de la onda alcanza para pasar" % label)
+			assert_lt(attack.speed, 120.0, "%s: la onda se ve venir" % label)
+		BossAttack.Kind.CROWN_BOOMERANG, BossAttack.Kind.THREAD_TRAIL:
+			assert_gt(attack.speed, 0.0, label)
+			assert_gt(attack.radius, 0.0, label)
+		BossAttack.Kind.BURROWERS:
+			assert_gt(attack.linger, 0.0, "%s: las raíces persiguen un rato" % label)
+		BossAttack.Kind.BEAM_CROSS:
+			assert_gte(attack.count, 2, "%s: más de un rayo" % label)
+			assert_gt(attack.linger, 0.0, label)
+		BossAttack.Kind.VORTEX:
+			assert_gt(attack.linger, 0.0, label)
+			assert_lt(attack.speed, PLAYER_MOVE_SPEED * 0.75, "%s: se le puede escapar caminando" % label)
+	# Los que no avisan cada golpe se ven venir solos: la ráfaga, la invocación, la onda que se agranda,
+	# la corona que vuela y el ovillo que rueda.
+	var seen: Array[BossAttack.Kind] = [BossAttack.Kind.VOLLEY, BossAttack.Kind.SUMMON, BossAttack.Kind.TOLL,
+			BossAttack.Kind.CROWN_BOOMERANG, BossAttack.Kind.THREAD_TRAIL]
+	if not seen.has(attack.kind):
 		assert_gt(attack.warn_time, 0.3, "%s: cada golpe avisa" % label)
 
 

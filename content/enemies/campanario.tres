@@ -102,17 +102,31 @@ windup = 0.65
 recover = 0.7
 pattern = ExtResource("x3")
 
+[sub_resource type="Resource" id="Attack_tanido_grave"]
+script = ExtResource("4_attack")
+id = &"tanido_grave"
+display_name = "Tañido grave"
+kind = 19
+windup = 0.7
+recover = 0.9
+count = 3
+interval = 0.9
+radius = 4.0
+spread = 70.0
+speed = 65.0
+damage = 1.0
+
 [sub_resource type="Resource" id="Phase_1"]
 script = ExtResource("3_phase")
 health_fraction = 0.5
 behavior = SubResource("Behavior_1")
-attacks = Array[ExtResource("4_attack")]([SubResource("Attack_repique"), SubResource("Attack_derrumbe"), SubResource("Attack_caida"), SubResource("Attack_badajo")])
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_repique"), SubResource("Attack_derrumbe"), SubResource("Attack_caida"), SubResource("Attack_badajo"), SubResource("Attack_tanido_grave")])
 
 [resource]
 script = ExtResource("1_enemy")
 id = &"campanario"
 display_name = "Campanario"
-epithet = "La campana caída, que sigue sonando"
+epithet = "La campana que tocó a muerto todos los inviernos"
 template_char = "A"
 max_health = 120.0
 spawn_delay = 1.5
@@ -120,6 +134,6 @@ knockback_resistance = 0.9
 phases = Array[ExtResource("3_phase")]([SubResource("Phase_0"), SubResource("Phase_1")])
 body_radius = 12.0
 hurtbox_radius = 15.0
-visual_style = 2
+visual_style = 34
 visual_radius = 16.0
 body_color = Color(0.941, 0.627, 0.251, 1)

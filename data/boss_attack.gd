@@ -49,11 +49,31 @@ extends Resource
 ##   tira hacia el jugador a `speed` px/s: lenta y enorme, pega `damage` (un corazón entero) y se
 ##   apaga contra las paredes. El color y el empujón salen de `pattern`. El Pulso la borra.
 ##   `count` bolas seguidas.
+## - TOLL: tañe y salen `count` ondas de sonido (una cada `interval` s) que se agrandan a `speed` px/s
+##   desde el jefe, de `radius` px de grueso, cada una con un hueco de `spread` grados (que va girando):
+##   hay que pasar por el hueco o rodar a través de la onda.
+## - CROWN_BOOMERANG: tira `count` coronas (en abanico de `spread` grados hacia el jugador) que vuelan
+##   girando hasta `interval` s, frenan, sueltan `pattern` y vuelven a la mano del jefe. Lastiman al
+##   tocarlas (en `radius`).
+## - BURROWERS: `count` raíces bajo tierra (un montículo que se ve) persiguen al jugador a `speed` px/s
+##   durante `linger` s; después se frenan, tiemblan `warn_time` s y revientan en `radius` (y sueltan
+##   `pattern`).
+## - BEAM_CROSS: `count` rayos repartidos alrededor del jefe que se ven `warn_time` s y después
+##   disparan girando a `speed` grados por segundo durante `linger` s (el sentido, al azar).
+## - THREAD_TRAIL: `count` ovillos que ruedan rebotando en la sala a `speed` px/s durante `linger` s y
+##   dejan atrás un hilo que corta (cada tramo dura `interval` s).
+## - ECHO_CHARGES: embiste como CHARGES y después los fantasmas de su manada repiten cada embestida por
+##   el mismo camino (avisan `warn_time` s, una cada `interval` s).
+## - ICE_SPIRAL: carámbanos que caen en `count` brazos de espiral que salen del jefe, uno cada
+##   `interval` s por brazo (avisan `warn_time` s, pegan en `radius`).
+## - VORTEX: el ojo del huracán: después de `warn_time` s de aviso, durante `linger` s chupa al jugador
+##   hacia el jefe a `speed` px/s (se puede caminar en contra) y tira `pattern` cada `interval` s.
 ## DEBRIS usa `look` para lo que cae (piedras, carámbanos, rayos, piñas); MOLTEN con `look` LAVA
 ## hace brotar lava del piso (un chorro y después el charco) en vez de salpicar metal fundido.
 
 enum Kind { VOLLEY, DEBRIS, FRAG_BOMBS, DARK_CLAWS, SNIPE, LEAP, CHARGES, SUMMON, GROUND_LINES, SWEEP, MOLTEN,
-		SCISSORS, STAMPEDE, SNOWBALL, ICE_CAGE, GUST, HANGING_CUT, DIVE, CHARGED_ORB }
+		SCISSORS, STAMPEDE, SNOWBALL, ICE_CAGE, GUST, HANGING_CUT, DIVE, CHARGED_ORB, TOLL, CROWN_BOOMERANG,
+		BURROWERS, BEAM_CROSS, THREAD_TRAIL, ECHO_CHARGES, ICE_SPIRAL, VORTEX }
 ## Cómo se ve un golpe avisado (BossStrike).
 enum Look { STONE, ROOT, CLAW, EMBER, BLADE, ICE, BOLT, HOOVES, PINECONE, LAVA }
 

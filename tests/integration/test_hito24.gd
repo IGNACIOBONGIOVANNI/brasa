@@ -276,7 +276,7 @@ func test_the_yunque_breaks_its_shell_at_half_health() -> void:
 	data.spawn_delay = 0.05
 	var yunque: Enemy = _game.spawn_enemy(data, BOSS_AT)
 	await wait_physics_frames(10)
-	assert_eq(yunque.visual.style, EnemyData.VisualStyle.BLOCK, "arranca con la coraza")
+	assert_eq(yunque.visual.style, data.visual_style, "arranca con la coraza")
 	var fire_phase: int = -1
 	for i: int in data.phases.size():
 		if data.phases[i].new_look:

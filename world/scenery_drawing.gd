@@ -789,45 +789,174 @@ static func draw_obstacle(canvas: CanvasItem, scenery: FloorTheme.Scenery, color
 			canvas.draw_rect(box.grow(-1.0), color)
 
 
-## Un foso de 16 x 16 (centrado) con el aspecto del piso.
-static func draw_pit(canvas: CanvasItem, scenery: FloorTheme.Scenery, color: Color, variant: int) -> void:
-	var box := Rect2(-8, -8, 16, 16)
-	canvas.draw_rect(box, color)
+## Lados de un foso que dan al piso (los demás siguen siendo foso): los usa draw_pit para que un foso
+## de varias celdas se vea como un solo pozo, con su borde solo por afuera.
+const PIT_UP: int = 1
+const PIT_RIGHT: int = 2
+const PIT_DOWN: int = 4
+const PIT_LEFT: int = 8
+const PIT_ALL_SIDES: int = 15
+## Alto de la pared del fondo que se ve adentro del pozo (debajo del borde de arriba).
+const PIT_BACK_WALL: int = 6
+
+
+## Un foso de 16 x 16 (centrado) con el aspecto del piso. `edges` (PIT_UP | PIT_RIGHT ...) dice qué
+## lados dan al piso. Se tiene que leer como un pozo y no como pared: el borde de cada lado abierto es
+## un canto con luz, debajo del de arriba se ve la pared del fondo bajando hacia lo oscuro (del material
+## del piso: ladrillos, tierra con raíces, tablas, piedra, hielo, roca) y en el fondo flota polvo. El
+## agua de las cloacas y el metal fundido de la forja son líquidos con su orilla.
+static func draw_pit(canvas: CanvasItem, scenery: FloorTheme.Scenery, color: Color, variant: int,
+		edges: int = PIT_ALL_SIDES) -> void:
 	match scenery:
 		FloorTheme.Scenery.SEWER:
-			# Agua honda: bien distinta del piso, con el borde de arriba claro y ondas.
-			canvas.draw_rect(box, Color("123638"))
-			canvas.draw_rect(Rect2(-8, -8, 16, 1), Color("4f8a86"))
-			for k: int in 2:
-				var y: float = -3.0 + k * 6.0
-				var x: float = -5.0 + (variant + k) % 4
-				canvas.draw_line(Vector2(x, y), Vector2(x + 6.0, y), Color(WATER_COLOR, 0.55), 1.0)
-		FloorTheme.Scenery.ROOTS:
-			# Tierra floja arriba y raíces finitas que cuelgan hacia adentro del pozo.
-			canvas.draw_rect(Rect2(-8, -8, 16, 1), Color("4a3a2a"))
-			canvas.draw_polyline(PackedVector2Array([Vector2(-4, -8), Vector2(-5, -5), Vector2(-4, -2)]), ROOT_COLOR.darkened(0.2), 1.0)
-			canvas.draw_polyline(PackedVector2Array([Vector2(3, -8), Vector2(4, -6), Vector2(3, -4)]), ROOT_COLOR.darkened(0.2), 1.0)
+			_water_pit(canvas, variant, edges)
 		FloorTheme.Scenery.FORGE:
-			# Metal fundido con costra en el borde.
-			canvas.draw_rect(box.grow(-1.0), LAVA_COLOR.darkened(0.25))
-			canvas.draw_rect(Rect2(-5 + variant % 3, -4, 6, 4), LAVA_COLOR)
-			canvas.draw_rect(Rect2(-1, 1 + variant % 2, 6, 4), LAVA_COLOR)
-			canvas.draw_rect(Rect2(-3 + variant % 3, -3, 2, 2), LAVA_CORE)
-			canvas.draw_rect(Rect2(2, 2 + variant % 2, 2, 2), LAVA_CORE)
-		FloorTheme.Scenery.SHED:
-			canvas.draw_rect(Rect2(-8, -8, 16, 2), WOOD_COLOR.darkened(0.3))
-			canvas.draw_colored_polygon(PackedVector2Array([Vector2(-8, -6), Vector2(-3, -6), Vector2(-6, -3)]), WOOD_COLOR.darkened(0.3))
-			canvas.draw_colored_polygon(PackedVector2Array([Vector2(8, 8), Vector2(2, 8), Vector2(6, 4)]), WOOD_COLOR.darkened(0.3))
-		FloorTheme.Scenery.QUARRY:
-			for k: int in 5:
-				canvas.draw_rect(Rect2(-7 + k * 3, -8 + (k % 2), 1, 1), STONE_COLOR)
-		FloorTheme.Scenery.SNOWFIELD:
-			canvas.draw_rect(Rect2(-8, -8, 16, 2), ICE_COLOR)
-			for k: int in 3:
-				canvas.draw_colored_polygon(PackedVector2Array([Vector2(-6 + k * 5, -6), Vector2(-4 + k * 5, -6), Vector2(-5 + k * 5, -3)]), ICE_COLOR)
-		FloorTheme.Scenery.SUMMIT:
-			canvas.draw_set_transform(Vector2(variant % 3 - 1, 1), 0.0, Vector2(1.0, 0.4))
-			canvas.draw_circle(Vector2.ZERO, 5.0, Color(SNOW_COLOR, 0.25))
-			canvas.draw_set_transform(Vector2.ZERO)
+			_molten_pit(canvas, variant, edges)
+		_:
+			_hole_pit(canvas, scenery, color, variant, edges)
+
+
+## Material de la pared del fondo y del canto de cada escenario.
+static func _pit_palette(scenery: FloorTheme.Scenery) -> Array[Color]:
+	match scenery:
 		FloorTheme.Scenery.BASEMENT:
-			canvas.draw_rect(Rect2(-8, -8, 16, 1), STONE_COLOR.darkened(0.4))
+			return [Color("5e4b57"), Color("9a8798")]
+		FloorTheme.Scenery.ROOTS:
+			return [Color("5a4030"), Color("9a7a52")]
+		FloorTheme.Scenery.SHED:
+			return [WOOD_COLOR.darkened(0.25), WOOD_COLOR.lightened(0.2)]
+		FloorTheme.Scenery.QUARRY:
+			return [Color("6f6a62"), STONE_COLOR.lightened(0.25)]
+		FloorTheme.Scenery.SNOWFIELD:
+			return [Color("6fa8c8"), SNOW_COLOR]
+		FloorTheme.Scenery.SUMMIT:
+			return [Color("565b6a"), SNOW_COLOR]
+	return [Color("4a4553"), Color("7a7488")]
+
+
+static func _hole_pit(canvas: CanvasItem, scenery: FloorTheme.Scenery, deep: Color, variant: int, edges: int) -> void:
+	var palette: Array[Color] = _pit_palette(scenery)
+	var wall: Color = palette[0]
+	var rim: Color = palette[1]
+	canvas.draw_rect(Rect2(-8, -8, 16, 16), deep)
+	# Polvo que flota en el fondo.
+	for k: int in 3:
+		var speck := Vector2(-6 + (variant * 3 + k * 7) % 12, -1 + (variant * 5 + k * 3) % 8)
+		canvas.draw_rect(Rect2(speck, Vector2.ONE), deep.lerp(rim, 0.3))
+	# Paredes de los costados: la izquierda con algo de luz, la derecha en sombra.
+	if edges & PIT_LEFT:
+		canvas.draw_rect(Rect2(-8, -8, 1, 16), wall.lerp(deep, 0.35))
+		canvas.draw_rect(Rect2(-7, -8, 1, 16), wall.lerp(deep, 0.65))
+	if edges & PIT_RIGHT:
+		canvas.draw_rect(Rect2(7, -8, 1, 16), wall.lerp(deep, 0.6))
+		canvas.draw_rect(Rect2(6, -8, 1, 16), wall.lerp(deep, 0.8))
+	# La pared del fondo, que baja hacia lo oscuro.
+	if edges & PIT_UP:
+		for row: int in PIT_BACK_WALL:
+			var t: float = float(row) / PIT_BACK_WALL
+			canvas.draw_rect(Rect2(-8, -8 + row, 16, 1), wall.lerp(deep, 0.1 + 0.85 * t))
+		_pit_back_detail(canvas, scenery, wall, variant)
+	# El canto del piso en cada lado abierto.
+	if edges & PIT_UP:
+		canvas.draw_rect(Rect2(-8, -8, 16, 1), rim)
+	if edges & PIT_DOWN:
+		canvas.draw_rect(Rect2(-8, 7, 16, 1), rim.darkened(0.2))
+	if edges & PIT_LEFT:
+		canvas.draw_rect(Rect2(-8, -8, 1, 16), rim.darkened(0.1))
+	if edges & PIT_RIGHT:
+		canvas.draw_rect(Rect2(7, -8, 1, 16), rim.darkened(0.3))
+	_pit_lip_detail(canvas, scenery, rim, variant, edges)
+
+
+## Lo que se ve en la pared del fondo de cada escenario.
+static func _pit_back_detail(canvas: CanvasItem, scenery: FloorTheme.Scenery, wall: Color, variant: int) -> void:
+	var line: Color = wall.darkened(0.45)
+	match scenery:
+		FloorTheme.Scenery.BASEMENT:
+			# Ladrillos: la junta del medio y las verticales desfasadas.
+			canvas.draw_rect(Rect2(-8, -5, 16, 1), line)
+			var joint: float = -6.0 + variant % 5
+			canvas.draw_rect(Rect2(joint, -7, 1, 2), line)
+			canvas.draw_rect(Rect2(joint + 8.0, -7, 1, 2), line)
+			canvas.draw_rect(Rect2(joint + 4.0, -4, 1, 2), line)
+		FloorTheme.Scenery.ROOTS:
+			# Raíces finitas que cuelgan hacia adentro del pozo.
+			canvas.draw_polyline(PackedVector2Array([Vector2(-4, -8), Vector2(-5, -4), Vector2(-4, 0)]), ROOT_COLOR, 1.0)
+			canvas.draw_polyline(PackedVector2Array([Vector2(3, -8), Vector2(4, -5), Vector2(3, -2)]), ROOT_COLOR, 1.0)
+			canvas.draw_rect(Rect2(-1 + variant % 3, -6, 1, 3), ROOT_COLOR.darkened(0.2))
+		FloorTheme.Scenery.SHED:
+			# Las tablas del piso, partidas: las puntas cuelgan sobre el pozo.
+			canvas.draw_rect(Rect2(-8, -4, 16, 1), line)
+			canvas.draw_colored_polygon(PackedVector2Array([Vector2(-8, -7), Vector2(-2, -7), Vector2(-6, -3)]), WOOD_COLOR.darkened(0.15))
+			canvas.draw_colored_polygon(PackedVector2Array([Vector2(3, -7), Vector2(8, -7), Vector2(7, -4)]), WOOD_COLOR.darkened(0.15))
+		FloorTheme.Scenery.QUARRY:
+			# Piedras sueltas en la pared.
+			for k: int in 4:
+				canvas.draw_rect(Rect2(-7 + k * 4 + variant % 2, -6 + (k + variant) % 3, 2, 1), wall.lightened(0.2))
+		FloorTheme.Scenery.SNOWFIELD:
+			# Carámbanos colgando del borde.
+			for k: int in 3:
+				var x: float = -6.0 + k * 5.0 + variant % 2
+				canvas.draw_colored_polygon(PackedVector2Array([Vector2(x, -7), Vector2(x + 2, -7), Vector2(x + 1, -3 - (k + variant) % 2)]), ICE_COLOR)
+		FloorTheme.Scenery.SUMMIT:
+			# Roca con grietas y, muy abajo, nubes.
+			canvas.draw_line(Vector2(-5 + variant % 3, -7), Vector2(-3 + variant % 3, -3), line, 1.0)
+			canvas.draw_set_transform(Vector2(variant % 3 - 1, 3), 0.0, Vector2(1.0, 0.35))
+			canvas.draw_circle(Vector2.ZERO, 5.0, Color(SNOW_COLOR, 0.18))
+			canvas.draw_set_transform(Vector2.ZERO)
+
+
+## Lo que hay sobre el canto (nieve, polvo de piedra) en los lados abiertos.
+static func _pit_lip_detail(canvas: CanvasItem, scenery: FloorTheme.Scenery, rim: Color, variant: int, edges: int) -> void:
+	match scenery:
+		FloorTheme.Scenery.SNOWFIELD, FloorTheme.Scenery.SUMMIT:
+			# Nieve que cuelga del borde de arriba.
+			if edges & PIT_UP:
+				for k: int in 3:
+					canvas.draw_rect(Rect2(-7 + k * 5 + variant % 3, -7, 2, 1), rim)
+		FloorTheme.Scenery.QUARRY, FloorTheme.Scenery.BASEMENT, FloorTheme.Scenery.ROOTS:
+			# Piedritas sueltas al borde, del lado del piso.
+			if edges & PIT_DOWN:
+				canvas.draw_rect(Rect2(-4 + variant % 5, 8, 1, 1), rim.darkened(0.3))
+			if edges & PIT_UP:
+				canvas.draw_rect(Rect2(2 - variant % 4, -9, 1, 1), rim.darkened(0.3))
+
+
+## Agua honda (Cloacas): una orilla de piedra en los lados abiertos, el agua que arranca un poco más
+## abajo (se ve la pared mojada) y ondas.
+static func _water_pit(canvas: CanvasItem, variant: int, edges: int) -> void:
+	var water := Color("123638")
+	var stone := Color("4a5a56")
+	canvas.draw_rect(Rect2(-8, -8, 16, 16), water)
+	if edges & PIT_UP:
+		canvas.draw_rect(Rect2(-8, -8, 16, 3), Color("1e2e2c"))
+		canvas.draw_rect(Rect2(-8, -5, 16, 1), Color("4f8a86"))
+	for k: int in 2:
+		var y: float = -1.0 + k * 5.0
+		var x: float = -5.0 + (variant + k) % 4
+		canvas.draw_line(Vector2(x, y), Vector2(x + 6.0, y), Color(WATER_COLOR, 0.55), 1.0)
+	_liquid_rim(canvas, stone, edges)
+
+
+## Metal fundido (Forja): la costra oscura en la orilla y el centro al rojo, con burbujas.
+static func _molten_pit(canvas: CanvasItem, variant: int, edges: int) -> void:
+	canvas.draw_rect(Rect2(-8, -8, 16, 16), LAVA_COLOR.darkened(0.3))
+	if edges & PIT_UP:
+		canvas.draw_rect(Rect2(-8, -8, 16, 3), Color("4a2418"))
+	canvas.draw_rect(Rect2(-5 + variant % 3, -3, 6, 4), LAVA_COLOR)
+	canvas.draw_rect(Rect2(-1, 2 + variant % 2, 6, 4), LAVA_COLOR)
+	canvas.draw_rect(Rect2(-3 + variant % 3, -2, 2, 2), LAVA_CORE)
+	canvas.draw_rect(Rect2(2, 3 + variant % 2, 2, 2), LAVA_CORE)
+	_liquid_rim(canvas, Color("3a2a22"), edges)
+
+
+## Orilla de 1 px (más clara arriba) en los lados abiertos de un foso con líquido.
+static func _liquid_rim(canvas: CanvasItem, stone: Color, edges: int) -> void:
+	if edges & PIT_UP:
+		canvas.draw_rect(Rect2(-8, -8, 16, 1), stone.lightened(0.25))
+	if edges & PIT_DOWN:
+		canvas.draw_rect(Rect2(-8, 7, 16, 1), stone)
+	if edges & PIT_LEFT:
+		canvas.draw_rect(Rect2(-8, -8, 1, 16), stone.lightened(0.1))
+	if edges & PIT_RIGHT:
+		canvas.draw_rect(Rect2(7, -8, 1, 16), stone.darkened(0.1))

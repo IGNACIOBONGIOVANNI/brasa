@@ -129,20 +129,34 @@ attack_range = 300.0
 attack_cooldown = 1.2
 recover_time = 0.7
 
+[sub_resource type="Resource" id="Attack_hilo_suelto"]
+script = ExtResource("4_attack")
+id = &"hilo_suelto"
+display_name = "Hilo suelto"
+kind = 23
+windup = 0.65
+recover = 0.7
+count = 2
+interval = 1.6
+radius = 5.0
+speed = 95.0
+linger = 3.0
+damage = 1.0
+
 [sub_resource type="Resource" id="Phase_1"]
 script = ExtResource("3_phase")
 health_fraction = 0.5
 behavior = SubResource("Behavior_1")
-attacks = Array[ExtResource("4_attack")]([SubResource("Attack_doble_tijeretazo"), SubResource("Attack_clavada"), SubResource("Attack_cortes"), SubResource("Attack_ovillos")])
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_doble_tijeretazo"), SubResource("Attack_clavada"), SubResource("Attack_cortes"), SubResource("Attack_ovillos"), SubResource("Attack_hilo_suelto")])
 
 [resource]
 script = ExtResource("1_enemy")
 id = &"tijeron"
 display_name = "Tijerón"
-epithet = "Las tijeras de esquilar, sin nadie que las sostenga"
+epithet = "Las tijeras de esquilar, que no saben parar"
 template_char = "J"
 max_health = 170.0
-visual_style = 14
+visual_style = 38
 visual_radius = 15.0
 body_color = Color(0.6039, 0.6431, 0.7216, 1)
 contact_damage = 1.0

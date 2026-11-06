@@ -165,17 +165,30 @@ attack_range = 300.0
 attack_cooldown = 0.9
 recover_time = 0.6
 
+[sub_resource type="Resource" id="Attack_ecos"]
+script = ExtResource("4_attack")
+id = &"ecos"
+display_name = "Ecos de la estampida"
+kind = 24
+windup = 0.55
+recover = 0.9
+count = 3
+interval = 0.35
+warn_time = 0.6
+speed = 250.0
+damage = 1.0
+
 [sub_resource type="Resource" id="Phase_2"]
 script = ExtResource("3_phase")
 health_fraction = 0.3
 behavior = SubResource("Behavior_2")
-attacks = Array[ExtResource("4_attack")]([SubResource("Attack_gran_estampida"), SubResource("Attack_embestidas_furia"), SubResource("Attack_tormenta_clavos")])
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_gran_estampida"), SubResource("Attack_embestidas_furia"), SubResource("Attack_tormenta_clavos"), SubResource("Attack_ecos")])
 
 [resource]
 script = ExtResource("1_enemy")
 id = &"rey_destronado"
 display_name = "Rey Destronado"
-epithet = "Volvió sin corona, y viene por la revancha"
+epithet = "Sin corona, sin rebaño, sin perdón"
 template_char = "D"
 max_health = 230.0
 visual_style = 23

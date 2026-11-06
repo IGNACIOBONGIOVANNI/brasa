@@ -7,6 +7,9 @@ extends RefCounted
 ## El `delta` que llega ya trae el ritmo del jefe (Apagado, Furia).
 
 const STRIKE_SCENE: PackedScene = preload("res://entities/enemies/boss_strike.tscn")
+## Lo que dejan algunos movimientos andando solo (ondas, coronas, raíces, ovillos): se borra al morir el
+## jefe (Enemy._die).
+const HAZARD_GROUP: StringName = &"boss_hazards"
 const PULSE_COLOR: Color = Color("ffd166")
 
 var enemy: Enemy
@@ -102,6 +105,26 @@ func spawn_strike(at: Vector2, look: BossAttack.Look) -> BossStrike:
 	strike.radius = attack.radius
 	strike.speed_multiplier = enemy.bullet_speed_multiplier
 	return strike
+
+
+## Agrega un nodo suelto de un movimiento (onda, corona, raíz, ovillo) a los efectos del mundo, en
+## `at` (global). Los movimientos corren en el tick de física (no en un callback), así que va directo.
+func place(node: Node2D, at: Vector2) -> void:
+	var tree: SceneTree = enemy.get_tree()
+	var container: Node = tree.get_first_node_in_group(Fx.EFFECTS_GROUP)
+	if container == null:
+		container = enemy.get_parent()
+	container.add_child(node)
+	node.global_position = at
+
+
+## Le pega `damage` a cada jugador cuya posición cumpla `touches` (rodando o con i-frames no cuenta:
+## lo decide su hurtbox), empujándolo desde `from`.
+static func hurt_players(tree: SceneTree, damage: float, from: Vector2, touches: Callable) -> void:
+	for node: Node in tree.get_nodes_in_group(Player.GROUP):
+		var player := node as Player
+		if touches.call(player.global_position):
+			player.hurtbox.receive_hit(HitInfo.create(damage, player.global_position - from, BossStrike.KNOCKBACK))
 
 
 func _telegraph(on: bool) -> void:

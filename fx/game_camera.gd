@@ -2,7 +2,8 @@ class_name GameCamera
 extends Camera2D
 ## Cámara fija de la sala con screenshake por "trauma": cada pedido suma, decae sola.
 ## El desplazamiento es lineal con el trauma (no al cuadrado) para que un disparo se note con
-## ~1 px; los golpes fuertes piden más trauma. Se redondea a píxeles enteros.
+## ~1 px; los golpes fuertes piden más trauma. Se redondea a píxeles enteros. La opción "Temblor de
+## pantalla" (GameOptions.screen_shake) lo achica o lo apaga.
 
 @export var max_offset: Vector2 = Vector2(5, 4)
 @export var decay_per_second: float = 1.5
@@ -15,7 +16,11 @@ func _ready() -> void:
 
 
 func add_trauma(amount: float) -> void:
-	_trauma = clampf(_trauma + amount, 0.0, 1.0)
+	_trauma = clampf(_trauma + amount * SaveManager.options.screen_shake, 0.0, 1.0)
+
+
+func trauma() -> float:
+	return _trauma
 
 
 func _process(delta: float) -> void:

@@ -534,6 +534,8 @@ func _die() -> void:
 			(node as BossStrike).vanish()
 		for node: Node in get_tree().get_nodes_in_group(RollingBall.GROUP):
 			(node as RollingBall).vanish()
+		for node: Node in get_tree().get_nodes_in_group(BossMove.HAZARD_GROUP):
+			node.queue_free()
 		burst.amount = 40
 		EventBus.shake_requested.emit(BOSS_DEATH_TRAUMA)
 		EventBus.hitstop_requested.emit(BOSS_DEATH_HITSTOP)

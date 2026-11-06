@@ -308,17 +308,30 @@ windup = 0.45
 recover = 0.6
 pattern = ExtResource("x3")
 
+[sub_resource type="Resource" id="Attack_cruz_de_la_fragua"]
+script = ExtResource("4_attack")
+id = &"cruz_de_la_fragua"
+display_name = "Cruz de la fragua"
+kind = 22
+windup = 0.45
+recover = 1.0
+count = 4
+warn_time = 1.0
+speed = 40.0
+linger = 3.0
+damage = 1.0
+
 [sub_resource type="Resource" id="Phase_3"]
 script = ExtResource("3_phase")
 health_fraction = 0.2
 behavior = SubResource("Behavior_3")
-attacks = Array[ExtResource("4_attack")]([SubResource("Attack_barrido_largo"), SubResource("Attack_mira_rapida"), SubResource("Attack_grietas_8"), SubResource("Attack_rafaga"), SubResource("Attack_anillo"), SubResource("Attack_bola_doble"), SubResource("Attack_erupcion_grande"), SubResource("Attack_fueguitos")])
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_barrido_largo"), SubResource("Attack_mira_rapida"), SubResource("Attack_grietas_8"), SubResource("Attack_rafaga"), SubResource("Attack_anillo"), SubResource("Attack_bola_doble"), SubResource("Attack_erupcion_grande"), SubResource("Attack_fueguitos"), SubResource("Attack_cruz_de_la_fragua")])
 
 [resource]
 script = ExtResource("1_enemy")
 id = &"yunque"
 display_name = "Yunque"
-epithet = "Guardián de la última llama"
+epithet = "Guardián de la última llama, y de su precio"
 template_char = "Y"
 max_health = 300.0
 spawn_delay = 1.5
@@ -326,6 +339,6 @@ knockback_resistance = 0.9
 phases = Array[ExtResource("3_phase")]([SubResource("Phase_0"), SubResource("Phase_1"), SubResource("Phase_2"), SubResource("Phase_3")])
 body_radius = 12.0
 hurtbox_radius = 15.0
-visual_style = 4
+visual_style = 37
 visual_radius = 16.0
 body_color = Color(0.549, 0.6, 0.678, 1)

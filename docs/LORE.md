@@ -1,122 +1,111 @@
 # Lore
 
-Historia armada con los nombres que el juego ya tenía (Brasa, Ceniza, chispas, Fragua, Yunque...).
-Aprobada e integrada en el hito 9; dónde vive cada texto, al final.
+La historia de Brasa, reescrita en el hito 26 con un tono más oscuro. Usa los mismos nombres de
+siempre (Brasa, Ceniza, chispas, Fragua, Yunque...), así nada del juego cambia de lugar: cambia lo que
+significan. Lo oscuro se dice a medias: el juego nunca muestra nada, deja que el jugador ate los cabos.
+Dónde vive cada texto, al final.
 
 ## La idea en tres frases
 
-Debajo del pueblo de **Campana Honda** ardía la **Fragua Madre**, el fuego que calentaba todas las
-casas. Un invierno la campana de la iglesia se desplomó al sótano, la fragua se apagó de golpe y el
-pueblo quedó frío y a oscuras. **Brasa** es la última chispa que salió volando de esa fragua: tomó
-forma y baja a encontrar lo que se quedó con el fuego.
+Debajo del pueblo de **Campana Honda** ardía la **Fragua Madre**, y su fuego calentaba todas las casas.
+Lo que nadie decía en voz alta es que la fragua no ardía sola: cada invierno tocaba la campana de la
+iglesia, alguien bajaba al sótano y no volvía, y la fragua aguantaba un año más. Un invierno, el que
+tenía que bajar cortó la soga; la campana cayó, la fragua se apagó y el pueblo quedó frío, a oscuras y
+con la culpa. **Brasa** es la última chispa que salió de esa fragua, hecha con las cenizas de todos los
+que bajaron antes. Baja a buscar el fuego. Nadie le dijo para qué.
 
 ## Por qué se repite (el loop)
 
-Cuando una chispa se apaga ahí abajo, vuelve flotando al **Taller** del herrero, arriba, con las
-**chispas** que juntó en el camino. El herrero las usa para forjar herramientas nuevas, que después
-aparecen en las salas (por eso el Taller desbloquea objetos). Morir no es el final: es volver a
-encender y bajar otra vez.
+Cuando una chispa se apaga ahí abajo, vuelve flotando al **Taller**. El **herrero** la sopla, la vuelve a
+prender y la manda abajo otra vez; él nunca baja. Con las **chispas** que trae (lo que queda del fuego
+de los que bajaron) forja herramientas nuevas, que después aparecen en las salas. Morir no es el
+final: es lo que el herrero espera. Cada vez que la sopla la recuerda un poco menos.
+
+## El final (lo que no se dice)
+
+Al vencer al Yunque la fragua vuelve a prender y arriba las casas se entibian. *Nadie pregunta con
+qué.* La respuesta está en el Altar, que cobra con pedazos del corazón; en el Yunque, que guarda la
+llama "y su precio"; y en Brasa, que está hecha de lo mismo que la fragua comía.
 
 ## El descenso (los cuatro pisos)
 
-1. **Sótano.** Debajo de la iglesia, donde cayó la campana. **Campanario**: la campana caída, que
-   sigue tocando sola; cada golpe es una onda de balas, cada tañido hace caer cascotes del techo y,
-   cuando se enoja, salta y se vuelve a caer encima tuyo. Al callarla: *Silencio en el sótano*.
-2. **Cloacas.** Los carneros del monte bajaron por acá buscando calor y se quedaron. **Rey Carnero**:
-   el más grande, con una corona hecha de clavos de la fragua. Embiste una y otra vez, se arranca
-   clavos de la corona y los tira como bombas, y llama al rebaño. *Corona caída*.
-3. **Raíces.** El bosque de arriba metió sus raíces hasta la fragua para chuparle el calor que
-   quedaba; las esporas brillan con ese fuego robado. **Raigón**: la raíz madre. Sus raíces salen
-   del piso en fila y, cuando se come la luz, ataca a zarpazos desde la oscuridad. *Poda*.
-4. **Forja.** El corazón de la fragua. El **Yunque**, que era el guardián del fuego, se quedó con la
-   última llama y aplasta a cualquiera que se acerque: abre grietas de fuego, salpica metal fundido,
-   apunta desde las esquinas con una mira de forja y barre la sala con un rayo. Al vencerlo, la fragua vuelve a prender y el
-   pueblo recupera el calor: *Fragua encendida* (el id interno del logro sigue siendo
-   `fragua_apagada` para no tocar los guardados).
+1. **Sótano.** Debajo de la iglesia, donde cayó la campana. Debajo de la campana quedó alguien, y
+   todavía la hace sonar. **Campanario**: la campana que tocó a muerto todos los inviernos. Cada golpe
+   es una onda de balas; cada tañido hace caer cascotes; el *tañido grave* larga ondas de sonido con un
+   solo hueco para pasar. **Minijefe: el Carnero veterano**, que sobrevivió a todos los inviernos.
+2. **Cloacas.** Los carneros del monte bajaron buscando calor. El calor se acabó; el hambre, no. **Rey
+   Carnero**: coronado con los clavos de la fragua, uno por cada caído. Embiste, llama al rebaño y tira
+   su corona como un bumerán que vuelve a su mano. **Minijefe: la Grasa erizada**, la grasa de las velas
+   de los velorios.
+3. **Raíces.** El bosque bebió el fuego de la fragua y aprendió a tener hambre. **Raigón**: la raíz
+   madre, que bebió el fuego y pidió más. Sus raíces salen en fila, ataca desde la oscuridad y manda
+   raíces que te persiguen por debajo de la tierra. **Minijefe: el Pehuén**, que plantaron sobre las
+   tumbas.
+4. **Forja.** El corazón de la fragua. El **Yunque**, guardián de la última llama y de su precio: abre
+   grietas de fuego, apunta con la mira de forja, gira una cruz de rayos y, cuando se le rompe la
+   coraza, deja ver un cuerpo hecho del mismo fuego que cuida. **Minijefe: la Bigornia**, que forja
+   armas para manos que ya no están. Al vencerlo, la fragua vuelve a prender: *Fragua encendida* (el id
+   interno del logro sigue siendo `fragua_apagada` para no tocar los guardados).
 
 ## Los personajes
 
-- **Brasa:** la chispa recién salida de la fragua. Pareja en todo.
-- **Musgo:** un musgo que creció pegado a una brasa tibia en el sótano. Mientras sonaba la campana no
-  se animaba a salir; cuando se calla, baja con vos. Aguanta mucho, es lento.
-- **Ceniza:** lo que quedó de una chispa que bajó antes que Brasa y se quemó entera peleando contra el
-  Rey Carnero. Al vencerlo se libera. Frágil y letal.
+- **Brasa:** la última chispa de la fragua, hecha con las cenizas de los que bajaron antes. Pareja en
+  todo.
+- **Musgo:** creció sobre la tumba tibia de alguien que bajó. Aguanta mucho, es lento.
+- **Ceniza:** una chispa que bajó antes y no volvió entera. Frágil y letal.
+- **Testa:** un carnero joven y cabeza dura que oye silbar a los muertos. No rueda: embiste.
 
 ## Las cosas con nombre propio
 
-- **Chispas:** restos de fuego que sueltan los bichos que se lo habían tragado. La moneda del Taller.
+- **Chispas:** lo que queda del fuego de los que bajaron; los bichos se lo habían tragado. La moneda
+  del Taller.
 - **Pulso:** un latido de la fragua que la chispa todavía lleva adentro: borra todas las balas.
-- **Mochila:** lo que vas juntando en la bajada.
-- **Faroles, vigías, centinelas, fundidores:** cosas del pueblo que se quedaron abajo y se volvieron
-  raras con el fuego suelto (faroles que escupen llama, ojos de vidrio de los vitrales, ollas de
-  fundir que embisten).
-- **Grasa:** la grasa de las lámparas del sótano, que se juntó y camina a saltos; si la rompés, se
-  separa en gotas que siguen.
-- **Mecha:** pólvora de la fragua que agarró una chispa suelta; corre a abrazarte y revienta.
-- **Murciélagos:** colgaban de los vitrales; el fuego robado les quedó en los ojos y lo escupen en un
-  rayo.
-- **Nido:** donde los carneros chiquitos de las cloacas se crían; no para de largar crías.
-- **Topo:** cava por las raíces buscando calor y asoma justo debajo tuyo.
-- **Hollín:** humo de la fragua apagada que todavía flota; a ratos es solo sombra.
-- **Escudero:** un aprendiz de herrero que se quedó con una tapa de olla como escudo.
-- **Fogonero:** el que alimentaba los hornos; sigue tirando paladas de brasas.
-- **Prueba:** salas donde los bichos se juntan a cuidar algo que robaron de la fragua; si los echás,
-  es tuyo.
-- **Altar:** la fragua apagada todavía pide calor: deja llevarse una de sus herramientas a cambio de un
-  poco del fuego de la chispa (un corazón).
+- **Altar:** la fragua apagada todavía pide calor. Deja llevarse una de sus herramientas a cambio de un
+  pedazo del corazón de la chispa (el contenedor entero: no vuelve).
 - **Pozo de brasas:** agua tibia que bajaba de la fragua; alcanza para recuperarse una vez.
-- **Trampas:** cada piso se defiende a su manera. En el Sótano asoman los **pinchos** de las rejas
-  viejas; en las Cloacas las rejillas largan **vapor** podrido; en las Raíces las **vainas de esporas**
-  revientan cuando algo pasa cerca; en la Forja las boquillas de los hornos escupen **chorros de
-  fuego**. No distinguen: lastiman igual a los bichos.
-- **Armazones:** cuando la fragua se apagó, el herrero mandó abajo armazones de hierro para
-  traer el fuego de vuelta. Sin una chispa adentro no se mueven, así que quedaron parados en los
-  **Galpones**, esperando. Brasa cabe en la cabina: la **Caldera** (pesada, con un cañón que tira bombas),
-  los **Zancos** (livianos y rápidos) y el **Fuelle** (escupe llamas).
-- **Reglas:** abajo el fuego suelto pone sus propias reglas en algunas salas (Furia, Coraza,
-  Contrarreloj, Apagón, Sin Pulso, Frágil); aguantarlas tiene premio.
+- **Armazones:** cuando la fragua se apagó, el herrero mandó abajo armazones de hierro para traer el
+  fuego de vuelta. Sin una chispa adentro no se mueven, así que quedaron parados en los **Galpones**,
+  esperando a alguien que los maneje.
+- **Faroles, vigías, centinelas, fundidores, grasa, mechas, murciélagos, hollín, escuderos,
+  fogoneros:** las cosas del pueblo que se quedaron abajo y se volvieron raras con el fuego suelto.
+- **Poltergeist:** los que bajaron y no se fueron del todo; abren ojos en las paredes.
+- **Trampas, reglas, Prueba:** cada piso se defiende a su manera y el fuego suelto pone sus propias
+  reglas.
 
 ## Capítulo 2: El monte
 
-Los carneros habían bajado del monte porque arriba se heló todo. Cuando la Fragua volvió a prender,
-el rebaño se quedó en el pueblo, calentito. Pero **Testa**, el carnero más joven y más cabeza dura,
-quiere volver a casa: sube el monte a ver qué lo heló. No rueda, embiste.
+Los carneros bajaron del monte porque arriba se heló todo, y con ellos bajó un silencio. Los pastores
+no bajaron: se quedaron arriba, con el rebaño que no alcanzó a huir. **Testa** todavía oye silbidos en
+el viento, y sube a ver qué heló el monte.
 
-1. **Esquiladero.** El galpón donde esquilaban al rebaño cada primavera, al pie del monte. Sin nadie
-   que las use, las tijeras siguen cortando solas; los **ovillos** ruedan por el piso, las
-   **tijeretas** cortan, los **abrojos** escupen espinas y las **polillas** comen lana. En el piso
-   asoman **tijeras**. **Tijerón**: las tijeras grandes de esquilar, que cierran sus hojas sobre
-   cualquier cosa con lana.
-2. **Cantera.** De donde el pueblo sacaba la piedra. Los **pedruscos** esperan a que te pongas en su
-   fila para embestir, los **cuervos** se tiran en picada y los **barrenos** explotan si pasás cerca.
-   **Rey Destronado**: el Rey Carnero, sin corona, que volvió por la revancha contra el rebaño que lo
-   dejó solo. Lo siguen sus carneros fieles; si se enoja, llama a la estampida.
-3. **Ventisquero.** La nieve de arriba no se derrite nunca. **Lobos** que rondan, **témpanos** que se
-   parten en esquirlas y **carámbanos** que caen del techo. **Alud**: la nieve que se juntó arriba y no
-   para de bajar; tira bolas de nieve y encierra a los carneros en rondas de carámbanos.
-4. **Cumbre.** Tormenta. **Nubarrones** que tiran granizo, **soplos** que empujan y **pararrayos**.
-   **Cierzo**: el viento que heló el monte. Sopla toda la sala, tira rayos, escarcha y granizo. Al
-   calmarlo el monte se deshiela y el rebaño puede volver a casa.
+1. **Esquiladero.** Las tijeras siguen cortando; ya no queda lana. **Tijerón**: las tijeras de esquilar,
+   que no saben parar. Cierra sus hojas, corta en el aire y suelta ovillos que dejan un hilo que corta.
+2. **Cantera.** El Rey volvió sin corona y sin rebaño; solo le queda la revancha. **Rey Destronado**:
+   sin corona, sin rebaño, sin perdón. Embiste y, detrás de él, los fantasmas de su manada repiten cada
+   embestida por el mismo camino.
+3. **Ventisquero.** La nieve no se derrite nunca; debajo, algo respira. **Alud**: la nieve que enterró
+   al pueblo de arriba. Tira bolas de nieve, encierra en rondas de carámbanos y los hace caer en espiral.
+4. **Cumbre.** Arriba sopla el **Cierzo**: el último aliento de los pastores. Sopla toda la sala, tira
+   rayos y granizo y, en el ojo del huracán, chupa todo hacia él. Al callarlo, la nieve se derrite y deja
+   ver los corrales, y a los pastores que esperaban.
 
 ## Título
 
-**Brasa** (la protagonista). Otras opciones que se barajaron: Fragua Honda, La última chispa, Bajo la
-campana. Se cambia en un solo lugar: `MenuBuilder.GAME_TITLE` (más el nombre del `.exe` en
-`export_presets.cfg`). `application/config/name` queda en "mi-roguelite" porque define la carpeta del
-guardado.
+**Brasa** (la protagonista). Se cambia en un solo lugar: `MenuBuilder.GAME_TITLE` (más el nombre del
+`.exe` en `export_presets.cfg`). `application/config/name` queda en "mi-roguelite" porque define la
+carpeta del guardado.
 
 ## Dónde está en el juego
 
-- **Intro del capítulo 2:** `intro` de `content/run/chapter_2.tres` (sale la primera vez que se lo
-  elige); su nombre, su línea y los textos del final están en el mismo archivo.
-- **Intro:** `ui/menus/intro_screen.gd` (`IntroScreen.LINES`). Sale la primera vez que se aprieta
-  Jugar (`MetaProfile.intro_seen`) y desde Opciones → "Ver la historia". Enter sigue, Esc saltea.
-- **Una línea por piso:** `tagline` de cada `content/floors/floor_N.tres`, debajo del cartel "Piso N ·
-  Nombre".
-- **Apodo de cada jefe:** `epithet` en `content/enemies/<jefe>.tres`, debajo de su nombre al aparecer.
+- **Intro del capítulo 1:** `ui/menus/intro_screen.gd` (`IntroScreen.LINES`). Sale la primera vez que se
+  aprieta Jugar (`MetaProfile.intro_seen`) y desde Opciones → "Ver la historia". Enter sigue, Esc saltea.
+- **Capítulos:** `content/run/run_config.tres` y `chapter_2.tres`: nombre, línea, historia de la primera
+  vez (`intro`) y los textos del final (`victory_text`, `defeat_text`). El final del capítulo 1 también
+  está en `RunSummary.VICTORY_TEXT` / `DEFEAT_TEXT` (tienen que ser iguales).
+- **Una línea por piso:** `tagline` de cada `content/floors/*.tres`, debajo del cartel "Piso N · Nombre".
+- **Apodo de cada jefe y minijefe:** `epithet` en `content/enemies/<jefe>.tres`, debajo de su nombre al
+  aparecer.
 - **Movimientos de cada jefe:** `display_name` de cada `BossAttack` en `content/enemies/<jefe>.tres`
-  (Tañido, Cascotes, Caída de la campana, Clavos de la corona, Zarpazos en la oscuridad, Mira de
-  forja...). Por ahora solo se ven en el menú de debug.
-- **Final y derrota:** `RunSummary.VICTORY_TEXT` y `DEFEAT_TEXT`, debajo del título del resumen.
+  (Tañido grave, Corona arrojada, Raíces cazadoras, Cruz de la fragua...). Se ven en el menú de debug.
 - **Personajes:** `description` en `content/characters/*.tres`.
 - **Título:** menú principal y título de la ventana (`MenuBuilder.GAME_TITLE`), y `builds/Brasa.exe`.

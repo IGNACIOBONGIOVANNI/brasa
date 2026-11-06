@@ -17,8 +17,8 @@ const MAX_ITEM_ROWS: int = 2
 ## El aviso de logro suena después del de victoria o derrota.
 const ACHIEVEMENT_SFX_DELAY: float = 0.6
 ## Una línea de historia debajo del título (ver docs/LORE.md).
-const VICTORY_TEXT: String = "La fragua vuelve a prender. Arriba, en Campana Honda, las casas se entibian."
-const DEFEAT_TEXT: String = "Tu chispa vuelve flotando al Taller."
+const VICTORY_TEXT: String = "La fragua vuelve a prender y arriba las casas se entibian. Nadie pregunta con qué."
+const DEFEAT_TEXT: String = "Tu chispa vuelve al Taller. El herrero la sopla otra vez; cada vez la recuerda menos."
 const STORY_WIDTH: float = 220.0
 const STORY_FONT: int = 7
 

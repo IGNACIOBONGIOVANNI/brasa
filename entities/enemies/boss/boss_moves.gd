@@ -42,6 +42,22 @@ static func create(owner_enemy: Enemy, data: BossAttack) -> BossMove:
 			move = DiveMove.new()
 		BossAttack.Kind.CHARGED_ORB:
 			move = ChargedOrbMove.new()
+		BossAttack.Kind.TOLL:
+			move = TollMove.new()
+		BossAttack.Kind.CROWN_BOOMERANG:
+			move = CrownBoomerangMove.new()
+		BossAttack.Kind.BURROWERS:
+			move = BurrowersMove.new()
+		BossAttack.Kind.BEAM_CROSS:
+			move = BeamCrossMove.new()
+		BossAttack.Kind.THREAD_TRAIL:
+			move = ThreadTrailMove.new()
+		BossAttack.Kind.ECHO_CHARGES:
+			move = EchoChargesMove.new()
+		BossAttack.Kind.ICE_SPIRAL:
+			move = IceSpiralMove.new()
+		BossAttack.Kind.VORTEX:
+			move = VortexMove.new()
 		_:
 			move = VolleyMove.new()
 	move.enemy = owner_enemy

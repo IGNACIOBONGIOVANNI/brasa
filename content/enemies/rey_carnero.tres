@@ -8,6 +8,7 @@
 [ext_resource type="Resource" path="res://content/enemies/carnero.tres" id="x2"]
 [ext_resource type="Resource" path="res://content/patterns/rey_astillas.tres" id="x3"]
 [ext_resource type="Resource" path="res://content/patterns/rey_fan.tres" id="x4"]
+[ext_resource type="Resource" path="res://content/patterns/corona_clavos.tres" id="xn_corona_arrojada"]
 
 [sub_resource type="Resource" id="Behavior_0"]
 script = ExtResource("1_enemy")
@@ -144,17 +145,32 @@ count = 2
 interval = 0.3
 pattern = ExtResource("x4")
 
+[sub_resource type="Resource" id="Attack_corona_arrojada"]
+script = ExtResource("4_attack")
+id = &"corona_arrojada"
+display_name = "Corona arrojada"
+kind = 20
+windup = 0.55
+recover = 0.8
+count = 3
+interval = 0.7
+radius = 7.0
+spread = 50.0
+speed = 170.0
+damage = 1.0
+pattern = ExtResource("xn_corona_arrojada")
+
 [sub_resource type="Resource" id="Phase_2"]
 script = ExtResource("3_phase")
 health_fraction = 0.3
 behavior = SubResource("Behavior_2")
-attacks = Array[ExtResource("4_attack")]([SubResource("Attack_estampida"), SubResource("Attack_lluvia_clavos"), SubResource("Attack_rebano"), SubResource("Attack_cornada")])
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_estampida"), SubResource("Attack_lluvia_clavos"), SubResource("Attack_rebano"), SubResource("Attack_cornada"), SubResource("Attack_corona_arrojada")])
 
 [resource]
 script = ExtResource("1_enemy")
 id = &"rey_carnero"
 display_name = "Rey Carnero"
-epithet = "Corona de clavos de la fragua"
+epithet = "Coronado con los clavos de la fragua, uno por cada caído"
 template_char = "K"
 max_health = 160.0
 spawn_delay = 1.5
@@ -162,6 +178,6 @@ knockback_resistance = 0.9
 phases = Array[ExtResource("3_phase")]([SubResource("Phase_0"), SubResource("Phase_1"), SubResource("Phase_2")])
 body_radius = 11.0
 hurtbox_radius = 14.0
-visual_style = 0
+visual_style = 35
 visual_radius = 15.0
 body_color = Color(0.659, 0.227, 0.165, 1)

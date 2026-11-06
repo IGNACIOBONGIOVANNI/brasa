@@ -7,10 +7,10 @@ extends Control
 signal finished
 
 const LINES: PackedStringArray = [
-	"Debajo de Campana Honda ardía la Fragua Madre, el fuego que calentaba todas las casas.",
-	"Un invierno la campana de la iglesia se desplomó al sótano y la fragua se apagó de golpe.",
-	"El pueblo quedó frío y a oscuras.",
-	"La última chispa de esa fragua tomó forma: Brasa. Baja a buscar lo que se quedó con el fuego.",
+	"Debajo de Campana Honda ardía la Fragua Madre, y su fuego calentaba todas las casas.",
+	"Nadie lo decía en voz alta: la fragua no ardía sola. Cada invierno tocaba la campana, alguien bajaba al sótano y no volvía.",
+	"Un invierno, el que tenía que bajar cortó la soga. La campana cayó, la fragua se apagó y el pueblo quedó frío y a oscuras.",
+	"De las cenizas de todos los que bajaron antes salió una última chispa: Brasa. Baja a buscar el fuego. Nadie le dijo para qué.",
 ]
 const TEXT_WIDTH: float = 230.0
 ## Las líneas que cuenta (las de otro capítulo, si se cambian antes de agregarla al árbol).

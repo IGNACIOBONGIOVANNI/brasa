@@ -276,6 +276,11 @@ func set_fullscreen(fullscreen: bool) -> void:
 	_options_changed()
 
 
+func set_screen_shake(level: float) -> void:
+	options.screen_shake = GameOptions.nearest_shake(level)
+	_options_changed()
+
+
 func set_window_scale(scale: int) -> void:
 	options.window_scale = scale
 	_options_changed()

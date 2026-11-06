@@ -188,17 +188,30 @@ attack_range = 300.0
 attack_cooldown = 0.85
 recover_time = 0.6
 
+[sub_resource type="Resource" id="Attack_remolino_de_carambanos"]
+script = ExtResource("4_attack")
+id = &"remolino_de_carambanos"
+display_name = "Remolino de carámbanos"
+kind = 25
+windup = 0.5
+recover = 0.8
+count = 3
+interval = 0.14
+warn_time = 0.7
+radius = 9.0
+damage = 1.0
+
 [sub_resource type="Resource" id="Phase_2"]
 script = ExtResource("3_phase")
 health_fraction = 0.3
 behavior = SubResource("Behavior_2")
-attacks = Array[ExtResource("4_attack")]([SubResource("Attack_cerco_cerrado"), SubResource("Attack_tres_bolas"), SubResource("Attack_saltos"), SubResource("Attack_ventisca")])
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_cerco_cerrado"), SubResource("Attack_tres_bolas"), SubResource("Attack_saltos"), SubResource("Attack_ventisca"), SubResource("Attack_remolino_de_carambanos")])
 
 [resource]
 script = ExtResource("1_enemy")
 id = &"alud"
 display_name = "Alud"
-epithet = "La nieve que se juntó arriba y no para de bajar"
+epithet = "La nieve que enterró al pueblo de arriba"
 template_char = "U"
 max_health = 280.0
 contact_damage = 1.0

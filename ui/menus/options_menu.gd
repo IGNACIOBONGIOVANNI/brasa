@@ -1,7 +1,8 @@
 class_name OptionsMenu
 extends Control
-## Opciones: volumen general y de la música (de a 10 %), pantalla completa y resolución de la ventana
-## (múltiplos de 320x180 que entran en el monitor; cada toque pasa a la siguiente). Son las mismas
+## Opciones: volumen general y de la música (de a 10 %), pantalla completa, resolución de la ventana
+## (múltiplos de 320x180 que entran en el monitor; cada toque pasa a la siguiente) y cuánto tiembla la
+## pantalla con las explosiones y los golpes (fuerte, suave o nada). Son las mismas
 ## para todas las partidas y se aplican en el acto (SaveManager.apply_options). También deja volver a
 ## ver la intro. Esc vuelve al menú.
 
@@ -14,6 +15,7 @@ var _volume: Label
 var _music: Label
 var _fullscreen: Button
 var _resolution: Button
+var _shake: Button
 var _back: Button
 
 
@@ -29,6 +31,8 @@ func _ready() -> void:
 	box.add_child(_fullscreen)
 	_resolution = MenuBuilder.button("", next_resolution)
 	box.add_child(_resolution)
+	_shake = MenuBuilder.button("", next_screen_shake)
+	box.add_child(_shake)
 	box.add_child(MenuBuilder.button("Ver la historia", story_requested.emit))
 	_back = MenuBuilder.button("Volver", back_requested.emit)
 	box.add_child(_back)
@@ -61,6 +65,15 @@ func next_resolution() -> void:
 	SaveManager.set_window_scale(WindowScales.next(SaveManager.options.window_scale, SaveManager.available_window_scales()))
 
 
+## Pasa al nivel de temblor siguiente (fuerte → suave → no → fuerte).
+func next_screen_shake() -> void:
+	SaveManager.set_screen_shake(GameOptions.next_shake(SaveManager.options.screen_shake))
+
+
+func shake_text() -> String:
+	return _shake.text
+
+
 func resolution_text() -> String:
 	return _resolution.text
 
@@ -69,6 +82,7 @@ func _refresh() -> void:
 	_volume.text = "Volumen %d %%" % roundi(SaveManager.options.volume * 100.0)
 	_music.text = "Música %d %%" % roundi(SaveManager.options.music_volume * 100.0)
 	_fullscreen.text = "Pantalla completa: %s" % ("sí" if SaveManager.options.fullscreen else "no")
+	_shake.text = "Temblor de pantalla: %s" % GameOptions.shake_name(SaveManager.options.screen_shake)
 	var window: Vector2i = SaveManager.window_size()
 	# En pantalla completa se usa la del monitor: la elegida queda para cuando vuelva a ventana.
 	_resolution.text = "Resolución: %dx%d%s" % [window.x, window.y, " (en ventana)" if SaveManager.options.fullscreen else ""]

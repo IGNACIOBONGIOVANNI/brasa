@@ -87,7 +87,24 @@ static func build_obstacles(parent: Node2D, grid: RoomGrid, theme: FloorTheme) -
 					visual.color = theme.pit_color
 					visual.scenery = theme.scenery
 					visual.variant = x * 5 + y * 11
+					visual.edges = pit_edges(grid, cell)
 					parent.add_child(pit)
+
+
+## Qué lados de un foso dan al piso (los que no tienen otro foso al lado), para que un foso de varias
+## celdas se dibuje como un solo pozo. El borde de la sala cuenta como piso.
+static func pit_edges(grid: RoomGrid, cell: Vector2i) -> int:
+	var edges: int = 0
+	var sides: Dictionary[Vector2i, int] = {
+		Vector2i.UP: SceneryDrawing.PIT_UP, Vector2i.RIGHT: SceneryDrawing.PIT_RIGHT,
+		Vector2i.DOWN: SceneryDrawing.PIT_DOWN, Vector2i.LEFT: SceneryDrawing.PIT_LEFT,
+	}
+	for side: Vector2i in sides:
+		var next: Vector2i = cell + side
+		var inside: bool = next.x >= 0 and next.y >= 0 and next.x < RoomGrid.WIDTH and next.y < RoomGrid.HEIGHT
+		if not inside or grid.cell_at(next) != RoomGrid.Cell.PIT:
+			edges |= sides[side]
+	return edges
 
 
 ## La trampa del piso en cada "^". Las que se activan solas van en damero: las vecinas se turnan.

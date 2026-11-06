@@ -8,6 +8,7 @@
 [ext_resource type="Resource" path="res://content/patterns/raigon_spiral.tres" id="x2"]
 [ext_resource type="Resource" path="res://content/patterns/raigon_fan.tres" id="x3"]
 [ext_resource type="Resource" path="res://content/patterns/raigon_aimed.tres" id="x4"]
+[ext_resource type="Resource" path="res://content/patterns/raigon_semillas.tres" id="xn_raices_cazadoras"]
 
 [sub_resource type="Resource" id="Behavior_0"]
 script = ExtResource("1_enemy")
@@ -168,17 +169,32 @@ count = 2
 interval = 0.4
 pattern = ExtResource("x4")
 
+[sub_resource type="Resource" id="Attack_raices_cazadoras"]
+script = ExtResource("4_attack")
+id = &"raices_cazadoras"
+display_name = "Raíces cazadoras"
+kind = 21
+windup = 0.5
+recover = 0.9
+count = 3
+warn_time = 0.6
+radius = 14.0
+speed = 55.0
+linger = 1.6
+damage = 1.0
+pattern = ExtResource("xn_raices_cazadoras")
+
 [sub_resource type="Resource" id="Phase_2"]
 script = ExtResource("3_phase")
 health_fraction = 0.3
 behavior = SubResource("Behavior_2")
-attacks = Array[ExtResource("4_attack")]([SubResource("Attack_enredadera"), SubResource("Attack_zarpazos_6"), SubResource("Attack_esporas_abanico"), SubResource("Attack_esporas_punteria")])
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_enredadera"), SubResource("Attack_zarpazos_6"), SubResource("Attack_esporas_abanico"), SubResource("Attack_esporas_punteria"), SubResource("Attack_raices_cazadoras")])
 
 [resource]
 script = ExtResource("1_enemy")
 id = &"raigon"
 display_name = "Raigón"
-epithet = "La raíz madre"
+epithet = "La raíz madre, que bebió el fuego y pidió más"
 template_char = "R"
 max_health = 200.0
 spawn_delay = 1.5
@@ -186,6 +202,6 @@ knockback_resistance = 0.9
 phases = Array[ExtResource("3_phase")]([SubResource("Phase_0"), SubResource("Phase_1"), SubResource("Phase_2")])
 body_radius = 12.0
 hurtbox_radius = 15.0
-visual_style = 3
+visual_style = 36
 visual_radius = 16.0
 body_color = Color(0.62, 0.42, 0.78, 1)

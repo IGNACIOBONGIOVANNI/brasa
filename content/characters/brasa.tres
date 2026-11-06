@@ -10,6 +10,6 @@ script = ExtResource("2_stats")
 script = ExtResource("1_character")
 id = &"brasa"
 display_name = "Brasa"
-description = "La última chispa de la fragua. Pareja en todo"
+description = "La última chispa de la fragua, hecha con las cenizas de los que bajaron antes. Pareja en todo"
 stats = SubResource("Stats_base")
 body_color = Color(0.91, 0.757, 0.439, 1)

@@ -943,3 +943,36 @@ cercas, etc.; pensá muchas opciones, mejor si está relacionado al nivel".
   minimapa (del color de siempre, con borde) y en el hueco de la puerta que lleva a esa sala, siempre
   derechos aunque la puerta esté rotada (no en la puerta oculta de la secreta ni con candado, que ya
   tiene el suyo). Para que entren, las salas del minimapa pasaron de 7 x 5 a 9 x 7 píxeles.
+
+## Hito 26 — temblor, fosos, jefes e historia oscura (2026-11-05)
+
+- **Temblor de pantalla:** en Opciones, "Temblor de pantalla: fuerte / suave / no" (`GameOptions.screen_shake`:
+  1, 0,5 o 0; cada toque pasa al siguiente). Vale para todo lo que sacude la cámara (explosiones, golpes,
+  jefes), no solo las explosiones: es lo que suele traer esa opción y lo que la gente apaga cuando marea.
+  Se guarda en `options.json` con las demás opciones.
+- **Fosos:** se confundían con las paredes porque eran cuadrados casi negros, del mismo tono que el borde
+  oscuro de las paredes. Ahora cada foso sabe qué lados dan al piso (`RoomBuilder.pit_edges`) y dibuja
+  solo esos bordes: un canto con luz, debajo la pared del fondo bajando hacia lo oscuro (del material
+  del piso: ladrillos, tierra con raíces, tablas, piedra, hielo, roca) y polvo flotando abajo. Un foso de
+  varias celdas se ve como un solo pozo. El agua y el metal fundido tienen su orilla.
+- **Jefes:** se relevaron los tipos de ataque de más de 100 juegos (lista y tabla en `docs/JEFES.md`) y
+  se eligieron los que Brasa no tenía. Cada jefe suma uno que ningún otro hace: Tañido grave (ondas con
+  un hueco), Corona arrojada (bumerán), Raíces cazadoras (persiguen bajo tierra), Cruz de la fragua
+  (cuatro rayos que giran), Hilo suelto (ovillos que dejan un hilo que corta), Ecos de la estampida (la
+  manada fantasma repite sus embestidas), Remolino de carámbanos (espiral) y Ojo del huracán (chupa al
+  jugador). Van en la última fase de cada uno, con el aviso promedio del jefe, así se mantiene que cada
+  jefe es más difícil que el anterior. Los que dejan algo andando (ondas, coronas, raíces, ovillos,
+  remolino) desaparecen cuando muere el jefe.
+- **Diseños de los jefes:** el Campanario, el Rey Carnero, el Raigón, el Yunque, el Tijerón y el Cierzo
+  se dibujaban como un enemigo común agrandado; ahora cada uno tiene su dibujo (campana rajada con ojos y
+  badajo, rey con capa y corona de clavos, bulbo de raíces con ojo y corazón, guardián con cabeza de
+  yunque y la llama en el pecho, tijeras enormes con lana enganchada, espectro de tormenta). También se
+  rehicieron el Rey Destronado (capa en jirones, cuerno partido, los clavos clavados) y el Alud (montaña
+  viva con un pino en el lomo).
+- **Historia más oscura** (`docs/LORE.md`): mismos nombres y lugares, otro significado. La Fragua Madre
+  no ardía sola: cada invierno tocaba la campana y alguien bajaba al sótano y no volvía; Brasa está hecha
+  con las cenizas de esos. El herrero sopla las chispas y las manda abajo de nuevo, y cada vez las recuerda
+  menos. El final no lo dice: "La fragua vuelve a prender y arriba las casas se entibian. Nadie pregunta
+  con qué." En el monte, el Cierzo es el último aliento de los pastores que no bajaron. Se cambiaron la
+  intro, los textos de los capítulos, las líneas de cada piso, los apodos de jefes y minijefes y las
+  descripciones de los personajes. Lo oscuro se dice a medias: el juego nunca muestra nada.

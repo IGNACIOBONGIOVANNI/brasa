@@ -21,6 +21,11 @@ enum Part { OBSTACLE, PIT }
 	set(value):
 		variant = value
 		queue_redraw()
+## Fosos: qué lados dan al piso (SceneryDrawing.PIT_UP | PIT_RIGHT ...); los otros son más foso.
+@export var edges: int = SceneryDrawing.PIT_ALL_SIDES:
+	set(value):
+		edges = value
+		queue_redraw()
 
 
 func _draw() -> void:
@@ -29,4 +34,4 @@ func _draw() -> void:
 	elif part == Part.OBSTACLE:
 		SceneryDrawing.draw_obstacle(self, scenery, color, outline_color, variant)
 	else:
-		SceneryDrawing.draw_pit(self, scenery, color, variant)
+		SceneryDrawing.draw_pit(self, scenery, color, variant, edges)
