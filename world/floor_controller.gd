@@ -265,6 +265,8 @@ func _params(rng: RandomNumberGenerator) -> FloorParams:
 	params.room_count_max = theme.room_count_max
 	params.min_boss_distance = theme.min_boss_distance
 	params.extra_rooms = FloorGenerator.pick_extra_rooms(theme.extra_rooms, theme.extra_room_count, rng)
+	if theme.has_miniboss():
+		params.extra_rooms.append(RoomSlot.Kind.MINIBOSS)
 	return params
 
 
@@ -422,6 +424,7 @@ func _register_dev_commands() -> void:
 	Debug.add_command(self, "Ir al Altar (si hay)", _go_to_kind.bind(RoomSlot.Kind.ALTAR))
 	Debug.add_command(self, "Ir al Pozo (si hay)", _go_to_kind.bind(RoomSlot.Kind.WELL))
 	Debug.add_command(self, "Ir al Galpón (si hay)", _go_to_kind.bind(RoomSlot.Kind.HANGAR))
+	Debug.add_command(self, "Ir al minijefe (si hay)", _go_to_kind.bind(RoomSlot.Kind.MINIBOSS))
 	for mech: MechData in run.mechs:
 		Debug.add_command(self, "Mechas/%s" % mech.display_name, spawn_mech.bind(mech))
 	for floor_theme: FloorTheme in run.floors:

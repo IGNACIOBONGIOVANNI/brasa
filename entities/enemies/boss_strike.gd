@@ -3,7 +3,8 @@ extends Node2D
 ## Golpe de jefe que avisa dónde va a pegar: durante `warn_time` se ve la marca (la sombra del
 ## cascote que cae, la grieta de la raíz que va a salir, los tres tajos del zarpazo, el círculo del
 ## metal fundido, el brillo de una tijera, la sombra de un carámbano, el círculo que titila antes del
-## rayo, la franja por donde pasa la manada) y después pega una vez a quien esté adentro. Con `linger` > 0 queda en el piso
+## rayo, la franja por donde pasa la manada, la piña que cae, la grieta por donde brota la lava) y
+## después pega una vez a quien esté adentro. Con `linger` > 0 queda en el piso
 ## lastimando a quien lo pise (los i-frames del jugador marcan el ritmo). Rodando no lastima (el
 ## jugador está invulnerable). Un círculo de `radius`, o con `slash` un tajo de -slash a slash del
 ## ancho de `radius`. Se ve siempre, también en la oscuridad (sin sombra).
@@ -34,6 +35,8 @@ const ICE_COLOR: Color = Color("a8dcff")
 const BOLT_COLOR: Color = Color("fff27a")
 const HOOF_COLOR: Color = Color("c9a46a")
 const WOOL_COLOR: Color = Color("e9e1cf")
+const CONE_COLOR: Color = Color("9a6234")
+const LAVA_COLOR: Color = Color("ff5a2a")
 const OUTLINE_COLOR_DARK: Color = Color("2a2230")
 const CORE_COLOR: Color = Color("fff6d5")
 const SHADOW_COLOR: Color = Color(0, 0, 0, 0.45)
@@ -117,12 +120,19 @@ func _strike() -> void:
 				AudioManager.play_sfx(&"bolt", 0.1)
 			BossAttack.Look.HOOVES:
 				AudioManager.play_sfx(&"stampede", 0.1)
-	if look == BossAttack.Look.BOLT or look == BossAttack.Look.HOOVES:
+			BossAttack.Look.PINECONE:
+				AudioManager.play_sfx(&"debris", 0.15)
+			BossAttack.Look.LAVA:
+				AudioManager.play_sfx(&"molten", 0.15)
+	if look == BossAttack.Look.BOLT or look == BossAttack.Look.HOOVES or look == BossAttack.Look.LAVA:
 		EventBus.shake_requested.emit(TRAUMA)
 	if look == BossAttack.Look.STONE or look == BossAttack.Look.ICE:
 		EventBus.shake_requested.emit(TRAUMA)
 		var dust := Fx.spawn(get_tree(), DUST_SCENE, global_position) as CPUParticles2D
 		dust.color = STONE_COLOR if look == BossAttack.Look.STONE else ICE_COLOR
+	elif look == BossAttack.Look.PINECONE:
+		var chips := Fx.spawn(get_tree(), DUST_SCENE, global_position) as CPUParticles2D
+		chips.color = CONE_COLOR
 	elif look == BossAttack.Look.CLAW:
 		var burst := Fx.spawn(get_tree(), BURST_SCENE, global_position) as CPUParticles2D
 		burst.color = CLAW_COLOR
@@ -163,6 +173,10 @@ func _draw() -> void:
 			_draw_bolt(warn, after)
 		BossAttack.Look.HOOVES:
 			_draw_hooves(warn, after, blink)
+		BossAttack.Look.PINECONE:
+			_draw_pinecone(warn, after, blink)
+		BossAttack.Look.LAVA:
+			_draw_lava(warn, after, blink)
 
 
 ## La sombra crece y se oscurece; al final se ve caer la piedra.
@@ -336,3 +350,69 @@ func _draw_hooves(warn: float, after: float, blink: float) -> void:
 		draw_circle(at, radius * 0.7, Color(OUTLINE_COLOR_DARK, alpha))
 		draw_circle(at, radius * 0.6, Color(WOOL_COLOR, alpha))
 		draw_circle(at + along * radius * 0.5, radius * 0.3, Color(HOOF_COLOR.darkened(0.5), alpha))
+
+
+## La sombra crece y al final cae una piña; al pegar, se parte en pedazos.
+func _draw_pinecone(warn: float, after: float, blink: float) -> void:
+	if not _struck:
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.55))
+		draw_circle(Vector2.ZERO, radius * (0.35 + 0.65 * warn), Color(SHADOW_COLOR, 0.2 + 0.35 * warn))
+		draw_arc(Vector2.ZERO, radius, 0.0, TAU, 24, Color(CONE_COLOR.lightened(0.3), blink * 0.7), 1.0)
+		draw_set_transform(Vector2.ZERO)
+		var fall: float = clampf((warn - (1.0 - DROP_PART)) / DROP_PART, 0.0, 1.0)
+		if fall > 0.0:
+			_draw_cone(Vector2(0, -roundf(DROP_HEIGHT * (1.0 - fall * fall))), 1.0)
+		return
+	var fade: float = 1.0 - clampf(after / HIT_SHOW, 0.0, 1.0)
+	for i: int in 5:
+		var direction := Vector2.from_angle(TAU * i / 5.0 + 0.3)
+		var at: Vector2 = (direction * radius * (0.3 + 0.7 * (1.0 - fade))).round()
+		draw_rect(Rect2(at - Vector2(1, 1), Vector2(2, 2)), Color(CONE_COLOR, fade))
+
+
+## Una piña: un óvalo de escamas con la punta abajo (en `at`).
+func _draw_cone(at: Vector2, alpha: float) -> void:
+	var width: float = minf(radius * 0.45, 5.0)
+	var height: float = minf(radius * 1.1, 12.0)
+	draw_colored_polygon(PackedVector2Array([at + Vector2(-width - 1.0, -height), at + Vector2(width + 1.0, -height),
+			at + Vector2(0, 1)]), Color(OUTLINE_COLOR_DARK, alpha))
+	draw_colored_polygon(PackedVector2Array([at + Vector2(-width, -height + 1.0), at + Vector2(width, -height + 1.0), at]),
+			Color(CONE_COLOR, alpha))
+	for row: int in 3:
+		var y: float = -height + 3.0 + row * 3.0
+		draw_line(at + Vector2(-width * 0.6, y), at + Vector2(width * 0.6, y + 1.0), Color(CONE_COLOR.darkened(0.35), alpha), 1.0)
+
+
+## La grieta brilla y burbujea (cada vez más rápido); al pegar sale un chorro de lava y, con `linger`,
+## queda el charco.
+func _draw_lava(warn: float, after: float, blink: float) -> void:
+	if not _struck:
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.6))
+		draw_circle(Vector2.ZERO, radius * (0.3 + 0.7 * warn), Color(LAVA_COLOR.darkened(0.5), 0.35))
+		draw_arc(Vector2.ZERO, radius, 0.0, TAU, 24, Color(LAVA_COLOR, blink), 1.0)
+		draw_set_transform(Vector2.ZERO)
+		draw_line(Vector2(-radius * 0.6, 1), Vector2(-1, -1), Color(EMBER_COLOR, blink), 1.0)
+		draw_line(Vector2(-1, -1), Vector2(radius * 0.5, 2), Color(EMBER_COLOR, blink), 1.0)
+		var bubbles: float = 4.0 + 16.0 * warn
+		for i: int in 3:
+			var pop: float = fmod(_elapsed * bubbles * 0.25 + i * 0.37, 1.0)
+			var at := Vector2((i - 1) * radius * 0.35, -pop * 4.0).round()
+			draw_rect(Rect2(at, Vector2.ONE), Color(CORE_COLOR, 1.0 - pop))
+		return
+	var spurt: float = clampf(after / 0.25, 0.0, 1.0)
+	var spurt_fade: float = 1.0 - clampf((after - 0.25) / 0.25, 0.0, 1.0)
+	if spurt_fade > 0.0:
+		var height: float = radius * 2.6 * sin(spurt * PI * 0.5)
+		draw_rect(Rect2(-radius * 0.35, -height, radius * 0.7, height), Color(LAVA_COLOR, spurt_fade))
+		draw_rect(Rect2(-radius * 0.15, -height, radius * 0.3, height), Color(CORE_COLOR, spurt_fade))
+		for i: int in 4:
+			var drop := Vector2((i - 1.5) * radius * 0.5, -height * (0.6 + 0.1 * i))
+			draw_rect(Rect2(drop.round(), Vector2(2, 2)), Color(EMBER_COLOR, spurt_fade))
+	if linger <= 0.0:
+		return
+	var alpha: float = 1.0 - clampf((after - linger) / FADE_TIME, 0.0, 1.0)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.7))
+	draw_circle(Vector2.ZERO, radius + 1.0, Color(LAVA_COLOR.darkened(0.6), 0.85 * alpha))
+	draw_circle(Vector2.ZERO, radius, Color(LAVA_COLOR, 0.8 * alpha))
+	draw_circle(Vector2.ZERO, radius * 0.5, Color(CORE_COLOR, 0.45 * alpha * (0.8 + 0.2 * sin(_elapsed * 9.0))))
+	draw_set_transform(Vector2.ZERO)

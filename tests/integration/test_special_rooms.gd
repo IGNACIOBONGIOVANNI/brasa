@@ -189,27 +189,44 @@ func test_altar_charges_health_and_keeps_only_one() -> void:
 	assert_eq(pedestals.size(), FloorController.ALTAR_OFFERS)
 	for pedestal: ItemPedestal in pedestals:
 		assert_eq(pedestal.health_price, Room.ALTAR_HEALTH_PRICE, "se paga con vida")
-	var health: float = _player.health.current
+	var max_health: float = _player.health.max_health
 	_player.global_position = pedestals[0].global_position
 	await wait_physics_frames(3)
-	assert_eq(_player.health.current, health - Room.ALTAR_HEALTH_PRICE, "cobró un corazón")
+	assert_eq(_player.health.max_health, max_health - Room.ALTAR_HEALTH_PRICE, "se llevó el contenedor")
+	assert_eq(_player.health.current, max_health - Room.ALTAR_HEALTH_PRICE, "y lo que tenía adentro")
 	assert_has(RunState.items, offers[0], "se llevó el item")
 	await wait_physics_frames(2)
 	assert_false(is_instance_valid(pedestals[1]), "el otro desapareció")
 
 
-func test_altar_never_kills() -> void:
+func test_altar_never_leaves_you_without_a_heart() -> void:
+	var offers: Array[ItemData] = _passives(2)
+	await _floor.move_to(_prepare(RoomSlot.Kind.ALTAR, ALTAR, null, offers))
+	await wait_physics_frames(2)
+	RunState.sacrifice_health(RunState.stats.max_health - RunState.MIN_MAX_HEALTH)
+	await wait_physics_frames(1)
+	assert_eq(_player.health.max_health, RunState.MIN_MAX_HEALTH, "le queda un solo contenedor")
+	var pedestals: Array[ItemPedestal] = _pedestals_in(_floor.current_room())
+	_player.global_position = pedestals[0].global_position
+	await wait_physics_frames(3)
+	assert_eq(_player.health.max_health, RunState.MIN_MAX_HEALTH, "con un contenedor no alcanza")
+	assert_does_not_have(RunState.items, offers[0])
+	assert_eq(_pedestals_in(_floor.current_room()).size(), FloorController.ALTAR_OFFERS, "siguen los dos")
+
+
+func test_altar_charges_the_container_even_when_hurt() -> void:
 	var offers: Array[ItemData] = _passives(2)
 	await _floor.move_to(_prepare(RoomSlot.Kind.ALTAR, ALTAR, null, offers))
 	await wait_physics_frames(2)
 	_player.health.always_invulnerable = false
-	_player.health.take_damage(_player.health.current - Room.ALTAR_HEALTH_PRICE)
+	_player.health.take_damage(_player.health.current - 1.0)
+	var max_health: float = _player.health.max_health
 	var pedestals: Array[ItemPedestal] = _pedestals_in(_floor.current_room())
 	_player.global_position = pedestals[0].global_position
 	await wait_physics_frames(3)
-	assert_eq(_player.health.current, float(Room.ALTAR_HEALTH_PRICE), "con un corazón no alcanza")
-	assert_does_not_have(RunState.items, offers[0])
-	assert_eq(_pedestals_in(_floor.current_room()).size(), FloorController.ALTAR_OFFERS, "siguen los dos")
+	assert_has(RunState.items, offers[0], "con medio corazón igual paga: lo que se entrega es el contenedor")
+	assert_eq(_player.health.max_health, max_health - Room.ALTAR_HEALTH_PRICE)
+	assert_eq(_player.health.current, 1.0, "la vida que tenía no se toca")
 
 
 func test_well_heals_and_refills_pulses_once() -> void:

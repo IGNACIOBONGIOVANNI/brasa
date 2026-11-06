@@ -24,6 +24,9 @@ const BOSS_DEATH_TRAUMA: float = 1.0
 const BOSS_DEATH_HITSTOP: float = 0.3
 const PHASE_FLASH_TIME: float = 0.35
 const PHASE_TRAUMA: float = 0.6
+## Al romperse la coraza (una fase con otro aspecto).
+const SHELL_BREAK_TRAUMA: float = 0.9
+const SHELL_SHARDS: int = 36
 ## Variación del cooldown entre ataques (±25 %), para que no ataquen todos sincronizados.
 const COOLDOWN_JITTER: float = 0.25
 const BURST_SCENE: PackedScene = preload("res://fx/burst.tscn")
@@ -470,7 +473,24 @@ func _update_phase() -> void:
 	flash.flash(PHASE_FLASH_TIME)
 	EventBus.shake_requested.emit(PHASE_TRAUMA)
 	AudioManager.play_sfx(&"boss_phase")
+	if data.phases[phase].new_look:
+		_break_shell(data.phases[phase])
 	machine.transition_to(&"Recover")
+
+
+## La fase cambia el dibujo (se le rompe la coraza): pedazos del aspecto viejo, un destello del nuevo y
+## un sacudón fuerte.
+func _break_shell(boss_phase: BossPhase) -> void:
+	var shards := Fx.spawn(get_tree(), BURST_SCENE, global_position + Vector2(0, -4)) as CPUParticles2D
+	shards.color = visual.body_color
+	shards.amount = SHELL_SHARDS
+	var glow := Fx.spawn(get_tree(), LIGHT_FLASH_SCENE, global_position) as LightFlash
+	glow.color = boss_phase.body_color.lightened(0.3)
+	glow.texture_scale = 3.0
+	glow.duration = 0.6
+	visual.change_look(boss_phase.visual_style, boss_phase.body_color)
+	EventBus.shake_requested.emit(SHELL_BREAK_TRAUMA)
+	AudioManager.play_sfx(&"rock_break")
 
 
 func _die() -> void:
@@ -492,14 +512,14 @@ func _die() -> void:
 				bullet_speed_multiplier)
 	EventBus.enemy_killed.emit(self)
 	var burst := Fx.spawn(get_tree(), BURST_SCENE, global_position + Vector2(0, -2)) as CPUParticles2D
-	burst.color = data.body_color.lightened(0.2)
+	burst.color = visual.body_color.lightened(0.2)
 	var stain := Fx.spawn(get_tree(), STAIN_SCENE, global_position + Vector2(0, 3), Fx.DECALS_GROUP) as FloorStain
-	stain.color = data.body_color.darkened(0.55)
+	stain.color = visual.body_color.darkened(0.55)
 	stain.radius = data.visual_radius
 	var sparks := Fx.spawn(get_tree(), SPARKS_SCENE, global_position + Vector2(0, -2)) as SparkSwarm
 	sparks.count = BOSS_DEATH_SPARKS if is_boss() else DEATH_SPARKS
 	var glow := Fx.spawn(get_tree(), LIGHT_FLASH_SCENE, global_position) as LightFlash
-	glow.color = data.body_color.lightened(0.3)
+	glow.color = visual.body_color.lightened(0.3)
 	glow.texture_scale = 3.0 if is_boss() else 1.0
 	glow.duration = 0.6 if is_boss() else 0.25
 	if is_boss():

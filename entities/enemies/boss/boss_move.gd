@@ -91,9 +91,11 @@ func clamp_to_room(at: Vector2, margin: float) -> Vector2:
 	return Vector2(clampf(at.x, area.position.x, area.end.x), clampf(at.y, area.position.y, area.end.y))
 
 
-## Un golpe avisado (BossStrike) con el daño, el radio y el aviso del movimiento.
+## Un golpe avisado (BossStrike) con el daño, el radio y el aviso del movimiento. La lava queda en el
+## piso, por debajo del jugador y los enemigos (así se ve quién la está pisando).
 func spawn_strike(at: Vector2, look: BossAttack.Look) -> BossStrike:
-	var strike := Fx.spawn(enemy.get_tree(), STRIKE_SCENE, at) as BossStrike
+	var group: StringName = Fx.DECALS_GROUP if look == BossAttack.Look.LAVA else Fx.EFFECTS_GROUP
+	var strike := Fx.spawn(enemy.get_tree(), STRIKE_SCENE, at, group) as BossStrike
 	strike.look = look
 	strike.warn_time = attack.warn_time
 	strike.damage = attack.damage

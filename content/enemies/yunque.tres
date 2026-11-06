@@ -7,6 +7,8 @@
 [ext_resource type="Resource" path="res://content/patterns/yunque_spiral.tres" id="x1"]
 [ext_resource type="Resource" path="res://content/patterns/yunque_aimed.tres" id="x2"]
 [ext_resource type="Resource" path="res://content/patterns/yunque_ring.tres" id="x3"]
+[ext_resource type="Resource" path="res://content/patterns/yunque_bola.tres" id="x4"]
+[ext_resource type="Resource" path="res://content/enemies/fueguito.tres" id="x5"]
 
 [sub_resource type="Resource" id="Behavior_0"]
 script = ExtResource("1_enemy")
@@ -152,20 +154,6 @@ warn_time = 0.85
 lock_time = 0.2
 damage = 2.0
 
-[sub_resource type="Resource" id="Attack_fundido_5"]
-script = ExtResource("4_attack")
-id = &"fundido_5"
-display_name = "Colada"
-kind = 10
-windup = 0.5
-recover = 0.8
-count = 5
-interval = 0.12
-warn_time = 0.7
-radius = 13.0
-spread = 60.0
-linger = 4.0
-
 [sub_resource type="Resource" id="Attack_espiral_forja"]
 script = ExtResource("4_attack")
 id = &"espiral_forja"
@@ -175,11 +163,83 @@ windup = 0.5
 recover = 0.6
 pattern = ExtResource("x1")
 
+[sub_resource type="Resource" id="Attack_bola_fuego"]
+script = ExtResource("4_attack")
+id = &"bola_fuego"
+display_name = "Bola de fuego gigante"
+kind = 18
+windup = 0.45
+recover = 1.0
+count = 1
+warn_time = 1.4
+radius = 10.0
+damage = 2.0
+speed = 70.0
+pattern = ExtResource("x4")
+
+[sub_resource type="Resource" id="Attack_erupcion"]
+script = ExtResource("4_attack")
+id = &"erupcion"
+display_name = "Erupción"
+kind = 10
+windup = 0.45
+recover = 0.8
+count = 6
+interval = 0.12
+warn_time = 0.9
+radius = 13.0
+spread = 80.0
+linger = 3.0
+look = 9
+
+[sub_resource type="Resource" id="Attack_fueguitos"]
+script = ExtResource("4_attack")
+id = &"fueguitos"
+display_name = "Fueguitos"
+kind = 7
+windup = 0.45
+recover = 0.6
+count = 2
+summon = ExtResource("x5")
+cap = 3
+
+[sub_resource type="Resource" id="Attack_bola_doble"]
+script = ExtResource("4_attack")
+id = &"bola_doble"
+display_name = "Dos bolas de fuego"
+kind = 18
+windup = 0.4
+recover = 1.0
+count = 2
+warn_time = 1.15
+radius = 10.0
+damage = 2.0
+speed = 80.0
+pattern = ExtResource("x4")
+
+[sub_resource type="Resource" id="Attack_erupcion_grande"]
+script = ExtResource("4_attack")
+id = &"erupcion_grande"
+display_name = "Erupción"
+kind = 10
+windup = 0.4
+recover = 0.8
+count = 8
+interval = 0.1
+warn_time = 0.85
+radius = 13.0
+spread = 100.0
+linger = 3.0
+look = 9
+
 [sub_resource type="Resource" id="Phase_2"]
 script = ExtResource("3_phase")
-health_fraction = 0.45
+health_fraction = 0.5
 behavior = SubResource("Behavior_2")
-attacks = Array[ExtResource("4_attack")]([SubResource("Attack_barrido"), SubResource("Attack_mira_3"), SubResource("Attack_fundido_5"), SubResource("Attack_espiral_forja")])
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_barrido"), SubResource("Attack_mira_3"), SubResource("Attack_espiral_forja"), SubResource("Attack_bola_fuego"), SubResource("Attack_erupcion"), SubResource("Attack_fueguitos")])
+new_look = true
+visual_style = 33
+body_color = Color(1, 0.4157, 0.1647, 1)
 
 [sub_resource type="Resource" id="Behavior_3"]
 script = ExtResource("1_enemy")
@@ -252,7 +312,7 @@ pattern = ExtResource("x3")
 script = ExtResource("3_phase")
 health_fraction = 0.2
 behavior = SubResource("Behavior_3")
-attacks = Array[ExtResource("4_attack")]([SubResource("Attack_barrido_largo"), SubResource("Attack_mira_rapida"), SubResource("Attack_grietas_8"), SubResource("Attack_rafaga"), SubResource("Attack_anillo")])
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_barrido_largo"), SubResource("Attack_mira_rapida"), SubResource("Attack_grietas_8"), SubResource("Attack_rafaga"), SubResource("Attack_anillo"), SubResource("Attack_bola_doble"), SubResource("Attack_erupcion_grande"), SubResource("Attack_fueguitos")])
 
 [resource]
 script = ExtResource("1_enemy")

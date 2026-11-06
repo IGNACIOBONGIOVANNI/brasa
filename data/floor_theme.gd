@@ -71,6 +71,15 @@ enum Scenery { PLAIN, BASEMENT, SEWER, ROOTS, FORGE, SHED, QUARRY, SNOWFIELD, SU
 @export var pit_color: Color = Color(0.04, 0.03, 0.06)
 
 
+## true si el piso tiene minijefe (alguna plantilla de sala MINIBOSS): FloorController le suma esa
+## sala siempre, además de las especiales extra.
+func has_miniboss() -> bool:
+	for template: RoomTemplate in templates:
+		if template.kind == RoomSlot.Kind.MINIBOSS:
+			return true
+	return false
+
+
 func enemy_for_symbol(symbol: String) -> EnemyData:
 	for enemy: EnemyData in enemies:
 		if enemy.template_char == symbol:

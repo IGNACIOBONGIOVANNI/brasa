@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"hacha_voladora"
+display_name = "Hacha voladora"
+max_health = 10.0
+spawn_delay = 0.7
+move_style = 7
+move_speed = 75.0
+knockback_resistance = 0.5
+attack_range = 0.0
+body_radius = 5.0
+hurtbox_radius = 7.0
+visual_style = 31
+visual_radius = 7.0
+body_color = Color(0.7216, 0.7608, 0.8118, 1)

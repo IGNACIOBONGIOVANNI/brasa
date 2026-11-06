@@ -871,3 +871,53 @@ cercas, etc.; pensá muchas opciones, mejor si está relacionado al nivel".
   los contadores se corrieron unos píxeles: ya no se tapan, ni con los 4 corazones de Testa. El resumen
   muestra los items en hasta dos filas (lo que sobra, "+N"), la seed en la línea del tiempo y los dos
   botones lado a lado: siempre entra en la pantalla.
+
+## Hito 24 — armazones, minijefes, Altar y el Yunque de fuego (2026-11-05)
+
+- **Armazones con chasis propio** (`MechData.frame`), con el lenguaje de los mechas clásicos pero
+  diseño propio: la **Caldera** es un pesado bajo y ancho (hombreras, dos chimeneas que echan vapor, la
+  cabina es una visera en el pecho, el cañón sale del hombro que apunta); los **Zancos** son una
+  cápsula sobre patas de ave con la rodilla al revés, con el piloto sentado arriba a la vista, un
+  ojo-sensor y una antena (parado se agacha); el **Fuelle** es humanoide, con la cabina redonda, un
+  brazo colgando, el lanzallamas con su llamita piloto y un fuelle en la espalda que respira. Los
+  números (blindaje, velocidad, arma) no cambian: es solo el dibujo.
+- **Minijefes** (uno por piso en el capítulo 1; el capítulo 2 no tiene, porque no se pidió): una sala
+  propia (`RoomSlot.Kind.MINIBOSS`) que se suma siempre al piso, en un callejón, con puerta y punto del
+  minimapa en rosa. Pelean como un jefe (barra, cartel, fases, movimientos) pero con la música del piso,
+  no abren la salida y no cuentan como jefe vencido (ni para las chispas ni para los logros). Al morir
+  sueltan consumibles seguros (`EnemyData.drops`), además del premio normal de la sala.
+  - **Carnero veterano** (Sótano): el carnero viejo y musculoso, con cuernos enroscados, cicatrices y
+    argolla. Embestidas, pisotón con onda y, a media vida, llama a dos carneros. Suelta un corazón y una
+    bomba.
+  - **Grasa erizada** (Cloacas): la babosa con pinchos que salta. Dispara pinchos en anillo y en abanico
+    y carga una bola de pinchos que cae, espera y revienta en más pinchos. Suelta dos bombas y dos
+    monedas.
+  - **Pehuén** (Raíces): en vez de "ent" (un nombre que no es nuestro), un pehuén (la araucaria del
+    sur, la de los piñones) que camina. Raíces que avanzan por el piso, hojas cortantes y una lluvia de
+    piñas que caen con sombra y se parten en piñones. Suelta un corazón y una llave.
+  - **Bigornia** (Forja): para no confundirlo con el jefe del piso, el yunque chico se llama Bigornia.
+    Forja espadas, hachas y cuchillos que vuelan solos (las espadas y los cuchillos embisten, las hachas
+    giran rebotando por la sala) y caen todos cuando la vencen. Suelta un corazón, una llave y una
+    moneda.
+- **Una run guardada antes de este hito no se puede seguir**: los pisos del capítulo 1 tienen una sala
+  más, así que el mismo seed ya no arma el mismo piso (`RunSnapshot.FORMAT` pasó a 2). El progreso de
+  la partida no se toca; solo desaparece "Continuar la run" si había una a medias.
+- **Altar:** ahora se paga con el contenedor del corazón (vida máxima), no con lo que tiene adentro. Si
+  estaba lleno, se pierde también la vida de ese corazón; si estaba vacío, no. Nunca deja sin un
+  corazón: con uno solo de vida máxima no alcanza (con poca vida pero varios contenedores, sí). Lo
+  entregado queda en `RunState.sacrificed_health` y se guarda con la run. En el pedestal el precio se
+  ve como un contenedor partido.
+- **Yunque, fase de fuego:** a media vida (antes era a 45 %) se le rompe la coraza (lluvia de pedazos,
+  destello, sacudón) y queda el cuerpo de fuego con dos pedazos de coraza en los hombros
+  (`BossPhase.new_look`). Sigue con casi los mismos movimientos (barrido, mira, espiral) y suma:
+  - **Bola de fuego gigante** (`BossAttack.Kind.CHARGED_ORB`): la junta arriba de la cabeza durante 1,4 s
+    (crece y chupa chispas: hay tiempo de alejarse) y la tira lenta hacia el jugador; pega un corazón
+    entero. El Pulso la borra, como a cualquier bala. En la última fase tira dos.
+  - **Erupción**: la lava brota del piso en varios lugares cerca del jugador (avisa con una grieta que
+    burbujea, después un chorro y queda el charco unos segundos). Es el Metal fundido con otro dibujo
+    (`look` LAVA), que reemplaza a la Colada en esa fase. La lava se dibuja en el piso, por debajo del
+    jugador y del jefe (los charcos del Metal fundido, como antes, quedan por encima).
+- **Balance:** el bot estima el capítulo 1 en unos 30 minutos para una persona (antes, unos 25): las
+  cuatro salas de minijefe y la fase de fuego del Yunque. Los minijefes tienen entre 55 y 80 de vida
+  (menos de la mitad que el jefe de su piso) y dos fases.
+  - **Fueguitos**: invoca dos llamitas que flotan y le tiran bolas de fuego (hasta tres vivas).

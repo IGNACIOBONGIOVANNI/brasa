@@ -3,14 +3,16 @@ class_name ItemPedestalVisual
 extends Node2D
 ## Placeholder del pedestal: bloque de piedra, el ícono del item flotando arriba con la letra de su
 ## calidad encima (S y S++ con un halo; S++ además con chispitas) y, si tiene precio, una moneda con
-## el número debajo (o, en el Altar, un corazón por cada corazón que cuesta).
+## el número debajo (o, en el Altar, un contenedor de corazón partido por cada corazón que cuesta).
 
 const STONE_COLOR: Color = Color("6b6278")
 const STONE_TOP_COLOR: Color = Color("847a92")
 const OUTLINE_COLOR: Color = Color("120c16")
 const PRICE_COLOR: Color = Color("f2efe6")
 const COIN_COLOR: Color = Color("f2c14e")
-const HEART_COLOR: Color = Color("e0464e")
+## Altar: se paga con el contenedor del corazón (vacío y partido).
+const CONTAINER_COLOR: Color = Color("6e2433")
+const CRACK_COLOR: Color = Color("e0464e")
 ## Altar: la piedra es más oscura y rojiza.
 const ALTAR_STONE_COLOR: Color = Color("5a3242")
 const ALTAR_STONE_TOP_COLOR: Color = Color("7a4456")
@@ -75,7 +77,10 @@ func _draw() -> void:
 		var row_width: float = hearts * (heart_width + 1.0) - 1.0
 		for i: int in hearts:
 			var at := Vector2(roundf(-row_width * 0.5) + i * (heart_width + 1.0), 8)
-			PixelBitmap.paint_outlined(self, PixelIcons.HEART, at, HEART_COLOR, OUTLINE_COLOR)
+			PixelBitmap.paint_outlined(self, PixelIcons.HEART, at, CONTAINER_COLOR, OUTLINE_COLOR)
+			var middle: float = floorf(heart_width * 0.5)
+			for crack: Vector2 in [Vector2(middle, 1), Vector2(middle - 1, 2), Vector2(middle, 3)]:
+				draw_rect(Rect2(at + crack, Vector2.ONE), CRACK_COLOR)
 
 
 ## S y S++ tienen un aro de su color que late detrás del ícono; S++ además tiene chispitas que giran

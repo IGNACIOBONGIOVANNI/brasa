@@ -1,7 +1,8 @@
 class_name ItemPedestal
 extends Area2D
 ## Pedestal con un item: gratis en el tesoro, con precio en monedas en la tienda o en vida en el
-## Altar (`health_price`, medios corazones: solo si no lo mata). Se agarra al tocarlo si alcanza.
+## Altar (`health_price`, medios corazones de vida máxima: se entrega el contenedor entero, solo si
+## queda al menos un corazón). Se agarra al tocarlo si alcanza.
 ## Si es un activo y el jugador ya tenía otro, el viejo queda en el pedestal (gratis) y hay que
 ## salir y volver a entrar para agarrarlo; lo mismo después de no alcanzar el precio.
 
@@ -49,11 +50,11 @@ func _physics_process(_delta: float) -> void:
 		return
 	if _waiting_exit or item == null or player.is_dead():
 		return
-	_try_take(player)
+	_try_take()
 
 
-func _try_take(player: Player) -> void:
-	if price > RunState.coins or (health_price > 0 and player.health.current <= health_price):
+func _try_take() -> void:
+	if price > RunState.coins or (health_price > 0 and not RunState.can_sacrifice(health_price)):
 		_waiting_exit = true
 		AudioManager.play_sfx(&"empty")
 		return
@@ -61,7 +62,7 @@ func _try_take(player: Player) -> void:
 		RunState.add_coins(-price)
 		AudioManager.play_sfx(&"buy")
 	if health_price > 0:
-		player.health.spend(health_price)
+		RunState.sacrifice_health(health_price)
 		AudioManager.play_sfx(&"altar")
 	var taken: ItemData = item
 	var previous: ItemData = RunState.add_item(taken)

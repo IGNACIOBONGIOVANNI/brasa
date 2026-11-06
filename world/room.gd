@@ -28,7 +28,7 @@ const DOOR_SCENE: PackedScene = preload("res://world/door.tscn")
 const EXIT_SCENE: PackedScene = preload("res://entities/exit/trapdoor.tscn")
 const WELL_SCENE: PackedScene = preload("res://entities/pickups/well.tscn")
 const PARKED_MECH_SCENE: PackedScene = preload("res://entities/mechs/parked_mech.tscn")
-## Lo que cuesta cada item del Altar, en medios corazones.
+## Lo que cuesta cada item del Altar, en medios corazones de vida máxima (el contenedor entero).
 const ALTAR_HEALTH_PRICE: int = 2
 ## Dónde se buscan lugares para los pickups extra de la regla, alrededor del centro.
 const BONUS_OFFSETS: Array[Vector2i] = [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(0, -1),
@@ -369,8 +369,23 @@ func _on_enemy_died(enemy: Enemy) -> void:
 		# Llega desde un callback de física: el pickup (un Area2D) se agrega diferido.
 		var coin: PickupData = _theme.pickup_of_kind(PickupData.Kind.COIN)
 		spawn_pickup.call_deferred(coin, to_local(enemy.global_position), true)
+	if not enemy.dismissed and not enemy.data.drops.is_empty():
+		_spawn_drops(enemy.data.drops, to_local(enemy.global_position))
 	if _enemies.is_empty() and phase == Phase.FIGHTING:
 		_on_wave_done()
+
+
+## Lo que suelta seguro un enemigo al morir (los minijefes): cada cosa en un lugar libre distinto
+## alrededor de donde cayó. Diferido, como las monedas.
+func _spawn_drops(drops: Array[PickupData], local_position: Vector2) -> void:
+	var center: Vector2i = grid.nearest_walkable(RoomNav.cell_of(local_position))
+	var cells: Array[Vector2i] = [center]
+	for offset: Vector2i in BONUS_OFFSETS:
+		var cell: Vector2i = grid.nearest_walkable(center + offset)
+		if not cells.has(cell):
+			cells.append(cell)
+	for i: int in drops.size():
+		spawn_pickup.call_deferred(drops[i], RoomGrid.cell_center(cells[i % cells.size()]), true)
 
 
 ## Los timers no corren con el juego en pausa (menú de debug, transición de sala).

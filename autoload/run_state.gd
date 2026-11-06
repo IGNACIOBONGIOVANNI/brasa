@@ -22,6 +22,8 @@ const START_KEYS: int = 1
 const MAX_COUNT: int = 99
 ## Fracción de la munición máxima que recupera cada arma al limpiar una sala.
 const ROOM_CLEAR_AMMO: float = 0.25
+## Lo menos que puede quedar de vida máxima al pagar en el Altar (un corazón).
+const MIN_MAX_HEALTH: float = 2.0
 
 var character: CharacterData
 ## El capítulo que se juega (el del personaje): sus pisos los recorre FloorController.
@@ -45,6 +47,8 @@ var run_time: float = 0.0
 var kills: int = 0
 ## ids de los jefes vencidos en esta run.
 var bosses_defeated: Array[StringName] = []
+## Vida máxima entregada en el Altar (medios corazones): los contenedores pagados no vuelven.
+var sacrificed_health: float = 0.0
 
 
 func _ready() -> void:
@@ -67,6 +71,7 @@ func start_run(run_character: CharacterData = null, profile: MetaProfile = null,
 	run_time = 0.0
 	kills = 0
 	bosses_defeated.clear()
+	sacrificed_health = 0.0
 	items.clear()
 	active_item = null
 	active_charge = 0
@@ -97,6 +102,7 @@ func capture(snapshot: RunSnapshot) -> void:
 	snapshot.run_time = run_time
 	snapshot.kills = kills
 	snapshot.bosses_defeated = bosses_defeated.duplicate()
+	snapshot.sacrificed_health = sacrificed_health
 	snapshot.blanks = blanks
 	snapshot.coins = coins
 	snapshot.bombs = bombs
@@ -130,6 +136,7 @@ func restore(snapshot: RunSnapshot, profile: MetaProfile) -> bool:
 	run_time = snapshot.run_time
 	kills = snapshot.kills
 	bosses_defeated = snapshot.bosses_defeated.duplicate()
+	sacrificed_health = snapshot.sacrificed_health
 	for id: StringName in snapshot.items:
 		var item: ItemData = find_item(catalog, id)
 		if item != null and item.kind == ItemData.Kind.PASSIVE:
@@ -322,8 +329,25 @@ func add_keys(amount: int) -> void:
 	_inventory_changed()
 
 
+## true si puede entregar `amount` de vida máxima y le queda al menos un corazón.
+func can_sacrifice(amount: float) -> bool:
+	return stats.max_health - amount >= MIN_MAX_HEALTH
+
+
+## El Altar: entrega `amount` de vida máxima (el contenedor entero, no solo lo que tenía adentro).
+## false si no le quedaría ni un corazón.
+func sacrifice_health(amount: float) -> bool:
+	if not can_sacrifice(amount):
+		return false
+	sacrificed_health += amount
+	_recompute_stats()
+	return true
+
+
 func _recompute_stats() -> void:
 	stats = StatCalculator.compute(base_stats, items)
+	if sacrificed_health > 0.0:
+		stats.max_health = maxf(MIN_MAX_HEALTH, stats.max_health - sacrificed_health)
 	stats_changed.emit(stats)
 
 
@@ -344,5 +368,5 @@ func _on_enemy_killed(_enemy: Node2D) -> void:
 
 func _on_boss_defeated(boss: Node2D) -> void:
 	var data := boss.get(&"data") as EnemyData
-	if data != null:
+	if data != null and not data.miniboss:
 		bosses_defeated.append(data.id)

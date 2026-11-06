@@ -45,12 +45,17 @@ extends Resource
 ##   s suelta `pattern` hacia el jugador desde un punto del corte. `count` cortes seguidos.
 ## - DIVE: salta como LEAP, cae clavándose (pega en `radius` y suelta `pattern`) y del piso salen
 ##   `count` rayos en estrella (uno apunta al jugador): se ven `interval` s y queman `linger` s.
-## DEBRIS usa `look` para lo que cae (piedras, carámbanos, rayos).
+## - CHARGED_ORB: junta fuego arriba de la cabeza `warn_time` s (una bola que crece hasta `radius`) y la
+##   tira hacia el jugador a `speed` px/s: lenta y enorme, pega `damage` (un corazón entero) y se
+##   apaga contra las paredes. El color y el empujón salen de `pattern`. El Pulso la borra.
+##   `count` bolas seguidas.
+## DEBRIS usa `look` para lo que cae (piedras, carámbanos, rayos, piñas); MOLTEN con `look` LAVA
+## hace brotar lava del piso (un chorro y después el charco) en vez de salpicar metal fundido.
 
 enum Kind { VOLLEY, DEBRIS, FRAG_BOMBS, DARK_CLAWS, SNIPE, LEAP, CHARGES, SUMMON, GROUND_LINES, SWEEP, MOLTEN,
-		SCISSORS, STAMPEDE, SNOWBALL, ICE_CAGE, GUST, HANGING_CUT, DIVE }
+		SCISSORS, STAMPEDE, SNOWBALL, ICE_CAGE, GUST, HANGING_CUT, DIVE, CHARGED_ORB }
 ## Cómo se ve un golpe avisado (BossStrike).
-enum Look { STONE, ROOT, CLAW, EMBER, BLADE, ICE, BOLT, HOOVES }
+enum Look { STONE, ROOT, CLAW, EMBER, BLADE, ICE, BOLT, HOOVES, PINECONE, LAVA }
 
 @export var id: StringName = &""
 ## Nombre del movimiento (para la documentación y el menú de debug).

@@ -9,7 +9,9 @@ extends RefCounted
 ## `from_dict` devuelve null si el formato no es este (una foto de otra versión no se sigue).
 
 ## Cambia si cambia lo que se guarda: una foto de otro formato se descarta.
-const FORMAT: int = 1
+## 2 (hito 24): los pisos del capítulo 1 tienen una sala más (la del minijefe), así que el layout de
+## una foto vieja ya no sale igual de la seed; además se guarda la vida entregada en el Altar.
+const FORMAT: int = 2
 
 
 ## Un pickup tirado en el piso de una sala.
@@ -50,6 +52,8 @@ var floor_index: int = 0
 var run_time: float = 0.0
 var kills: int = 0
 var bosses_defeated: Array[StringName] = []
+## Vida máxima entregada en el Altar.
+var sacrificed_health: float = 0.0
 var health: float = 0.0
 var blanks: int = 0
 var coins: int = 0
@@ -104,6 +108,7 @@ func to_dict() -> Dictionary:
 		"run_time": run_time,
 		"kills": kills,
 		"bosses": _strings(bosses_defeated),
+		"sacrificed": sacrificed_health,
 		"health": health,
 		"blanks": blanks,
 		"coins": coins,
@@ -142,6 +147,7 @@ static func from_dict(data: Dictionary) -> RunSnapshot:
 	snapshot.run_time = float(data.get("run_time", 0.0))
 	snapshot.kills = int(data.get("kills", 0))
 	snapshot.bosses_defeated = _names(data.get("bosses", []))
+	snapshot.sacrificed_health = float(data.get("sacrificed", 0.0))
 	snapshot.health = float(data.get("health", 0.0))
 	snapshot.blanks = int(data.get("blanks", 0))
 	snapshot.coins = int(data.get("coins", 0))

@@ -62,6 +62,7 @@ func _run() -> void:
 		RunState.add_item(load("res://content/items/%s.tres" % TYPICAL_ITEMS[mini(index, TYPICAL_ITEMS.size() - 1)]) as ItemData)
 		var layout: FloorLayout = floor_controller.layout
 		var cells: Array[Vector2i] = layout.cells_of_kind(RoomSlot.Kind.NORMAL)
+		cells.append_array(layout.cells_of_kind(RoomSlot.Kind.MINIBOSS))
 		cells.sort_custom(func(a: Vector2i, b: Vector2i) -> bool: return layout.get_slot(a).distance < layout.get_slot(b).distance)
 		var rooms_time: float = 0.0
 		var slow: PackedStringArray = []

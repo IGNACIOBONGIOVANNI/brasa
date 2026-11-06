@@ -1,0 +1,130 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://data/boss_phase.gd" id="3_phase"]
+[ext_resource type="Script" path="res://data/boss_attack.gd" id="4_attack"]
+[ext_resource type="Resource" path="res://content/patterns/erizada_pinchos.tres" id="x0"]
+[ext_resource type="Resource" path="res://content/patterns/erizada_abanico.tres" id="x1"]
+[ext_resource type="Resource" path="res://content/patterns/erizada_bola.tres" id="x2"]
+[ext_resource type="Resource" path="res://content/patterns/erizada_espiral.tres" id="x3"]
+[ext_resource type="Script" path="res://data/pickup_data.gd" id="5_pickup"]
+[ext_resource type="Resource" path="res://content/pickups/bomb.tres" id="p_bomb"]
+[ext_resource type="Resource" path="res://content/pickups/coin.tres" id="p_coin"]
+
+[sub_resource type="Resource" id="Behavior_0"]
+script = ExtResource("1_enemy")
+id = &"grasa_erizada_fase_1"
+move_style = 2
+move_speed = 45.0
+acceleration = 400.0
+attack_range = 300.0
+attack_cooldown = 1.3
+recover_time = 0.7
+hop_interval = 0.9
+
+[sub_resource type="Resource" id="Attack_pinchos"]
+script = ExtResource("4_attack")
+id = &"pinchos"
+display_name = "Pinchos"
+kind = 0
+windup = 0.55
+recover = 0.7
+pattern = ExtResource("x0")
+
+[sub_resource type="Resource" id="Attack_abanico"]
+script = ExtResource("4_attack")
+id = &"abanico"
+display_name = "Abanico de pinchos"
+kind = 0
+windup = 0.5
+recover = 0.6
+pattern = ExtResource("x1")
+
+[sub_resource type="Resource" id="Attack_bola"]
+script = ExtResource("4_attack")
+id = &"bola"
+display_name = "Bola de pinchos"
+kind = 2
+windup = 0.9
+recover = 0.8
+count = 1
+warn_time = 0.9
+radius = 20.0
+damage = 1.0
+pattern = ExtResource("x2")
+
+[sub_resource type="Resource" id="Phase_0"]
+script = ExtResource("3_phase")
+health_fraction = 1.0
+behavior = SubResource("Behavior_0")
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_pinchos"), SubResource("Attack_abanico"), SubResource("Attack_bola")])
+
+[sub_resource type="Resource" id="Behavior_1"]
+script = ExtResource("1_enemy")
+id = &"grasa_erizada_fase_2"
+move_style = 2
+move_speed = 55.0
+acceleration = 400.0
+attack_range = 300.0
+attack_cooldown = 1.0
+recover_time = 0.6
+hop_interval = 0.7
+
+[sub_resource type="Resource" id="Attack_espiral"]
+script = ExtResource("4_attack")
+id = &"espiral"
+display_name = "Remolino de pinchos"
+kind = 0
+windup = 0.5
+recover = 0.6
+pattern = ExtResource("x3")
+
+[sub_resource type="Resource" id="Attack_bolas"]
+script = ExtResource("4_attack")
+id = &"bolas"
+display_name = "Tres bolas de pinchos"
+kind = 2
+windup = 0.8
+recover = 0.8
+count = 3
+interval = 0.4
+warn_time = 0.85
+radius = 18.0
+spread = 55.0
+damage = 1.0
+pattern = ExtResource("x2")
+
+[sub_resource type="Resource" id="Attack_abanico_2"]
+script = ExtResource("4_attack")
+id = &"abanico_2"
+display_name = "Abanico de pinchos"
+kind = 0
+windup = 0.45
+recover = 0.6
+count = 2
+interval = 0.4
+pattern = ExtResource("x1")
+
+[sub_resource type="Resource" id="Phase_1"]
+script = ExtResource("3_phase")
+health_fraction = 0.5
+behavior = SubResource("Behavior_1")
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_espiral"), SubResource("Attack_bolas"), SubResource("Attack_abanico_2")])
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"grasa_erizada"
+display_name = "Grasa erizada"
+epithet = "Minijefe · mejor no tocarla"
+template_char = "Z"
+max_health = 60.0
+miniboss = true
+spawn_delay = 1.2
+knockback_resistance = 0.85
+body_radius = 10.0
+hurtbox_radius = 12.0
+visual_style = 27
+visual_radius = 12.0
+body_color = Color(0.5412, 0.6039, 0.2275, 1)
+phases = Array[ExtResource("3_phase")]([SubResource("Phase_0"), SubResource("Phase_1")])
+drops = Array[ExtResource("5_pickup")]([ExtResource("p_bomb"), ExtResource("p_bomb"), ExtResource("p_coin"), ExtResource("p_coin")])

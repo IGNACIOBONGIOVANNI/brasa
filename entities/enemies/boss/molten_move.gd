@@ -1,7 +1,8 @@
 class_name MoltenMove
 extends BossMove
 ## MOLTEN: golpea el piso y salpica metal fundido: `count` charcos cerca del jugador (el primero
-## donde está), uno cada `interval` s. Avisan, queman al caer y quedan `linger` s en el piso.
+## donde está), uno cada `interval` s. Avisan, queman al caer y quedan `linger` s en el piso. Con
+## `look` LAVA la lava brota del piso (un chorro) en vez de salpicar.
 
 const SLAM_TRAUMA: float = 0.4
 
@@ -22,7 +23,8 @@ func _tick(delta: float) -> bool:
 	if _left > 0:
 		_next -= delta
 		if _next <= 0.0:
-			var strike: BossStrike = spawn_strike(spot_near_target(_index), BossAttack.Look.EMBER)
+			var look: BossAttack.Look = BossAttack.Look.LAVA if attack.look == BossAttack.Look.LAVA else BossAttack.Look.EMBER
+			var strike: BossStrike = spawn_strike(spot_near_target(_index), look)
 			strike.linger = attack.linger
 			_index += 1
 			_left -= 1

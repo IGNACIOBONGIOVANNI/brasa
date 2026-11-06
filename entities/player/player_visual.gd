@@ -135,7 +135,8 @@ func _draw() -> void:
 	if _dead:
 		_draw_dead()
 	elif _mech != null:
-		MechDrawing.draw(self, _mech, aim_direction, int(_walk_time * MECH_STEPS_PER_SECOND) % 2, body_color,
+		var step: int = int(_walk_time * MECH_STEPS_PER_SECOND) % 2 if _walking else -1
+		MechDrawing.draw(self, _mech, aim_direction, step, body_color,
 				gun_color, gun_length, _recoil, _mech_armor, _time)
 	elif _charging:
 		_draw_charging()

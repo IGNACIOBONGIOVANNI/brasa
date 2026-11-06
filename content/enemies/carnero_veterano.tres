@@ -1,0 +1,121 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://data/boss_phase.gd" id="3_phase"]
+[ext_resource type="Script" path="res://data/boss_attack.gd" id="4_attack"]
+[ext_resource type="Resource" path="res://content/patterns/veterano_onda.tres" id="x0"]
+[ext_resource type="Resource" path="res://content/enemies/carnero.tres" id="x1"]
+[ext_resource type="Script" path="res://data/pickup_data.gd" id="5_pickup"]
+[ext_resource type="Resource" path="res://content/pickups/heart.tres" id="p_heart"]
+[ext_resource type="Resource" path="res://content/pickups/bomb.tres" id="p_bomb"]
+
+[sub_resource type="Resource" id="Behavior_0"]
+script = ExtResource("1_enemy")
+id = &"carnero_veterano_fase_1"
+move_style = 0
+move_speed = 34.0
+acceleration = 400.0
+attack_range = 300.0
+attack_cooldown = 1.4
+recover_time = 0.7
+
+[sub_resource type="Resource" id="Attack_embestidas"]
+script = ExtResource("4_attack")
+id = &"embestidas"
+display_name = "Embestidas"
+kind = 6
+windup = 0.6
+recover = 0.9
+count = 2
+warn_time = 0.6
+speed = 230.0
+
+[sub_resource type="Resource" id="Attack_pisoton"]
+script = ExtResource("4_attack")
+id = &"pisoton"
+display_name = "Pisotón"
+kind = 5
+windup = 0.6
+recover = 0.9
+count = 1
+warn_time = 0.9
+lock_time = 0.3
+radius = 22.0
+damage = 1.0
+pattern = ExtResource("x0")
+
+[sub_resource type="Resource" id="Phase_0"]
+script = ExtResource("3_phase")
+health_fraction = 1.0
+behavior = SubResource("Behavior_0")
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_embestidas"), SubResource("Attack_pisoton")])
+
+[sub_resource type="Resource" id="Behavior_1"]
+script = ExtResource("1_enemy")
+id = &"carnero_veterano_fase_2"
+move_style = 0
+move_speed = 40.0
+acceleration = 400.0
+attack_range = 300.0
+attack_cooldown = 1.1
+recover_time = 0.6
+
+[sub_resource type="Resource" id="Attack_embestidas_3"]
+script = ExtResource("4_attack")
+id = &"embestidas_3"
+display_name = "Tres embestidas"
+kind = 6
+windup = 0.5
+recover = 0.8
+count = 3
+warn_time = 0.55
+speed = 250.0
+
+[sub_resource type="Resource" id="Attack_pisotones"]
+script = ExtResource("4_attack")
+id = &"pisotones"
+display_name = "Dos pisotones"
+kind = 5
+windup = 0.55
+recover = 0.9
+count = 2
+warn_time = 0.8
+lock_time = 0.28
+radius = 22.0
+damage = 1.0
+pattern = ExtResource("x0")
+
+[sub_resource type="Resource" id="Attack_llamado"]
+script = ExtResource("4_attack")
+id = &"llamado"
+display_name = "Llamado al rebaño"
+kind = 7
+windup = 0.6
+recover = 0.6
+count = 2
+summon = ExtResource("x1")
+cap = 2
+
+[sub_resource type="Resource" id="Phase_1"]
+script = ExtResource("3_phase")
+health_fraction = 0.5
+behavior = SubResource("Behavior_1")
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_embestidas_3"), SubResource("Attack_pisotones"), SubResource("Attack_llamado")])
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"carnero_veterano"
+display_name = "Carnero veterano"
+epithet = "Minijefe · viejo, duro y con mañas"
+template_char = "L"
+max_health = 55.0
+miniboss = true
+spawn_delay = 1.2
+knockback_resistance = 0.85
+body_radius = 9.0
+hurtbox_radius = 11.0
+visual_style = 26
+visual_radius = 11.0
+body_color = Color(0.5412, 0.2902, 0.2118, 1)
+phases = Array[ExtResource("3_phase")]([SubResource("Phase_0"), SubResource("Phase_1")])
+drops = Array[ExtResource("5_pickup")]([ExtResource("p_heart"), ExtResource("p_bomb")])

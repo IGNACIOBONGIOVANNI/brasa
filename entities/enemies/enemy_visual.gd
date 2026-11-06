@@ -10,7 +10,10 @@ extends Node2D
 ## SHEARS (tijera que corta sola), BURR (abrojo con púas), MOTH (polilla), BOULDER (piedra con
 ## grietas), CROW (cuervo), WOLF (lobo), ICE (témpano), CLOUD (nubarrón), GALE (cara de viento que
 ## sopla), DETHRONED (el Rey sin corona y con un cuerno roto) y AVALANCHE (montaña de nieve con
-## carámbanos) y GHOST (sábana de poltergeist que flota, con los ojos huecos).
+## carámbanos) y GHOST (sábana de poltergeist que flota, con los ojos huecos). Los minijefes: VETERAN
+## (carnero viejo y musculoso, con cuernos enroscados y cicatrices), SPIKED_SLIME (babosa erizada de
+## pinchos), TREE (un pehuén que camina, con piñas) y ANVIL (bigornia al rojo), con las armas que
+## vuelan solas (SWORD, AXE que gira y KNIFE), y FORGE_HEART (el Yunque sin coraza: un cuerpo de fuego).
 ## Muestra la aparición, el aplastamiento al recibir un golpe y un "!" durante el telegraph.
 ## Se reemplaza por un sprite animado manteniendo la misma interfaz.
 
@@ -27,10 +30,19 @@ const BLADE_COLOR: Color = Color("dfe6ef")
 const ICE_LIGHT: Color = Color("e6f6ff")
 const WOLF_EYE: Color = Color("ffd166")
 const SNOW_COLOR: Color = Color("eef4fa")
+const STEEL_COLOR: Color = Color("cfd8e3")
+const GRIP_COLOR: Color = Color("6b4a32")
+const GOLD_COLOR: Color = Color("e2b84a")
+const FOLIAGE_COLOR: Color = Color("2f6b3a")
+const CONE_COLOR: Color = Color("9a6234")
+const HOT_COLOR: Color = Color("ff8a3d")
+const FIRE_CORE: Color = Color("fff1a8")
+const PLATE_COLOR: Color = Color("6e7889")
 ## Los que flotan: sombra chica y lejos, y se bambolean.
 const FLYING_STYLES: Array[EnemyData.VisualStyle] = [EnemyData.VisualStyle.BAT, EnemyData.VisualStyle.WISP,
 		EnemyData.VisualStyle.MOTH, EnemyData.VisualStyle.CROW, EnemyData.VisualStyle.CLOUD, EnemyData.VisualStyle.GALE,
-		EnemyData.VisualStyle.GHOST]
+		EnemyData.VisualStyle.GHOST, EnemyData.VisualStyle.SWORD, EnemyData.VisualStyle.AXE,
+		EnemyData.VisualStyle.KNIFE]
 ## Centro del cuerpo respecto del origen (que está en los pies).
 const BODY_OFFSET: Vector2 = Vector2(0, -2)
 
@@ -65,6 +77,12 @@ func configure(data: EnemyData) -> void:
 	style = data.visual_style
 	radius = data.visual_radius
 	body_color = data.body_color
+
+
+## Otro dibujo desde ahora (un jefe al que se le rompe la coraza).
+func change_look(new_style: EnemyData.VisualStyle, new_color: Color) -> void:
+	style = new_style
+	body_color = new_color
 
 
 func set_look(direction: Vector2) -> void:
@@ -205,6 +223,22 @@ func _draw() -> void:
 			_draw_avalanche()
 		EnemyData.VisualStyle.GHOST:
 			_draw_ghost()
+		EnemyData.VisualStyle.VETERAN:
+			_draw_veteran()
+		EnemyData.VisualStyle.SPIKED_SLIME:
+			_draw_spiked_slime()
+		EnemyData.VisualStyle.TREE:
+			_draw_tree()
+		EnemyData.VisualStyle.ANVIL:
+			_draw_anvil()
+		EnemyData.VisualStyle.SWORD:
+			_draw_sword()
+		EnemyData.VisualStyle.AXE:
+			_draw_axe()
+		EnemyData.VisualStyle.KNIFE:
+			_draw_knife()
+		EnemyData.VisualStyle.FORGE_HEART:
+			_draw_forge_heart()
 	draw_set_transform(Vector2.ZERO)
 	if _alert:
 		var origin := Vector2(0, BODY_OFFSET.y - radius - 7.0 - roundf(_lift))
@@ -654,3 +688,229 @@ func _draw_ghost() -> void:
 	for side: float in [-1.0, 1.0]:
 		draw_circle(Vector2(side * radius * 0.35, -radius * 0.15) + look, maxf(1.2, radius * 0.18), eye_color)
 	draw_circle(Vector2(0, radius * 0.3) + look, maxf(1.0, radius * 0.12), OUTLINE_COLOR)
+
+
+## Carnero veterano: hombros de músculo, cuernos gruesos enroscados, mechón de lana, ceño fruncido,
+## una cicatriz y la argolla en la nariz.
+func _draw_veteran() -> void:
+	var r: float = radius
+	for side: float in [-1.0, 1.0]:
+		var shoulder := Vector2(side * r * 0.95, r * 0.3)
+		draw_circle(shoulder, r * 0.55 + 1.0, OUTLINE_COLOR)
+		draw_circle(shoulder, r * 0.55, body_color.darkened(0.15))
+		draw_arc(shoulder, r * 0.35, PI * 1.1, PI * 1.6, 6, body_color.lightened(0.15), 1.0)
+	for side: float in [-1.0, 1.0]:
+		var curl := Vector2(side * r * 0.85, -r * 0.45)
+		var from: float = PI * 1.5
+		var to: float = from + side * PI * 1.4
+		draw_arc(curl, r * 0.42, from, to, 12, OUTLINE_COLOR, 5.0)
+		draw_arc(curl, r * 0.42, from, to, 12, HORN_COLOR, 3.0)
+		draw_arc(curl, r * 0.42, from, from + side * PI * 0.5, 6, HORN_COLOR.lightened(0.3), 1.0)
+	draw_circle(Vector2.ZERO, r, OUTLINE_COLOR)
+	draw_circle(Vector2.ZERO, r - 1.0, body_color)
+	for x: float in [-0.3, 0.0, 0.3]:
+		draw_circle(Vector2(x * r, -r * 0.8), r * 0.22, body_color.lightened(0.3))
+	var look: Vector2 = (look_direction * 2.0).round()
+	var eye_color: Color = ALERT_COLOR if _alert or _charging else Color("ff4d6d")
+	draw_rect(Rect2(Vector2(-5, -2) + look, Vector2(3, 2)), eye_color)
+	draw_rect(Rect2(Vector2(2, -2) + look, Vector2(3, 2)), eye_color)
+	draw_line(Vector2(-6, -5) + look, Vector2(-2, -3) + look, OUTLINE_COLOR, 1.0)
+	draw_line(Vector2(6, -5) + look, Vector2(2, -3) + look, OUTLINE_COLOR, 1.0)
+	draw_line(Vector2(3, -6), Vector2(6, 1), body_color.darkened(0.45), 1.0)
+	var muzzle: Vector2 = Vector2(0, r * 0.45) + look * 0.5
+	draw_circle(muzzle, r * 0.35, body_color.lightened(0.2))
+	draw_rect(Rect2(muzzle + Vector2(-2, -1), Vector2(1, 1)), OUTLINE_COLOR)
+	draw_rect(Rect2(muzzle + Vector2(1, -1), Vector2(1, 1)), OUTLINE_COLOR)
+	draw_arc(muzzle + Vector2(0, 1), 1.5, 0.0, PI, 6, GOLD_COLOR, 1.0)
+
+
+## Babosa erizada: una gota grande con pinchos por arriba (se paran al avisar) y ojos enojados.
+func _draw_spiked_slime() -> void:
+	var wobble: float = 1.0 + 0.05 * sin(_time * 5.0)
+	var width: float = radius * wobble
+	var height: float = radius * (2.0 - wobble)
+	var center := Vector2(0, radius * 0.25)
+	var reach: float = 0.7 if _alert else 0.45
+	var spikes: int = 9
+	for i: int in spikes:
+		var angle: float = PI + PI * (i + 0.5) / spikes
+		var rim: Vector2 = center + Vector2(cos(angle) * width, sin(angle) * height)
+		var direction: Vector2 = (rim - center).normalized()
+		var base: Vector2 = center + (rim - center) * 0.85
+		var tip: Vector2 = rim + direction * radius * reach
+		var side: Vector2 = direction.orthogonal()
+		draw_colored_polygon(PackedVector2Array([base + side * 2.5, tip + direction, base - side * 2.5]), OUTLINE_COLOR)
+		draw_colored_polygon(PackedVector2Array([base + side * 1.5, tip, base - side * 1.5]), HORN_COLOR)
+	draw_colored_polygon(_ellipse(center, width + 1.0, height + 1.0, true), OUTLINE_COLOR)
+	draw_colored_polygon(_ellipse(center, width, height, true), body_color)
+	draw_colored_polygon(_ellipse(center, width * 0.7, height * 0.6, true), body_color.lightened(0.12))
+	draw_rect(Rect2(roundf(-width * 0.55), roundf(-height * 0.4), 2, 1), body_color.lightened(0.5))
+	var look: Vector2 = (look_direction * 2.0).round()
+	var eye_color: Color = ALERT_COLOR if _alert else OUTLINE_COLOR
+	draw_rect(Rect2(Vector2(-4, -1) + look, Vector2(2, 2)), eye_color)
+	draw_rect(Rect2(Vector2(2, -1) + look, Vector2(2, 2)), eye_color)
+	draw_line(Vector2(-5, -3) + look, Vector2(-2, -2) + look, OUTLINE_COLOR, 1.0)
+	draw_line(Vector2(5, -3) + look, Vector2(2, -2) + look, OUTLINE_COLOR, 1.0)
+
+
+## Pehuén: tronco con cara, raíces, dos ramas-brazo y una copa en pisos de ramas con púas, con piñas
+## colgando (titilan al avisar).
+func _draw_tree() -> void:
+	var r: float = radius
+	var sway: float = sin(_time * 1.5)
+	for side: float in [-1.0, 1.0]:
+		draw_line(Vector2(side * r * 0.25, r * 0.85), Vector2(side * r * 0.7, r * 1.05), OUTLINE_COLOR, 3.0)
+		draw_line(Vector2(side * r * 0.25, r * 0.85), Vector2(side * r * 0.7, r * 1.05), body_color.darkened(0.2), 1.0)
+		var hand := Vector2(side * r * 1.25, -r * 0.15 + sway * side)
+		draw_line(Vector2(side * r * 0.3, r * 0.1), hand, OUTLINE_COLOR, 4.0)
+		draw_line(Vector2(side * r * 0.3, r * 0.1), hand, body_color, 2.0)
+		for k: int in 3:
+			var needle: Vector2 = hand + Vector2(side * (k - 1) * 1.5, -2.0 - k)
+			draw_line(hand, needle, FOLIAGE_COLOR.lightened(0.15), 1.0)
+	var trunk := Rect2(-r * 0.4, -r * 0.4, r * 0.8, r * 1.3)
+	draw_rect(trunk.grow(1.0), OUTLINE_COLOR)
+	draw_rect(trunk, body_color)
+	for x: float in [-0.2, 0.15]:
+		draw_line(Vector2(x * r, -r * 0.3), Vector2(x * r, r * 0.8), body_color.darkened(0.3), 1.0)
+	var eye_color: Color = ALERT_COLOR if _alert else Color("ffb35c")
+	var look: Vector2 = (look_direction * 1.0).round()
+	draw_rect(Rect2(Vector2(-3, 0) + look, Vector2(2, 1)), eye_color)
+	draw_rect(Rect2(Vector2(1, 0) + look, Vector2(2, 1)), eye_color)
+	draw_line(Vector2(-2, 4) + look, Vector2(2, 3) + look, OUTLINE_COLOR, 1.0)
+	var tiers: Array[Vector3] = [Vector3(-0.55, 1.15, 0.32), Vector3(-0.95, 0.9, 0.28), Vector3(-1.3, 0.6, 0.24)]
+	for tier: Vector3 in tiers:
+		var y: float = tier.x * r
+		var half: float = tier.y * r
+		var thick: float = tier.z * r
+		var outline := PackedVector2Array([Vector2(-half - 1.0, y + thick * 0.5 + 1.0), Vector2(-half * 0.6, y - thick * 0.6 - 1.0),
+				Vector2(half * 0.6, y - thick * 0.6 - 1.0), Vector2(half + 1.0, y + thick * 0.5 + 1.0)])
+		var shape := PackedVector2Array([Vector2(-half, y + thick * 0.5), Vector2(-half * 0.6, y - thick * 0.6),
+				Vector2(half * 0.6, y - thick * 0.6), Vector2(half, y + thick * 0.5)])
+		draw_colored_polygon(outline, OUTLINE_COLOR)
+		draw_colored_polygon(shape, FOLIAGE_COLOR)
+		for k: int in 5:
+			var x: float = -half + half * 2.0 * (k + 0.5) / 5.0
+			draw_line(Vector2(x, y + thick * 0.5), Vector2(x + 1.0, y + thick * 0.5 + 2.0), FOLIAGE_COLOR.darkened(0.3), 1.0)
+		draw_line(Vector2(-half * 0.55, y - thick * 0.45), Vector2(half * 0.3, y - thick * 0.45), FOLIAGE_COLOR.lightened(0.2), 1.0)
+	var glow: float = 0.35 if _alert and int(_time * 10.0) % 2 == 0 else 0.0
+	for cone: Vector2 in [Vector2(-0.6, -0.4), Vector2(0.55, -0.45), Vector2(0.0, -0.8)]:
+		var at: Vector2 = (cone * r).round()
+		draw_rect(Rect2(at + Vector2(-2, -2), Vector2(4, 5)), OUTLINE_COLOR)
+		draw_rect(Rect2(at + Vector2(-1, -1), Vector2(2, 3)), CONE_COLOR.lightened(glow))
+
+
+## Bigornia: un yunque chico con el pico a un costado, la cara de arriba al rojo y ojos en la cintura;
+## al avisar la parte caliente se aviva y saltan chispas.
+func _draw_anvil() -> void:
+	var r: float = radius
+	var base := Rect2(-r * 0.75, r * 0.35, r * 1.5, r * 0.55)
+	var waist := Rect2(-r * 0.4, -r * 0.15, r * 0.8, r * 0.55)
+	var top := Rect2(-r * 0.85, -r * 0.6, r * 1.45, r * 0.5)
+	var horn := PackedVector2Array([Vector2(r * 0.6, -r * 0.6), Vector2(r * 1.25, -r * 0.45), Vector2(r * 0.6, -r * 0.15)])
+	var horn_outline := PackedVector2Array([Vector2(r * 0.6, -r * 0.6 - 1.0), Vector2(r * 1.25 + 1.5, -r * 0.45),
+			Vector2(r * 0.6, -r * 0.15 + 1.0)])
+	draw_colored_polygon(horn_outline, OUTLINE_COLOR)
+	for part: Rect2 in [base, waist, top]:
+		draw_rect(part.grow(1.0), OUTLINE_COLOR)
+	draw_colored_polygon(horn, body_color)
+	draw_rect(base, body_color.darkened(0.2))
+	draw_rect(waist, body_color.darkened(0.1))
+	draw_rect(top, body_color)
+	var heat: float = 1.0 if _alert else 0.6 + 0.4 * sin(_time * 4.0)
+	draw_rect(Rect2(-r * 0.55, -r * 0.6, r * 0.9, 2.0), Color(HOT_COLOR, heat))
+	draw_rect(Rect2(-r * 0.4, -r * 0.6, r * 0.5, 1.0), Color(FIRE_CORE, heat))
+	draw_line(Vector2(-r * 0.8, -r * 0.2), Vector2(r * 0.5, -r * 0.2), body_color.lightened(0.25), 1.0)
+	var look: Vector2 = (look_direction * 1.0).round()
+	var eye_color: Color = ALERT_COLOR if _alert else HOT_COLOR
+	draw_rect(Rect2(Vector2(-3, 0) + look, Vector2(2, 1)), eye_color)
+	draw_rect(Rect2(Vector2(1, 0) + look, Vector2(2, 1)), eye_color)
+	if _alert:
+		for i: int in 3:
+			var rise: float = fmod(_time * 2.5 + i * 0.33, 1.0)
+			var at := Vector2((i - 1) * r * 0.35, -r * 0.65 - rise * r * 0.7).round()
+			draw_rect(Rect2(at, Vector2.ONE), Color(FIRE_CORE, 1.0 - rise))
+
+
+## Espada que vuela sola: apunta hacia donde va, con guarda dorada y pomo.
+func _draw_sword() -> void:
+	_draw_blade_weapon(look_direction, radius * 1.5, radius * 0.75, 1.5, GOLD_COLOR)
+
+
+## Cuchillo que vuela solo: corto y fino, de mango oscuro.
+func _draw_knife() -> void:
+	_draw_blade_weapon(look_direction, radius * 1.1, radius * 0.5, 1.0, GRIP_COLOR.darkened(0.3))
+
+
+## Una hoja con mango hacia `forward`: la punta a `blade_length` del centro, el mango de `grip_length`
+## para atrás y la guarda de `guard_color`.
+func _draw_blade_weapon(forward: Vector2, blade_length: float, grip_length: float, half_width: float,
+		guard_color: Color) -> void:
+	var side: Vector2 = forward.orthogonal()
+	var heel: Vector2 = -forward * grip_length * 0.2
+	var tip: Vector2 = forward * blade_length
+	var pommel: Vector2 = -forward * grip_length
+	draw_line(heel, pommel, OUTLINE_COLOR, 4.0)
+	draw_line(heel, pommel, GRIP_COLOR, 2.0)
+	draw_circle(pommel, 1.5, guard_color)
+	var outline := PackedVector2Array([heel + side * (half_width + 1.0) - forward, tip + forward * 1.5,
+			heel - side * (half_width + 1.0) - forward])
+	draw_colored_polygon(outline, OUTLINE_COLOR)
+	draw_colored_polygon(PackedVector2Array([heel + side * half_width, tip, heel - side * half_width]),
+			ALERT_COLOR.lightened(0.4) if _alert else STEEL_COLOR)
+	draw_line(heel, tip * 0.85, Color.WHITE, 1.0)
+	var guard: float = half_width + 2.5
+	draw_line(heel + side * guard, heel - side * guard, OUTLINE_COLOR, 3.0)
+	draw_line(heel + side * (guard - 0.5), heel - side * (guard - 0.5), guard_color, 1.0)
+
+
+## Hacha que gira en el aire (más rápido al avisar y al lanzarse): mango y una hoja ancha en la punta.
+func _draw_axe() -> void:
+	var spin: float = _time * (18.0 if _alert or _charging else 9.0)
+	var along := Vector2.from_angle(spin)
+	var side: Vector2 = along.orthogonal()
+	var r: float = radius
+	draw_line(-along * r, along * r * 0.8, OUTLINE_COLOR, 4.0)
+	draw_line(-along * r, along * r * 0.8, GRIP_COLOR, 2.0)
+	var head := PackedVector2Array([along * r * 0.35 + side * r * 0.15, along * r * 0.2 + side * r * 1.0,
+			along * r * 1.0 + side * r * 0.85, along * r * 0.9 + side * r * 0.05])
+	var outline := PackedVector2Array()
+	for point: Vector2 in head:
+		outline.append(point * 1.15)
+	draw_colored_polygon(outline, OUTLINE_COLOR)
+	draw_colored_polygon(head, STEEL_COLOR)
+	draw_line(along * r * 0.2 + side * r * 1.0, along * r * 1.0 + side * r * 0.85, Color.WHITE, 1.0)
+
+
+## El Yunque sin coraza: un cuerpo de fuego en capas (el borde de su color, el medio más claro y el
+## centro casi blanco) que titila, dos pedazos de coraza que le quedaron en los hombros y ojos blancos.
+func _draw_forge_heart() -> void:
+	var r: float = radius
+	var sizes: Array[float] = [1.0, 0.72, 0.42]
+	var colors: Array[Color] = [body_color.darkened(0.2), body_color.lightened(0.15), FIRE_CORE]
+	for k: int in sizes.size():
+		var size: float = r * sizes[k]
+		var flame := PackedVector2Array()
+		var tongues: int = 7
+		for i: int in tongues * 2:
+			var angle: float = PI + PI * float(i) / float(tongues * 2 - 1)
+			var tall: float = 1.35 if i % 2 == 0 else 0.95
+			var flick: float = 0.15 * sin(_time * 11.0 + i * 1.7 + k * 2.0)
+			flame.append(Vector2(cos(angle) * size, sin(angle) * size * (tall + flick)))
+		flame.append(Vector2(size * 0.85, size * 0.75))
+		flame.append(Vector2(-size * 0.85, size * 0.75))
+		if k == 0:
+			var outline := PackedVector2Array()
+			for point: Vector2 in flame:
+				outline.append(point * (1.0 + 1.0 / r))
+			draw_colored_polygon(outline, OUTLINE_COLOR)
+		draw_colored_polygon(flame, colors[k])
+	for side: float in [-1.0, 1.0]:
+		var plate := Rect2(side * r * 0.95 - (r * 0.45 if side < 0.0 else 0.0), -r * 0.1, r * 0.45, r * 0.35)
+		draw_rect(plate.grow(1.0), OUTLINE_COLOR)
+		draw_rect(plate, PLATE_COLOR)
+		draw_line(plate.position + Vector2(1, 1), plate.end - Vector2(1, 1), PLATE_COLOR.darkened(0.3), 1.0)
+	var look: Vector2 = (look_direction * 1.5).round()
+	var eye_color: Color = ALERT_COLOR if _alert else Color.WHITE
+	draw_rect(Rect2(Vector2(-5, -4) + look, Vector2(3, 2)), eye_color)
+	draw_rect(Rect2(Vector2(2, -4) + look, Vector2(3, 2)), eye_color)
+	draw_line(Vector2(-3, 3) + look, Vector2(3, 3) + look, body_color.darkened(0.5), 1.0)

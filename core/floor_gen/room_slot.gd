@@ -5,8 +5,9 @@ extends RefCounted
 ## Las especiales nuevas van al final para no cambiar los números guardados en las plantillas.
 ## CHALLENGE (Prueba): pelea opcional con regla y un item de premio. ALTAR: dos items que se pagan
 ## con vida (se lleva uno). WELL (Pozo): cura y devuelve los Pulsos una vez. HANGAR (Galpón): un
-## armazón (mecha) para manejar.
-enum Kind { NORMAL, START, BOSS, TREASURE, SHOP, SECRET, CHALLENGE, ALTAR, WELL, HANGAR }
+## armazón (mecha) para manejar. MINIBOSS: un minijefe que suelta consumibles (uno por piso, si el piso
+## tiene plantillas de minijefe).
+enum Kind { NORMAL, START, BOSS, TREASURE, SHOP, SECRET, CHALLENGE, ALTAR, WELL, HANGAR, MINIBOSS }
 
 var cell: Vector2i
 var kind: Kind = Kind.NORMAL

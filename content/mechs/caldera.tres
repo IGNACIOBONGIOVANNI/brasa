@@ -30,5 +30,6 @@ description = "Pesado y duro. Su cañón tira bombas que revientan."
 armor = 16.0
 move_speed = 55.0
 weapon = SubResource("Weapon")
+frame = 0
 body_color = Color(0.4784, 0.3529, 0.2745, 1)
 accent_color = Color(1, 0.5412, 0.2392, 1)

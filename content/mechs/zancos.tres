@@ -29,5 +29,6 @@ description = "Liviano y rápido: balas sin parar, pero se rompe fácil."
 armor = 8.0
 move_speed = 100.0
 weapon = SubResource("Weapon")
+frame = 1
 body_color = Color(0.3608, 0.4784, 0.5608, 1)
 accent_color = Color(0.4784, 0.8196, 1, 1)

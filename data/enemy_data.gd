@@ -15,7 +15,8 @@ extends Resource
 enum MoveStyle { CHASE, KEEP_DISTANCE, HOP, FLY, STAY, BURROW, PHASE, BOUNCE, PROWL }
 enum AttackKind { CHARGE, SHOOT, BEAM, EXPLODE, SUMMON, LOB, SLASH, GUST }
 enum VisualStyle { HORNED, EYE, LANTERN, SPORE, BLOCK, SLIME, BAT, FUSE, NEST, MOLE, WISP, SHIELD, MORTAR,
-		YARN, SHEARS, BURR, MOTH, BOULDER, CROW, WOLF, ICE, CLOUD, GALE, DETHRONED, AVALANCHE, GHOST }
+		YARN, SHEARS, BURR, MOTH, BOULDER, CROW, WOLF, ICE, CLOUD, GALE, DETHRONED, AVALANCHE, GHOST, VETERAN,
+		SPIKED_SLIME, TREE, ANVIL, SWORD, AXE, KNIFE, FORGE_HEART }
 
 @export var id: StringName = &""
 @export var display_name: String = ""
@@ -87,6 +88,8 @@ enum VisualStyle { HORNED, EYE, LANTERN, SPORE, BLOCK, SLIME, BAT, FUSE, NEST, M
 @export var split_count: int = 2
 ## Balas que suelta al morir (un anillo con `count` balas), como un témpano que se parte.
 @export var death_pattern: BulletPatternData
+## Lo que suelta seguro al morir (los minijefes: corazones, bombas, llaves, monedas).
+@export var drops: Array[PickupData] = []
 
 @export_group("Escudo")
 ## Ancho del escudo frontal, en grados (0 = sin escudo). Mientras camina o avisa frena las balas y los
@@ -103,6 +106,9 @@ enum VisualStyle { HORNED, EYE, LANTERN, SPORE, BLOCK, SLIME, BAT, FUSE, NEST, M
 ## Si tiene fases es un jefe: barra de vida propia y comportamiento que cambia según la vida. Los
 ## campos de Movimiento y Ataque de este recurso se ignoran; se usan los de cada fase.
 @export var phases: Array[BossPhase] = []
+## Minijefe: pelea como un jefe (barra, cartel, fases y movimientos) pero en una sala propia del piso
+## (RoomSlot.Kind.MINIBOSS), con la música del piso; no abre la salida ni cuenta como jefe vencido.
+@export var miniboss: bool = false
 
 @export_group("Visual placeholder")
 @export var visual_style: VisualStyle = VisualStyle.HORNED

@@ -151,10 +151,11 @@ func _check_first_floor(first: FloorTheme) -> void:
 			assert_gt(grid.enemies.size(), 0, "%s: las salas normales tienen enemigos" % template.id)
 		elif template.kind == RoomSlot.Kind.CHALLENGE:
 			assert_eq(grid.wave_count(), 2, "%s: la Prueba tiene dos oleadas" % template.id)
-		elif template.kind != RoomSlot.Kind.BOSS:
+		elif template.kind != RoomSlot.Kind.BOSS and template.kind != RoomSlot.Kind.MINIBOSS:
 			assert_eq(grid.enemies.size(), 0, "%s: las salas especiales no tienen enemigos" % template.id)
 	for kind: int in RoomSlot.Kind.size():
-		assert_gt(by_kind.get(kind, 0), 0, "%s: hay plantillas de tipo %d" % [first.id, kind])
+		if kind != RoomSlot.Kind.MINIBOSS:
+			assert_gt(by_kind.get(kind, 0), 0, "%s: hay plantillas de tipo %d" % [first.id, kind])
 	assert_gte(by_kind.get(RoomSlot.Kind.NORMAL, 0), 10, "%s: al menos 10 salas normales" % first.id)
 	assert_eq(difficulties.size(), TemplatePicker.MAX_DIFFICULTY, "%s: salas normales de cada dificultad" % first.id)
 
@@ -303,12 +304,16 @@ func _check_chapter_floors(chapter: RunConfig) -> void:
 			assert_true(grid.is_valid(), "%s/%s: %s" % [theme.id, template.id, ", ".join(grid.errors)])
 			for marker: RoomGrid.EnemyMarker in grid.enemies:
 				assert_not_null(theme.enemy_for_symbol(marker.symbol), "%s/%s: enemigo %s" % [theme.id, template.id, marker.symbol])
-			if template.kind == RoomSlot.Kind.BOSS:
+			if template.kind == RoomSlot.Kind.BOSS or template.kind == RoomSlot.Kind.MINIBOSS:
 				assert_eq(grid.enemies.size(), 1, "%s/%s: un solo enemigo, el jefe" % [theme.id, template.id])
 				var boss: EnemyData = theme.enemy_for_symbol(grid.enemies[0].symbol)
 				assert_false(boss == null or boss.phases.is_empty(), "%s/%s: es un jefe con fases" % [theme.id, template.id])
+				if boss != null:
+					assert_eq(boss.miniboss, template.kind == RoomSlot.Kind.MINIBOSS, "%s/%s: jefe o minijefe" % [theme.id, template.id])
 		for kind: int in RoomSlot.Kind.size():
-			assert_true(kinds.has(kind), "%s tiene plantillas de tipo %d" % [theme.id, kind])
+			# El minijefe es opcional: solo lo tienen los pisos del capítulo 1 (lo controla otro test).
+			if kind != RoomSlot.Kind.MINIBOSS:
+				assert_true(kinds.has(kind), "%s tiene plantillas de tipo %d" % [theme.id, kind])
 	for i: int in range(1, chapter.floors.size()):
 		var previous: FloorTheme = chapter.floors[i - 1]
 		var current: FloorTheme = chapter.floors[i]
@@ -467,6 +472,10 @@ func _check_boss_attack(boss: EnemyData, attack: BossAttack) -> void:
 			assert_gt(attack.speed, 0.0, label)
 		BossAttack.Kind.CHARGES:
 			assert_gt(attack.speed, 0.0, label)
+		BossAttack.Kind.CHARGED_ORB:
+			assert_not_null(attack.pattern, "%s: con patrón (color de la bola)" % label)
+			assert_gt(attack.speed, 0.0, label)
+			assert_gt(attack.radius, 0.0, label)
 	if attack.kind != BossAttack.Kind.VOLLEY and attack.kind != BossAttack.Kind.SUMMON:
 		assert_gt(attack.warn_time, 0.3, "%s: cada golpe avisa" % label)
 
@@ -476,7 +485,7 @@ func _floor_bosses(chapter: RunConfig) -> Array[EnemyData]:
 	var result: Array[EnemyData] = []
 	for theme: FloorTheme in chapter.floors:
 		for enemy: EnemyData in theme.enemies:
-			if not enemy.phases.is_empty():
+			if not enemy.phases.is_empty() and not enemy.miniboss:
 				result.append(enemy)
 	return result
 
@@ -574,7 +583,7 @@ func test_each_floor_has_its_own_boss_and_enemy_letters_are_unique() -> void:
 		for enemy: EnemyData in theme.enemies:
 			assert_false(letters.has(enemy.template_char), "%s: letra %s repetida" % [theme.id, enemy.template_char])
 			letters[enemy.template_char] = true
-			if not enemy.phases.is_empty():
+			if not enemy.phases.is_empty() and not enemy.miniboss:
 				assert_false(bosses.has(enemy), "%s: el jefe %s ya está en otro piso" % [theme.id, enemy.id])
 				bosses[enemy] = true
 	assert_eq(bosses.size(), _all_floors().size(), "un jefe distinto por piso")

@@ -5,7 +5,11 @@ estructura de los roguelites de salas + bullet hell, con contenido 100 % origina
 [docs/LORE.md](docs/LORE.md).
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 23 terminado (pedidos del usuario tras probar): arreglado el cuelgue al subir a un
+**Estado:** Hito 24 terminado: cada armazón con su chasis (`MechData.frame`: pesado, zancudo,
+humanoide), un minijefe por piso en el capítulo 1 (Carnero veterano, Grasa erizada, Pehuén y
+Bigornia, en su sala `MINIBOSS`, que sueltan consumibles), el Altar que cobra el contenedor del
+corazón y la fase de fuego del Yunque (se le rompe la coraza, bola de fuego gigante, lava del piso y
+fueguitos). Antes: hito 23 (pedidos tras probar): arreglado el cuelgue al subir a un
 armazón (el editor le había borrado el ícono al arma; ahora un ícono vacío no traba nada), rueda de
 armas (mantener Tab) y teclas 1 a 9, el Tijerón con corte en el aire y clavada con rayos, los
 Poltergeist (común y rojo) que abren ojos en el borde de la sala, corazones en filas y un resumen que
@@ -270,7 +274,11 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
 - Trampas: un `.tres` por trampa en `content/traps/` (`TrapData`), cada una en un `FloorTheme.trap`
   (lo exige un test, con un aspecto distinto por piso).
 - Armazones (mechas): un `.tres` por armazón en `content/mechs/` (`MechData`, con su `WeaponData`
-  adentro como sub-recurso, munición infinita) y en `run_config.mechs` (lo exige un test).
+  adentro como sub-recurso, munición infinita) y en `run_config.mechs` (lo exige un test), cada uno con
+  un `frame` (chasis) distinto, que es lo que cambia el dibujo en `MechDrawing`.
+- Minijefes: un `EnemyData` con `phases`, `miniboss = true` y `drops` (lo que suelta), en la lista
+  `enemies` de su piso y con una plantilla `MINIBOSS` en la carpeta del piso (una por piso del
+  capítulo 1; los tests de jefes los dejan afuera de "el jefe de cada piso").
 - Jefes: un `EnemyData` con `phases`; cada `BossPhase` tiene su `behavior` (cómo camina, cada cuánto
   ataca) y al menos dos `attacks` (`BossAttack`, sub-recursos del mismo `.tres`). Un test exige que
   cada jefe tenga un tipo de movimiento que ningún otro de su capítulo use (y los del capítulo 2, uno
@@ -348,9 +356,11 @@ content/                    weapons/ (pistola, trabuco, metralla, haz, órbita, 
                             (→ grasita → gotita), mecha, murcielago, nido (→ cria), topo, hollin, escudero,
                             fogonero; del monte: ovillo, tijereta, abrojo, polilla, pedrusco, cuervo, lobo,
                             tempano, nubarron, soplo; jefes campanario, rey_carnero, raigon, yunque,
-                            tijeron, rey_destronado, alud y cierzo, con sus movimientos adentro),
-                            patterns/ (47), sfx/sfx_library, rooms/floor_1/ (24), floor_2/ (10),
-                            floor_3/ (10), floor_4/ (11), monte_1/ (14), monte_2..4/ (8 cada uno),
+                            tijeron, rey_destronado, alud y cierzo, con sus movimientos adentro;
+                            minijefes carnero_veterano, grasa_erizada, pehuen y bigornia; invocaciones
+                            espada_voladora, hacha_voladora, cuchillo_volador y fueguito),
+                            patterns/ (61), sfx/sfx_library, rooms/floor_1/ (25), floor_2/ (11),
+                            floor_3/ (11), floor_4/ (12), monte_1/ (14), monte_2..4/ (8 cada uno),
                             mechs/ (caldera, zancos, fuelle),
                             floors/ (Sótano, Cloacas, Raíces, Forja; monte_1..4: Esquiladero, Cantera,
                             Ventisquero, Cumbre), run/ (run_config = capítulo 1, chapter_2), rules/ (furia,
@@ -368,8 +378,8 @@ entities/player/            player.tscn/.gd, player_visual.gd, states/ (move, ro
 entities/enemies/           enemy.tscn/.gd, enemy_visual.gd, states/ (idle, move, telegraph, attack, recover,
                             boss_attack), enemy_blast.gd (explosiones), lob_shell.tscn/.gd (bola en arco o
                             bomba con mecha), boss_strike.tscn/.gd (golpe de jefe avisado), rolling_ball
-                            .tscn/.gd (bola de nieve), boss/ (BossMove y una subclase por tipo de movimiento,
-                            BossMoves elige cuál)
+                            .tscn/.gd (bola de nieve), charged_orb.tscn/.gd (la bola de fuego que se junta),
+                            boss/ (BossMove y una subclase por tipo de movimiento, BossMoves elige cuál)
 entities/bullets/           bullet.tscn/.gd (rebote, perforación, teledirigido, explosivas), grenade.tscn/.gd,
                             player_blast.gd (explosiones de armas del jugador)
 entities/pickups/           pickup.tscn/.gd, pickup_visual.gd, item_pedestal.tscn/.gd, item_pedestal_visual.gd,
@@ -413,7 +423,7 @@ tests/unit/                 rng_streams, shot_spec, health_math, pattern_math, i
 tests/integration/          player_shooting, bullets, combat, main_flow, floor, rooms, items,
                             bullet_behaviors, weapons, boss, meta_flow, feedback, inventory, enemy_kinds,
                             weapons_statuses, music, save_slots_flow, special_rooms, traps, mechs,
-                            boss_attacks, pathing, run_resume, chapters, mountain, scenery, hito23
+                            boss_attacks, pathing, run_resume, chapters, mountain, scenery, hito23, hito24
 tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria, la música apagada y GameRNG con una seed fija
 docs/PLAN.md                plan, arquitectura e hitos
 docs/LORE.md                la historia y dónde está cada texto en el juego
@@ -478,7 +488,13 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   del pool jefe que cuestan un corazón cada uno, `ItemPedestal.health_price` con
   `HealthComponent.spend`, que nunca mata; al llevarse uno el otro desaparece), WELL (`Well`, Pozo de
   brasas: si falta vida o Pulsos, cura todo y devuelve los Pulsos, una vez) y HANGAR (Galpón: un
-  armazón parado, sorteado de `RunConfig.mechs` con el stream LOOT en `RoomSlot.mech`).
+  armazón parado, sorteado de `RunConfig.mechs` con el stream LOOT en `RoomSlot.mech`) y MINIBOSS
+  (minijefe: `FloorController._params` la suma siempre que el piso tenga una plantilla de ese tipo,
+  `FloorTheme.has_miniboss`; se pelea como una sala normal y el minijefe suelta sus `drops`, que la
+  sala reparte en lugares libres con `Room._spawn_drops`). Un minijefe (`EnemyData.miniboss`) avisa
+  `boss_spawned`/`boss_defeated` (barra y cartel) pero `Game` no cambia la música y `RunState` no lo
+  cuenta como jefe vencido. El Altar cobra vida máxima: `RunState.sacrifice_health` (nunca deja menos
+  de `MIN_MAX_HEALTH`) suma a `sacrificed_health`, que `_recompute_stats` resta del máximo.
 - **Armazones (mechas):** `MechData` (blindaje, velocidad, su arma, colores). Parado es un
   `ParkedMech` (Area2D en la capa pickup): tocarlo llama `Player.board(data, blindaje)`; recién
   bajado espera `REBOARD_DELAY` y a que el jugador se aleje. Arriba: `Player.mech` no es null, el
@@ -489,7 +505,8 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   después rueda. Sin blindaje revienta (`_on_mech_destroyed`: lastima a los enemigos cerca, el jugador
   queda a pie e invulnerable `MECH_BREAK_IFRAMES`). `Player.mech_changed` avisa al HUD (barra
   `MechDisplay`, cartel con el nombre y el arma abajo a la derecha). `PlayerVisual.set_mech` lo dibuja
-  con `MechDrawing` (la chispa en la cabina). Se lleva entre salas y pisos; uno parado se pierde al
+  con `MechDrawing` según su `MechData.frame` (HEAVY: visera en el pecho y chimeneas; WALKER: patas
+  de ave y el piloto arriba; STANDARD: cabina redonda y fuelle) con la chispa como piloto. Se lleva entre salas y pisos; uno parado se pierde al
   bajar de piso.
 - **Trampas:** `TrapData` (`content/traps/`), una por piso en `FloorTheme.trap`; `RoomBuilder.build_traps`
   pone una `Trap` en cada `^` de la plantilla (nodo `Traps` de la sala). Etapas REST → WARN (se ve
@@ -644,7 +661,8 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   dispara ráfagas re-apuntando; direcciones con `PatternMath`.
 - **Jefes:** un `EnemyData` con `phases` (`BossPhase`: umbral de vida + un EnemyData de comportamiento
   + sus movimientos `attacks`). Al bajar de cada umbral (`PhaseMath`) cambia `behavior`, destella y
-  hace una pausa. Avisan `EventBus.boss_spawned` / `boss_defeated` (barra de vida en el HUD). Al morir
+  hace una pausa; con `BossPhase.new_look` además cambia el dibujo (`EnemyVisual.change_look`, con una
+  lluvia de pedazos: al Yunque se le rompe la coraza y queda FORGE_HEART). Avisan `EventBus.boss_spawned` / `boss_defeated` (barra de vida en el HUD). Al morir
   borran sus balas, sus bombas y sus golpes avisados; la sala del jefe da su item (pool jefe) y un
   corazón.
 - **Movimientos de jefe (`BossAttack`):** en Move, cuando le toca atacar, un jefe con movimientos pasa
@@ -665,7 +683,9 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   la sala, crece, rompe rocas y se deshace), ICE_CAGE (ronda de carámbanos que quedan clavados con un
   hueco hacia el medio de la sala y uno enorme en el centro) y GUST (viento por toda la sala, de a ejes,
   mientras tira granizo), HANGING_CUT (un tajo que queda en el aire lastimando y suelta balas desde el
-  corte) y DIVE (`LeapMove` que cae clavándose y saca rayos en estrella, uno al jugador). DEBRIS usa `BossAttack.look` (piedras, carámbanos, rayos). Los golpes avisados son `BossStrike` (círculo o tajo; avisa
+  corte), DIVE (`LeapMove` que cae clavándose y saca rayos en estrella, uno al jugador) y CHARGED_ORB
+  (junta una `ChargedOrb` arriba de la cabeza y la tira como una bala enorme y lenta). DEBRIS usa
+  `BossAttack.look` (piedras, carámbanos, rayos, piñas) y MOLTEN con `look` LAVA hace brotar lava. Los golpes avisados son `BossStrike` (círculo o tajo; avisa
   `warn_time`, pega una vez y, con `linger`, queda lastimando). En el aire o escondido el jefe está
   `airborne` (`Enemy.set_airborne`: sin cuerpo, sin hurtbox, sin contacto; `EnemyVisual.set_lift`
   lo dibuja arriba de su sombra). Nunca cae en una roca o un foso (`Enemy.landing_spot`). `Game` junta
@@ -738,7 +758,7 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   "Jefes" (que el jefe vivo haga ya ese movimiento: `FloorController.force_boss_attack`),
   siguiente piso (o ganar), curar, invulnerable, Pulsos, +5 recursos, cargar activo, morir, "Items"
   (un pedestal gratis con cualquier item del catálogo, arriba del jugador), "Mechas" (un armazón
-  parado arriba del jugador), ir a la Prueba, el Altar, el Pozo o el Galpón y "Progreso" (+100
+  parado arriba del jugador), ir a la Prueba, el Altar, el Pozo, el Galpón o el minijefe y "Progreso" (+100
   chispas, desbloquear todo, borrar progreso; andan también en los menús).
 - **Coordenadas de una sala:** origen en el centro del interior; interior 240x144 (15x9 tiles de 16 px),
   paredes de 16 px. La celda (i, j) tiene centro en `(-112 + 16i, -64 + 16j)` (`RoomGrid.cell_center`).

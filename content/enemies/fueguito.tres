@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="2_pattern_script"]
+[ext_resource type="Resource" path="res://content/patterns/fueguito_bola.tres" id="p0"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"fueguito"
+display_name = "Fueguito"
+max_health = 6.0
+spawn_delay = 0.6
+move_style = 3
+move_speed = 30.0
+attack_kind = 1
+attack_range = 220.0
+attack_cooldown = 2.0
+telegraph_time = 0.5
+recover_time = 0.5
+body_radius = 4.0
+hurtbox_radius = 6.0
+visual_style = 10
+visual_radius = 5.0
+body_color = Color(1, 0.5412, 0.2392, 1)
+patterns = Array[ExtResource("2_pattern_script")]([ExtResource("p0")])

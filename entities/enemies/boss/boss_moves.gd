@@ -40,6 +40,8 @@ static func create(owner_enemy: Enemy, data: BossAttack) -> BossMove:
 			move = HangingCutMove.new()
 		BossAttack.Kind.DIVE:
 			move = DiveMove.new()
+		BossAttack.Kind.CHARGED_ORB:
+			move = ChargedOrbMove.new()
 		_:
 			move = VolleyMove.new()
 	move.enemy = owner_enemy

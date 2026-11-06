@@ -1,0 +1,137 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://data/boss_phase.gd" id="3_phase"]
+[ext_resource type="Script" path="res://data/boss_attack.gd" id="4_attack"]
+[ext_resource type="Resource" path="res://content/patterns/pehuen_hojas.tres" id="x0"]
+[ext_resource type="Resource" path="res://content/patterns/pehuen_pinones.tres" id="x1"]
+[ext_resource type="Resource" path="res://content/patterns/pehuen_abanico.tres" id="x2"]
+[ext_resource type="Script" path="res://data/pickup_data.gd" id="5_pickup"]
+[ext_resource type="Resource" path="res://content/pickups/heart.tres" id="p_heart"]
+[ext_resource type="Resource" path="res://content/pickups/key.tres" id="p_key"]
+
+[sub_resource type="Resource" id="Behavior_0"]
+script = ExtResource("1_enemy")
+id = &"pehuen_fase_1"
+move_style = 0
+move_speed = 18.0
+acceleration = 400.0
+attack_range = 300.0
+attack_cooldown = 1.4
+recover_time = 0.7
+
+[sub_resource type="Resource" id="Attack_raices"]
+script = ExtResource("4_attack")
+id = &"raices"
+display_name = "Raíces"
+kind = 8
+windup = 0.6
+recover = 0.8
+count = 3
+interval = 0.12
+warn_time = 0.55
+radius = 9.0
+spread = 40.0
+look = 1
+
+[sub_resource type="Resource" id="Attack_hojas"]
+script = ExtResource("4_attack")
+id = &"hojas"
+display_name = "Hojas cortantes"
+kind = 0
+windup = 0.55
+recover = 0.7
+pattern = ExtResource("x0")
+
+[sub_resource type="Resource" id="Attack_pinas"]
+script = ExtResource("4_attack")
+id = &"pinas"
+display_name = "Lluvia de piñas"
+kind = 1
+windup = 0.6
+recover = 0.8
+count = 4
+interval = 0.3
+warn_time = 0.9
+radius = 12.0
+spread = 45.0
+look = 8
+pattern = ExtResource("x1")
+
+[sub_resource type="Resource" id="Phase_0"]
+script = ExtResource("3_phase")
+health_fraction = 1.0
+behavior = SubResource("Behavior_0")
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_raices"), SubResource("Attack_hojas"), SubResource("Attack_pinas")])
+
+[sub_resource type="Resource" id="Behavior_1"]
+script = ExtResource("1_enemy")
+id = &"pehuen_fase_2"
+move_style = 0
+move_speed = 22.0
+acceleration = 400.0
+attack_range = 300.0
+attack_cooldown = 1.1
+recover_time = 0.6
+
+[sub_resource type="Resource" id="Attack_raices_5"]
+script = ExtResource("4_attack")
+id = &"raices_5"
+display_name = "Raíces por todos lados"
+kind = 8
+windup = 0.55
+recover = 0.8
+count = 5
+interval = 0.1
+warn_time = 0.5
+radius = 9.0
+aim_at_player = false
+look = 1
+
+[sub_resource type="Resource" id="Attack_hojas_abanico"]
+script = ExtResource("4_attack")
+id = &"hojas_abanico"
+display_name = "Ventarrón de hojas"
+kind = 0
+windup = 0.5
+recover = 0.7
+pattern = ExtResource("x2")
+
+[sub_resource type="Resource" id="Attack_pinas_6"]
+script = ExtResource("4_attack")
+id = &"pinas_6"
+display_name = "Lluvia de piñas"
+kind = 1
+windup = 0.55
+recover = 0.8
+count = 6
+interval = 0.25
+warn_time = 0.85
+radius = 12.0
+spread = 55.0
+look = 8
+pattern = ExtResource("x1")
+
+[sub_resource type="Resource" id="Phase_1"]
+script = ExtResource("3_phase")
+health_fraction = 0.5
+behavior = SubResource("Behavior_1")
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_raices_5"), SubResource("Attack_hojas_abanico"), SubResource("Attack_pinas_6")])
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"pehuen"
+display_name = "Pehuén"
+epithet = "Minijefe · el árbol que camina"
+template_char = "J"
+max_health = 75.0
+miniboss = true
+spawn_delay = 1.2
+knockback_resistance = 0.85
+body_radius = 10.0
+hurtbox_radius = 13.0
+visual_style = 28
+visual_radius = 12.0
+body_color = Color(0.4784, 0.3216, 0.2, 1)
+phases = Array[ExtResource("3_phase")]([SubResource("Phase_0"), SubResource("Phase_1")])
+drops = Array[ExtResource("5_pickup")]([ExtResource("p_heart"), ExtResource("p_key")])

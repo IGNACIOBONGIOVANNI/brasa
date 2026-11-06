@@ -10,5 +10,6 @@ var room_count_max: int = 10
 var min_boss_distance: int = 3
 ## Chance de no abrir una rama: más alta = pisos más finos y ramificados.
 var branch_skip_chance: float = 0.5
-## Salas especiales de más (Prueba, Altar, Pozo): cada una suma una sala y va en un callejón.
+## Salas especiales de más (Prueba, Altar, Pozo, Galpón, minijefe): cada una suma una sala y va en un
+## callejón.
 var extra_rooms: Array[RoomSlot.Kind] = []

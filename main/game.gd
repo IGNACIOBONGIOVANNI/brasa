@@ -192,15 +192,22 @@ func _refresh_light(fade: float) -> void:
 	_light_tween.tween_property(_ambient, ^"color", light, fade)
 
 
-func _on_boss_spawned(_boss: Node2D) -> void:
-	AudioManager.play_music(floor_controller.theme.boss_music)
+func _on_boss_spawned(boss: Node2D) -> void:
+	if not _is_miniboss(boss):
+		AudioManager.play_music(floor_controller.theme.boss_music)
 
 
 ## Al morir el jefe también vuelve la luz (si la había apagado).
-func _on_boss_defeated(_boss: Node2D) -> void:
-	AudioManager.play_music(floor_controller.theme.music)
+func _on_boss_defeated(boss: Node2D) -> void:
+	if not _is_miniboss(boss):
+		AudioManager.play_music(floor_controller.theme.music)
 	_boss_darkness = 0.0
 	_refresh_light(0.3)
+
+
+static func _is_miniboss(boss: Node2D) -> bool:
+	var data := boss.get(&"data") as EnemyData
+	return data != null and data.miniboss
 
 
 func _on_player_died() -> void:
