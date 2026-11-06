@@ -6,6 +6,7 @@
 script = ExtResource("1_weapon")
 id = &"haz"
 display_name = "Haz"
+description = "Un rayo continuo que atraviesa a todos los enemigos. Lo cortan las paredes y las rocas."
 fire_mode = 3
 damage_mult = 1.6
 range_mult = 1.2

@@ -921,3 +921,25 @@ cercas, etc.; pensá muchas opciones, mejor si está relacionado al nivel".
   cuatro salas de minijefe y la fase de fuego del Yunque. Los minijefes tienen entre 55 y 80 de vida
   (menos de la mitad que el jefe de su piso) y dos fases.
   - **Fueguitos**: invoca dos llamitas que flotan y le tiran bolas de fuego (hasta tres vivas).
+
+## Hito 25 — descripciones en el pedestal y símbolos de las salas (2026-11-05)
+
+- **Cada arma tiene su descripción** (`WeaponData.description`, una o dos líneas: qué hace y cómo se
+  usa), también la pistola y las armas de los armazones. Los items de arma ya no repiten la suya: toman
+  la de su arma (`ItemData.describe`), así hay un solo texto por arma.
+- **Cartel del pedestal** (`PedestalInfo`, en el HUD): se acerca uno a menos de 44 px de un pedestal y,
+  si no queda ningún enemigo vivo, sale el nombre con la calidad (de su color), qué es (arma, pasivo o
+  activo con sus salas de carga), lo que cuesta (monedas, o el corazón de vida máxima en el Altar) y la
+  descripción. Con varios cerca (la tienda) muestra el más cercano. Vale para todos los items, no solo
+  las armas: es la misma pregunta ("¿qué hace esto?") y así nada queda sin explicar.
+- **Dónde va el cartel:** abajo en el medio; si el jugador está en la mitad de abajo de la pantalla,
+  sube (para no taparlo), y mientras está arriba el cartel del piso o del item agarrado espera
+  escondido.
+- **La Mochila** muestra para las armas la misma descripción (antes armaba un texto aparte según el modo
+  de disparo); abajo siguen el daño con los stats actuales, la chance de estados y la munición.
+- **Símbolos de las salas especiales** (`PixelIcons.room_symbol`, 5 x 5): calavera el jefe, corona el
+  tesoro, signo de pesos la tienda, signo de pregunta la secreta, dos espadas cruzadas la Prueba,
+  corazón el Altar, gota el Pozo, tuerca el Galpón y calavera con cuernos el minijefe. Están en el
+  minimapa (del color de siempre, con borde) y en el hueco de la puerta que lleva a esa sala, siempre
+  derechos aunque la puerta esté rotada (no en la puerta oculta de la secreta ni con candado, que ya
+  tiene el suyo). Para que entren, las salas del minimapa pasaron de 7 x 5 a 9 x 7 píxeles.

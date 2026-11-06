@@ -7,6 +7,7 @@
 script = ExtResource("2_weapon")
 id = &"mech_fuelle"
 display_name = "Lanzallamas de fuelle"
+description = "Llamaradas de corto alcance que prenden fuego."
 fire_mode = 1
 projectiles = 3
 spread_degrees = 26.0

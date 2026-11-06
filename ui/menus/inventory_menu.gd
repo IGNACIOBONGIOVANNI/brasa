@@ -185,6 +185,10 @@ func detail_kind() -> String:
 	return _detail_kind.text
 
 
+func detail_text() -> String:
+	return _detail_text.text
+
+
 ## Una línea con los stats que importan (los raros solo si tienen algo).
 static func stats_text(stats: StatBlock) -> String:
 	var parts: PackedStringArray = [
@@ -204,38 +208,14 @@ static func stats_text(stats: StatBlock) -> String:
 	return " · ".join(parts)
 
 
-## Cómo funciona un arma, en una línea (más sus estados, si tiene).
-static func weapon_mode_text(data: WeaponData) -> String:
-	var text: String = _mode_text(data)
+## Los estados que puede aplicar un arma ("Chance de fuego 50 %"), o "" si no tiene.
+static func weapon_status_text(data: WeaponData) -> String:
 	var statuses: PackedStringArray = []
 	for stat: StringName in CHANCE_STATS:
 		var chance: float = data.get(stat)
 		if chance > 0.0:
 			statuses.append("%s %d %%" % [STAT_LABELS[stat].to_lower(), roundi(chance * 100.0)])
-	if not statuses.is_empty():
-		text += " Chance de " + ", ".join(statuses) + "."
-	return text
-
-
-static func _mode_text(data: WeaponData) -> String:
-	match data.fire_mode:
-		WeaponData.FireMode.GRENADE:
-			return "Granadas que vuelan por arriba y explotan donde caen (con el mouse, donde apuntás)."
-		WeaponData.FireMode.RAIL:
-			return "Mantené el gatillo para cargarlo y soltalo: el rayo atraviesa a todos. Rodar lo descarga."
-		WeaponData.FireMode.SPREAD:
-			return "Abanico de %d perdigones: pega más de cerca." % data.projectiles
-		WeaponData.FireMode.BURST:
-			return "Ráfagas de %d balas." % data.burst_count
-		WeaponData.FireMode.LASER:
-			return "Rayo continuo que atraviesa a todos los enemigos. Lo cortan paredes y rocas."
-		WeaponData.FireMode.ORBITAL:
-			return "%d orbes te rodean: frenan balas y lastiman al tocar. El gatillo los lanza y después vuelven." % data.projectiles
-	if data.blast_radius > 0.0:
-		return "Cohetes que explotan al chocar y lastiman todo alrededor."
-	if data.sight:
-		return "Con mira láser; cada tiro atraviesa %d enemigos." % data.pierce_bonus
-	return "Un tiro por vez."
+	return "Chance de " + ", ".join(statuses) if not statuses.is_empty() else ""
 
 
 ## Cuánto pega con los stats actuales, la cadencia y el alcance.
@@ -301,8 +281,12 @@ func _show_weapon(slot: WeaponSlot, equipped: bool, source: ItemData) -> void:
 		kind += " · calidad " + source.quality_name()
 	if equipped:
 		kind += " · en la mano"
-	_show_texts(slot.weapon.display_name, kind, weapon_mode_text(slot.weapon),
-			"%s\n%s" % [weapon_stats_text(slot.weapon, RunState.stats), ammo_text(slot)],
+	var extra: PackedStringArray = [weapon_stats_text(slot.weapon, RunState.stats)]
+	var statuses: String = weapon_status_text(slot.weapon)
+	if statuses != "":
+		extra.append(statuses)
+	extra.append(ammo_text(slot))
+	_show_texts(slot.weapon.display_name, kind, slot.weapon.description, "\n".join(extra),
 			source.quality_color() if source != null else MenuBuilder.TITLE_COLOR)
 
 
@@ -311,7 +295,7 @@ func _show_item(item: ItemData) -> void:
 	kind += " · calidad " + item.quality_name()
 	if item.kind == ItemData.Kind.ACTIVE:
 		kind += " · carga %d/%d" % [mini(RunState.active_charge, item.max_charge), item.max_charge]
-	_show_texts(item.display_name, kind, item.description, modifiers_text(item), item.quality_color())
+	_show_texts(item.display_name, kind, item.describe(), modifiers_text(item), item.quality_color())
 
 
 func _show_texts(title: String, kind: String, text: String, extra: String,

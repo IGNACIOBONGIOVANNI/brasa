@@ -84,7 +84,7 @@ func _row(item: ItemData) -> Control:
 	var text := VBoxContainer.new()
 	text.add_theme_constant_override(&"separation", 0)
 	text.add_child(MenuBuilder.paragraph(item.display_name, NAME_WIDTH))
-	text.add_child(MenuBuilder.paragraph(item.description, NAME_WIDTH, MenuBuilder.MUTED_COLOR))
+	text.add_child(MenuBuilder.paragraph(item.describe(), NAME_WIDTH, MenuBuilder.MUTED_COLOR))
 	row.add_child(text)
 	var bought: bool = SaveManager.profile.is_item_available(item)
 	var button: Button = MenuBuilder.button("Comprado" if bought else MenuBuilder.sparks_text(item.unlock_cost),

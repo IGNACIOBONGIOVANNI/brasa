@@ -5,7 +5,8 @@ extends CanvasLayer
 ## items pasivos a la izquierda y el arma con su munición a la derecha. El cartel (item agarrado,
 ## piso nuevo, jefe que aparece o regla de la sala), la regla mientras dura el combate, la barra del
 ## jefe, los bordes rojos de peligro (golpe y vida baja) y, arriba de un armazón, su blindaje (y su
-## arma abajo a la derecha).
+## arma abajo a la derecha). Fuera de combate, cerca de un pedestal, abajo en el medio sale lo que
+## tiene: nombre, qué es, precio y descripción (PedestalInfo).
 
 ## Con esta vida o menos (en medios corazones) suena el latido.
 const LOW_HEALTH: float = 2.0
@@ -27,11 +28,20 @@ var _last_health: float = -1.0
 @onready var _danger: DangerOverlay = $Danger
 @onready var _rule: RuleDisplay = $Rule
 @onready var _mech: MechDisplay = $Mech
+## Dónde va el cartel del pedestal (abajo en el medio, sobre la pared de abajo).
+const PEDESTAL_INFO_RECT: Rect2 = Rect2(72, 96, 176, 68)
+
 ## La rueda de armas (se arma acá: va arriba de todo lo del HUD).
 var weapon_wheel: WeaponWheel
+## El cartel con lo que tiene el pedestal más cercano.
+var pedestal_info: PedestalInfo
 
 
 func _ready() -> void:
+	pedestal_info = PedestalInfo.new()
+	pedestal_info.position = PEDESTAL_INFO_RECT.position
+	pedestal_info.size = PEDESTAL_INFO_RECT.size
+	add_child(pedestal_info)
 	weapon_wheel = WeaponWheel.new()
 	weapon_wheel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(weapon_wheel)
@@ -39,6 +49,7 @@ func _ready() -> void:
 
 func bind_player(player: Player) -> void:
 	_player = player
+	pedestal_info.player = player
 	player.weapon_wheel_requested.connect(weapon_wheel.open)
 	player.mech_changed.connect(_on_mech_changed)
 	player.mech_armor.health_changed.connect(_mech.set_armor)
@@ -69,6 +80,8 @@ func bind_floor(floor_controller: FloorController) -> void:
 
 
 func _process(_delta: float) -> void:
+	# Con el cartel del pedestal arriba, el otro cartel (piso, item agarrado) espera escondido.
+	_banner.visible = not (pedestal_info.visible and pedestal_info.is_at_top())
 	if _rule.visible and _floor != null and _floor.current_room() != null:
 		_rule.set_time_left(_floor.current_room().rule_time_left())
 

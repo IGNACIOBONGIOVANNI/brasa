@@ -246,6 +246,10 @@ avanzan por el piso, zarpazos en la oscuridad, mira láser que obliga a rodar, m
 barre) y la dificultad sube de un jefe al otro. Los enemigos que caminan rodean rocas y fosos, y los
 que embisten ya no se quedan embistiendo contra un foso o una pared.
 
+**Hito 25 — Descripciones y símbolos** (pedido del usuario): cada arma con una descripción corta que
+aparece en un cartel al acercarse a un pedestal fuera de combate (también para los demás items) y en
+la Mochila, y un símbolo propio para cada sala especial en el minimapa y en su puerta.
+
 **Hito 24 — Armazones nuevos, minijefes y el Yunque de fuego** (pedido del usuario): cada armazón con
 su propio chasis (pesado con chimeneas, zancudo de patas de ave con el piloto a la vista, humanoide con
 un fuelle en la espalda), un minijefe por piso en el capítulo 1 (Carnero veterano, Grasa erizada,

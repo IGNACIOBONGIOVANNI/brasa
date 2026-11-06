@@ -2,11 +2,15 @@
 class_name Minimap
 extends Control
 ## Minimapa: solo las salas conocidas, en un recuadro pegado arriba a la derecha del control.
-## Sala actual en blanco, visitadas en gris claro, conocidas en gris oscuro, y un punto de color en
-## las salas especiales.
+## Sala actual en blanco, visitadas en gris claro, conocidas en gris oscuro, y en las salas especiales
+## su símbolo (PixelIcons.room_symbol) de su color: calavera el jefe, corona el tesoro, pesos la
+## tienda, pregunta la secreta, espadas la Prueba, corazón el Altar, gota el Pozo, tuerca el Galpón y
+## calavera con cuernos el minijefe.
 
-const CELL: Vector2 = Vector2(7, 5)
-const PITCH: Vector2 = Vector2(8, 6)
+## Una sala: entra un símbolo de 5 x 5 con su borde.
+const CELL: Vector2 = Vector2(9, 7)
+const PITCH: Vector2 = Vector2(10, 8)
+const SYMBOL_OUTLINE: Color = Color("120c16")
 const PADDING: float = 2.0
 const BACKGROUND: Color = Color(0.03, 0.02, 0.05, 0.55)
 const STATE_COLORS: Dictionary[MinimapModel.CellState, Color] = {
@@ -55,5 +59,7 @@ func _draw() -> void:
 	for cell: Vector2i in shown:
 		var top_left: Vector2 = origin + Vector2.ONE * PADDING + Vector2(cell - min_cell) * PITCH
 		draw_rect(Rect2(top_left, CELL), STATE_COLORS[_states[cell]])
-		if ICON_COLORS.has(_kinds.get(cell, RoomSlot.Kind.NORMAL)):
-			draw_rect(Rect2(top_left + Vector2(2, 1), Vector2(3, 3)), ICON_COLORS[_kinds[cell]])
+		var kind: RoomSlot.Kind = _kinds.get(cell, RoomSlot.Kind.NORMAL)
+		if ICON_COLORS.has(kind):
+			PixelBitmap.paint_outlined(self, PixelIcons.room_symbol(kind), top_left + Vector2(2, 1), ICON_COLORS[kind],
+					SYMBOL_OUTLINE)

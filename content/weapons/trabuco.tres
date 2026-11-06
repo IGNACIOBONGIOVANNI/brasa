@@ -6,6 +6,7 @@
 script = ExtResource("1_weapon")
 id = &"trabuco"
 display_name = "Trabuco"
+description = "Escopeta de cinco perdigones: de cerca destroza. Recarga cada seis tiros."
 fire_mode = 1
 damage_mult = 0.8
 fire_rate_mult = 0.55

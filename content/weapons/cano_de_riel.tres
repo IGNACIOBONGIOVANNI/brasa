@@ -6,6 +6,7 @@
 script = ExtResource("1_weapon")
 id = &"cano_de_riel"
 display_name = "Caño de riel"
+description = "Mantené el gatillo para cargarlo y soltalo: el rayo atraviesa a todos. Rodar lo descarga."
 fire_mode = 6
 damage_mult = 5.0
 fire_rate_mult = 0.8

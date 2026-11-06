@@ -56,6 +56,9 @@ func setup(door_side: Vector2i, kind: RoomSlot.Kind, initial_mode: Mode, theme: 
 	visual.wall_color = theme.wall_color
 	visual.outline_color = theme.outline_color
 	visual.frame_color = FRAME_COLORS.get(kind, theme.wall_color.lightened(0.25))
+	visual.symbol = PixelIcons.room_symbol(kind)
+	visual.symbol_color = Minimap.ICON_COLORS.get(kind, Color.WHITE)
+	visual.symbol_rotation = -rotation
 
 
 func _ready() -> void:

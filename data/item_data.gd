@@ -23,7 +23,8 @@ const POOL_SECRET: int = 8
 
 @export var id: StringName = &""
 @export var display_name: String = ""
-## Una línea; se muestra al agarrarlo.
+## Una línea; se muestra en el pedestal, al agarrarlo y en la Mochila. Las armas la dejan vacía y
+## usan la de su WeaponData (ver describe).
 @export var description: String = ""
 @export var kind: Kind = Kind.PASSIVE
 @export var quality: Quality = Quality.C
@@ -64,6 +65,14 @@ func get_icon_color() -> Color:
 	if icon.is_empty() and weapon != null:
 		return weapon.icon_color
 	return icon_color
+
+
+## Lo que se cuenta del item (pedestal, cartel al agarrarlo, Mochila y Taller): las armas usan la
+## descripción de su WeaponData, así la pistola y las armas de los armazones también tienen.
+func describe() -> String:
+	if weapon != null and weapon.description != "":
+		return weapon.description
+	return description
 
 
 func quality_name() -> String:

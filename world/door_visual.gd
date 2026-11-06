@@ -4,13 +4,16 @@ extends Node2D
 ## Dibujo placeholder de una puerta, orientada como la de la pared de arriba (el interior de la sala
 ## queda hacia +y). Abierta: hueco oscuro con marco del color de la sala de al lado. Cerrada: además
 ## rejas. Oculta: igual que la pared, con un par de grietas apenas visibles. Con candado: rejas y
-## un candado dorado en el medio.
+## un candado dorado en el medio. Si lleva a una sala especial, en el hueco se ve su símbolo (el mismo
+## del minimapa), siempre derecho aunque la puerta esté rotada.
 
 const SIZE: Vector2 = Vector2(32, 16)
 const POST_WIDTH: float = 3.0
 const BAR_SPACING: float = 5.0
 const HOLE_COLOR: Color = Color("08060b")
 const LOCK_COLOR: Color = Color("f2c14e")
+## Dónde va el símbolo: en el hueco, del lado de afuera de la sala.
+const SYMBOL_CENTER: Vector2 = Vector2(0, -2)
 
 @export var mode: Door.Mode = Door.Mode.OPEN:
 	set(value):
@@ -29,6 +32,11 @@ const LOCK_COLOR: Color = Color("f2c14e")
 		outline_color = value
 		queue_redraw()
 
+## Símbolo de la sala del otro lado (vacío = ninguno), su color y el giro que lo deja derecho.
+var symbol: PackedStringArray = PackedStringArray()
+var symbol_color: Color = Color.WHITE
+var symbol_rotation: float = 0.0
+
 
 func _draw() -> void:
 	var rect := Rect2(-SIZE * 0.5, SIZE)
@@ -36,6 +44,10 @@ func _draw() -> void:
 		_draw_hidden(rect)
 		return
 	draw_rect(rect, HOLE_COLOR)
+	if not symbol.is_empty() and mode != Door.Mode.LOCKED:
+		draw_set_transform(SYMBOL_CENTER, symbol_rotation)
+		PixelBitmap.paint_outlined(self, symbol, -(PixelIcons.size_of(symbol) * 0.5).floor(), symbol_color, outline_color)
+		draw_set_transform(Vector2.ZERO)
 	if mode == Door.Mode.CLOSED or mode == Door.Mode.LOCKED:
 		var x: float = rect.position.x + POST_WIDTH + 2.0
 		while x < rect.end.x - POST_WIDTH - 1.0:

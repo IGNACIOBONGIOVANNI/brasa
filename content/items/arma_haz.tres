@@ -7,7 +7,6 @@
 script = ExtResource("1_item")
 id = &"arma_haz"
 display_name = "Haz"
-description = "Rayo que atraviesa enemigos; lo cortan las paredes"
 kind = 2
 quality = 3
 pools = 5

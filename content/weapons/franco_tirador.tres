@@ -6,6 +6,7 @@
 script = ExtResource("1_weapon")
 id = &"franco_tirador"
 display_name = "Franco tirador"
+description = "Tiros fortísimos con mira láser: cada uno atraviesa a dos enemigos."
 damage_mult = 3.8
 fire_rate_mult = 0.38
 range_mult = 2.2

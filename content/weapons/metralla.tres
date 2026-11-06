@@ -6,6 +6,7 @@
 script = ExtResource("1_weapon")
 id = &"metralla"
 display_name = "Metralla"
+description = "Ráfagas de tres balas seguidas. Buena contra los que se mueven mucho."
 fire_mode = 2
 damage_mult = 0.7
 fire_rate_mult = 0.75

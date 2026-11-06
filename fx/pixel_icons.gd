@@ -2,7 +2,27 @@ class_name PixelIcons
 extends RefCounted
 ## Íconos de píxeles escritos como texto ("#" = píxel) para dibujar con PixelBitmap: HUD, pickups y
 ## avisos. Todos miden 5 filas salvo el corazón (6) y el aviso (5 x 1). También las letras de las
-## calidades de los items (word("S++")).
+## calidades de los items (word("S++")) y el símbolo de cada sala especial (room_symbol: 5 x 5, en el
+## minimapa y en la puerta que lleva a ella).
+
+## Una calavera.
+const ROOM_BOSS: PackedStringArray = [".###.", "#####", "#.#.#", "#####", ".#.#."]
+## Una corona.
+const ROOM_TREASURE: PackedStringArray = ["#...#", "#.#.#", "#####", "#####", "....."]
+## Un signo de pesos.
+const ROOM_SHOP: PackedStringArray = [".###.", "#.#..", ".###.", "..#.#", ".###."]
+## Un signo de pregunta.
+const ROOM_SECRET: PackedStringArray = [".###.", "#...#", "..##.", ".....", "..#.."]
+## Dos espadas cruzadas.
+const ROOM_CHALLENGE: PackedStringArray = ["#...#", ".#.#.", "..#..", ".#.#.", "#...#"]
+## Un corazón.
+const ROOM_ALTAR: PackedStringArray = ["##.##", "#####", "#####", ".###.", "..#.."]
+## Una gota.
+const ROOM_WELL: PackedStringArray = ["..#..", ".###.", "#####", "#####", ".###."]
+## Una tuerca.
+const ROOM_HANGAR: PackedStringArray = [".#.#.", "#####", "##.##", "#####", ".#.#."]
+## Una calavera con cuernos.
+const ROOM_MINIBOSS: PackedStringArray = ["#...#", ".###.", "#.#.#", ".###.", ".#.#."]
 
 const HEART: PackedStringArray = [
 	".##.##.",
@@ -66,6 +86,30 @@ const QUALITY_GLYPHS: Dictionary[String, Array] = {
 	"S": ["###", "#..", "###", "..#", "###"],
 	"+": ["...", ".#.", "###", ".#.", "..."],
 }
+
+
+## El símbolo de una sala especial (vacío para las normales y el inicio).
+static func room_symbol(kind: RoomSlot.Kind) -> PackedStringArray:
+	match kind:
+		RoomSlot.Kind.BOSS:
+			return ROOM_BOSS
+		RoomSlot.Kind.TREASURE:
+			return ROOM_TREASURE
+		RoomSlot.Kind.SHOP:
+			return ROOM_SHOP
+		RoomSlot.Kind.SECRET:
+			return ROOM_SECRET
+		RoomSlot.Kind.CHALLENGE:
+			return ROOM_CHALLENGE
+		RoomSlot.Kind.ALTAR:
+			return ROOM_ALTAR
+		RoomSlot.Kind.WELL:
+			return ROOM_WELL
+		RoomSlot.Kind.HANGAR:
+			return ROOM_HANGAR
+		RoomSlot.Kind.MINIBOSS:
+			return ROOM_MINIBOSS
+	return PackedStringArray()
 
 
 ## Tamaño en píxeles de un ícono.

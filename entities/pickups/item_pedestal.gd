@@ -9,6 +9,7 @@ extends Area2D
 ## Se agarró el item (el Altar saca los otros pedestales).
 signal item_taken
 
+const GROUP: StringName = &"item_pedestals"
 const SPARKLE_SCENE: PackedScene = preload("res://fx/burst.tscn")
 const VANISH_SCENE: PackedScene = preload("res://fx/dust_puff.tscn")
 
@@ -37,6 +38,7 @@ func vanish() -> void:
 
 
 func _ready() -> void:
+	add_to_group(GROUP)
 	_refresh_visual()
 
 

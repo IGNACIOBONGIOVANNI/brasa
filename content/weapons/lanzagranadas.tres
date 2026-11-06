@@ -6,6 +6,7 @@
 script = ExtResource("1_weapon")
 id = &"lanzagranadas"
 display_name = "Lanzagranadas"
+description = "Granadas que vuelan por arriba y explotan donde apuntás. La mitad prende fuego."
 fire_mode = 5
 damage_mult = 2.2
 fire_rate_mult = 0.5

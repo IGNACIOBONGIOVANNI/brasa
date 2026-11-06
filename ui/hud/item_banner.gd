@@ -30,7 +30,7 @@ func _ready() -> void:
 
 ## El nombre lleva la calidad y sale de su color.
 func show_item(item: ItemData) -> void:
-	show_text("%s · %s" % [item.display_name, item.quality_name()], item.description, SHOW_TIME,
+	show_text("%s · %s" % [item.display_name, item.quality_name()], item.describe(), SHOW_TIME,
 			item.quality_color())
 
 

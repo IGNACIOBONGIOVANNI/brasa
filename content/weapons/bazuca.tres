@@ -6,6 +6,7 @@
 script = ExtResource("1_weapon")
 id = &"bazuca"
 display_name = "Bazuca"
+description = "Cohetes que explotan al chocar y lastiman todo alrededor. Uno por carga."
 damage_mult = 4.0
 fire_rate_mult = 0.35
 range_mult = 1.4

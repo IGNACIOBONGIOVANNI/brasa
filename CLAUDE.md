@@ -5,7 +5,10 @@ estructura de los roguelites de salas + bullet hell, con contenido 100 % origina
 [docs/LORE.md](docs/LORE.md).
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 24 terminado: cada armazón con su chasis (`MechData.frame`: pesado, zancudo,
+**Estado:** Hito 25 terminado: cada arma con su descripción (`WeaponData.description`; los items la
+toman con `ItemData.describe`), que sale en un cartel al acercarse a un pedestal fuera de combate
+(`PedestalInfo`, también para los demás items) y en la Mochila, y un símbolo para cada sala especial
+(`PixelIcons.room_symbol`) en el minimapa y en su puerta. Antes: hito 24: cada armazón con su chasis (`MechData.frame`: pesado, zancudo,
 humanoide), un minijefe por piso en el capítulo 1 (Carnero veterano, Grasa erizada, Pehuén y
 Bigornia, en su sala `MINIBOSS`, que sueltan consumibles), el Altar que cobra el contenedor del
 corazón y la fase de fuego del Yunque (se le rompe la coraza, bola de fuego gigante, lava del piso y
@@ -295,7 +298,8 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   `locked` tiene que tener `unlock_cost` (se vende en el Taller) o salir de un logro. Los efectos
   son `StatModifier` (stats de `StatBlock.STAT_NAMES`) y, si hace falta algo especial, un script en
   `items/hooks/` que extiende `ItemHook`. Los activos necesitan hook con `on_use` y `max_charge`.
-  Las armas son items de tipo WEAPON que apuntan a un `WeaponData` de `content/weapons/`.
+  Las armas son items de tipo WEAPON que apuntan a un `WeaponData` de `content/weapons/`; su
+  descripción va en el `WeaponData` (`description`) y el item la deja vacía (lo exige un test).
 - Personajes en `content/characters/` y logros en `content/achievements/`; los dos van en la lista
   de `content/meta/meta_config.tres` (lo exige un test). El primer personaje es el de por defecto.
   Cada personaje dice su `chapter` (el capítulo que juega), cómo esquiva (`dodge`) y cómo se dibuja
@@ -406,6 +410,7 @@ ui/menus/                   main_menu, intro_screen, chapter_select, character_s
                             menu_builder (arman la UI por código)
 ui/hud/                     hud.tscn/.gd, hearts_display, pulse_display, counters_display, active_display,
                             items_display, weapon_display, weapon_wheel (rueda de armas), item_banner,
+                            pedestal_info (cartel con lo que tiene el pedestal más cercano),
                             boss_bar, danger_overlay,
                             rule_display (la regla de la sala), mech_display (blindaje del armazón)
 ui/minimap/                 minimap.gd
@@ -423,7 +428,8 @@ tests/unit/                 rng_streams, shot_spec, health_math, pattern_math, i
 tests/integration/          player_shooting, bullets, combat, main_flow, floor, rooms, items,
                             bullet_behaviors, weapons, boss, meta_flow, feedback, inventory, enemy_kinds,
                             weapons_statuses, music, save_slots_flow, special_rooms, traps, mechs,
-                            boss_attacks, pathing, run_resume, chapters, mountain, scenery, hito23, hito24
+                            boss_attacks, pathing, run_resume, chapters, mountain, scenery, hito23, hito24,
+                            hito25
 tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria, la música apagada y GameRNG con una seed fija
 docs/PLAN.md                plan, arquitectura e hitos
 docs/LORE.md                la historia y dónde está cada texto en el juego
@@ -716,9 +722,13 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
 - **Opciones:** volumen general, de la música, pantalla completa, resolución y la última partida
   abierta, en `GameOptions` (`SaveManager.options`, archivo `options.json`): las mismas para todas las
   partidas. `SaveManager.apply_options()` las aplica al abrir las partidas y al cambiarlas.
-- **HUD:** `ui/hud` (CanvasLayer), dibujado con `PixelBitmap` + `PixelIcons`. Arriba (sobre la pared):
+- **HUD:** `ui/hud` (CanvasLayer), dibujado con `PixelBitmap` + `PixelIcons`. `PedestalInfo` (lo arma
+  `Hud` en código): fuera de combate (sin enemigos vivos) y a `REACH` o menos de un pedestal
+  (`ItemPedestal.GROUP`), muestra nombre, calidad, tipo, precio y `ItemData.describe()`; abajo en el
+  medio, o arriba si el jugador está en la mitad de abajo de la pantalla (y ahí esconde el `ItemBanner`). Arriba (sobre la pared):
   corazones, Pulsos, contadores y el activo con su carga; minimapa (`MinimapModel` → `Minimap`) arriba
-  a la derecha. Abajo: items pasivos a la izquierda, arma y munición a la derecha, y la barra del jefe
+  a la derecha, con el símbolo de cada sala especial (`PixelIcons.room_symbol`, que también se ve en
+  el hueco de la puerta que lleva a ella: `DoorVisual.symbol`). Abajo: items pasivos a la izquierda, arma y munición a la derecha, y la barra del jefe
   (`BossBar`). `ItemBanner` muestra el item agarrado o el piso que empieza (texto con la fuente por
   defecto, nítido porque el HUD está fuera del SubViewport del mundo).
 - **Render:** `Game` tiene `WorldView` (SubViewportContainer de 320x180) → `World` (SubViewport) con

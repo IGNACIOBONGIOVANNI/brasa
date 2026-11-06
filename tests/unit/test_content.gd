@@ -187,7 +187,9 @@ func test_items_are_valid() -> void:
 		assert_false(ids.has(item.id), "id repetido: %s" % item.id)
 		ids[item.id] = true
 		assert_ne(item.display_name, "", "%s tiene nombre" % item.id)
-		assert_ne(item.description, "", "%s tiene descripción" % item.id)
+		assert_ne(item.describe(), "", "%s tiene descripción" % item.id)
+		if item.weapon != null:
+			assert_eq(item.description, "", "%s: la descripción del arma va en su WeaponData" % item.id)
 		assert_gt(item.price, 0, "%s tiene precio" % item.id)
 		var icon: PackedStringArray = item.get_icon()
 		assert_false(icon.is_empty(), "%s tiene ícono" % item.id)

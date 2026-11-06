@@ -6,6 +6,7 @@
 script = ExtResource("1_weapon")
 id = &"ballesta"
 display_name = "Ballesta"
+description = "Virotes fuertes y rápidos, pero pocos: seis por carga. Apuntá bien."
 damage_mult = 2.6
 fire_rate_mult = 0.45
 range_mult = 1.4

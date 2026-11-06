@@ -6,6 +6,7 @@
 script = ExtResource("1_weapon")
 id = &"orbita"
 display_name = "Órbita"
+description = "Tres orbes te rodean y frenan balas. El gatillo los lanza y después vuelven a crecer."
 fire_mode = 4
 damage_mult = 2.0
 shot_speed_mult = 1.1

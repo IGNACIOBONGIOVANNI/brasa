@@ -7,6 +7,7 @@
 script = ExtResource("2_weapon")
 id = &"mech_caldera"
 display_name = "Cañón de caldera"
+description = "Bombas pesadas que revientan al chocar."
 fire_mode = 0
 damage_mult = 2.2
 fire_rate_mult = 0.5

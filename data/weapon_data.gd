@@ -14,6 +14,9 @@ const FALLBACK_ICON: PackedStringArray = ["..#######", "#########", "..#......",
 
 @export var id: StringName = &""
 @export var display_name: String = ""
+## Una o dos líneas cortas: qué hace y cómo se usa. Sale en el pedestal, en el cartel al agarrarla y
+## en la Mochila (el item del arma la toma de acá: ItemData.describe).
+@export_multiline var description: String = ""
 @export var fire_mode: FireMode = FireMode.SINGLE
 
 @export_group("Multiplicadores sobre los stats")
