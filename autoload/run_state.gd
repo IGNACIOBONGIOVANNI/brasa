@@ -11,6 +11,8 @@ signal inventory_changed(coins: int, bombs: int, keys: int)
 signal items_changed
 signal active_changed
 signal weapons_changed
+## El camino secreto avanzó (o se reinició con la run).
+signal secret_changed(step: Secret)
 
 const CATALOG_PATH: String = "res://content/items/catalog.tres"
 const BASE_WEAPON: WeaponData = preload("res://content/weapons/base_shot.tres")
@@ -24,6 +26,9 @@ const MAX_COUNT: int = 99
 const ROOM_CLEAR_AMMO: float = 0.25
 ## Lo menos que puede quedar de vida máxima al pagar en el Altar (un corazón).
 const MIN_MAX_HEALTH: float = 2.0
+## Dónde va el camino secreto del capítulo: NONE; EMBER = encendió el brasero y lleva el Ascua;
+## OPENED = la gastó abriendo la boca del Cenicero (queda abierta).
+enum Secret { NONE, EMBER, OPENED }
 
 var character: CharacterData
 ## El capítulo que se juega (el del personaje): sus pisos los recorre FloorController.
@@ -49,6 +54,7 @@ var kills: int = 0
 var bosses_defeated: Array[StringName] = []
 ## Vida máxima entregada en el Altar (medios corazones): los contenedores pagados no vuelven.
 var sacrificed_health: float = 0.0
+var secret: Secret = Secret.NONE
 
 
 func _ready() -> void:
@@ -72,6 +78,8 @@ func start_run(run_character: CharacterData = null, profile: MetaProfile = null,
 	kills = 0
 	bosses_defeated.clear()
 	sacrificed_health = 0.0
+	secret = Secret.NONE
+	secret_changed.emit(secret)
 	items.clear()
 	active_item = null
 	active_charge = 0
@@ -103,6 +111,7 @@ func capture(snapshot: RunSnapshot) -> void:
 	snapshot.kills = kills
 	snapshot.bosses_defeated = bosses_defeated.duplicate()
 	snapshot.sacrificed_health = sacrificed_health
+	snapshot.secret_step = secret
 	snapshot.blanks = blanks
 	snapshot.coins = coins
 	snapshot.bombs = bombs
@@ -137,6 +146,8 @@ func restore(snapshot: RunSnapshot, profile: MetaProfile) -> bool:
 	kills = snapshot.kills
 	bosses_defeated = snapshot.bosses_defeated.duplicate()
 	sacrificed_health = snapshot.sacrificed_health
+	secret = clampi(snapshot.secret_step, Secret.NONE, Secret.OPENED) as Secret
+	secret_changed.emit(secret)
 	for id: StringName in snapshot.items:
 		var item: ItemData = find_item(catalog, id)
 		if item != null and item.kind == ItemData.Kind.PASSIVE:
@@ -330,6 +341,28 @@ func add_keys(amount: int) -> void:
 
 
 ## true si puede entregar `amount` de vida máxima y le queda al menos un corazón.
+## Encendió el brasero frío: lleva el Ascua. false si ya la tenía o ya la gastó.
+func give_ember() -> bool:
+	if secret != Secret.NONE:
+		return false
+	secret = Secret.EMBER
+	secret_changed.emit(secret)
+	return true
+
+
+func has_ember() -> bool:
+	return secret == Secret.EMBER
+
+
+## Gasta el Ascua en la boca tapiada (queda abierta). false si no la tenía.
+func spend_ember() -> bool:
+	if secret != Secret.EMBER:
+		return false
+	secret = Secret.OPENED
+	secret_changed.emit(secret)
+	return true
+
+
 func can_sacrifice(amount: float) -> bool:
 	return stats.max_health - amount >= MIN_MAX_HEALTH
 

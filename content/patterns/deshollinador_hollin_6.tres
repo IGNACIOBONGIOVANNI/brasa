@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="BulletPatternData" format=3]
+
+[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="1_pattern"]
+
+[resource]
+script = ExtResource("1_pattern")
+id = &"deshollinador_hollin_6"
+kind = 0
+count = 6
+bullet_speed = 80.0
+bullet_radius = 2.5
+bullet_color = Color(1.0000, 0.6941, 0.3686, 1)

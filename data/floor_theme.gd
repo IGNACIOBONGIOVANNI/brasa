@@ -4,7 +4,7 @@ extends Resource
 ## colores y su escenario.
 
 ## Cómo se ven las paredes, las rocas, los fosos y el piso (SceneryDrawing). PLAIN = bloques lisos.
-enum Scenery { PLAIN, BASEMENT, SEWER, ROOTS, FORGE, SHED, QUARRY, SNOWFIELD, SUMMIT }
+enum Scenery { PLAIN, BASEMENT, SEWER, ROOTS, FORGE, SHED, QUARRY, SNOWFIELD, SUMMIT, ASHPIT }
 
 @export var id: StringName = &""
 @export var display_name: String = ""

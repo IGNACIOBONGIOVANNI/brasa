@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BulletPatternData" format=3]
+
+[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="1_pattern"]
+
+[resource]
+script = ExtResource("1_pattern")
+id = &"deshollinador_cenizas_quietas"
+kind = 0
+count = 14
+bullet_speed = 110.0
+bullet_range = 420.0
+stall_after = 0.35
+stall_time = 0.6
+bullet_color = Color(0.6510, 0.6118, 0.6588, 1)

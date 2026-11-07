@@ -25,6 +25,11 @@ const ALTAR_OFFERS: int = 2
 const PARKED_MECH_SCENE: PackedScene = preload("res://entities/mechs/parked_mech.tscn")
 ## Dónde aparece el armazón del menú de debug respecto del jugador.
 const DEV_MECH_OFFSET: Vector2 = Vector2(0, -30)
+## Se suma al índice del piso para la seed del piso secreto.
+const SECRET_SEED_INDEX: int = 100
+## Stream con el que se sortea la sala del brasero.
+const SECRET_STREAM: StringName = &"secret"
+const NO_CELL: Vector2i = Vector2i(-99, -99)
 
 @export var run: RunConfig
 @export var rooms_root: Node2D
@@ -47,6 +52,11 @@ var _opened_edges: Dictionary[Vector4i, bool] = {}
 var _transitioning: bool = false
 ## Run guardada a seguir (la pone Game antes de entrar al árbol).
 var resume: RunSnapshot
+## true mientras se juega el piso secreto del capítulo (RunConfig.secret_floor): `floor_index` sigue
+## siendo el del piso de la boca y la trampilla del secreto lleva al siguiente.
+var in_secret: bool = false
+## La sala con el brasero frío (NO_CELL si este piso no tiene).
+var brazier_cell: Vector2i = NO_CELL
 ## Salas de la foto que todavía no se volvieron a armar (se reponen al entrar).
 var _saved_rooms: Dictionary[Vector2i, RunSnapshot.RoomState] = {}
 var _items_by_id: Dictionary[StringName, ItemData] = {}
@@ -67,7 +77,7 @@ func _ready() -> void:
 	for mech: MechData in run.mechs:
 		_mechs_by_id[mech.id] = mech
 	if resume != null and resume.floor_index >= 0 and resume.floor_index < run.floors.size():
-		load_floor(resume.floor_index, resume)
+		load_floor(resume.floor_index, resume, resume.secret_floor)
 	else:
 		load_floor(0)
 
@@ -78,22 +88,26 @@ func _exit_tree() -> void:
 
 
 func is_last_floor() -> bool:
-	return floor_index >= run.floors.size() - 1
+	return not in_secret and floor_index >= run.floors.size() - 1
 
 
 ## Arma el piso `index` desde cero (borra el anterior) y pone al jugador en la sala inicial. Con
-## `saved` (una run guardada en este piso) repone lo de la foto y lo pone donde estaba.
-func load_floor(index: int, saved: RunSnapshot = null) -> void:
+## `saved` (una run guardada en este piso) repone lo de la foto y lo pone donde estaba. Con `secret`
+## arma el piso secreto del capítulo (después del piso `index`).
+func load_floor(index: int, saved: RunSnapshot = null, secret: bool = false) -> void:
 	floor_index = index
-	theme = run.floors[index]
+	in_secret = secret and run.secret_floor != null
+	theme = run.secret_floor if in_secret else run.floors[index]
 	RunState.floor_index = index
 	RunState.floor_name = theme.display_name
 	_clear_world()
-	GameRNG.set_floor(index)
+	# El secreto tiene sus propios streams (otra seed que la del piso de la boca).
+	GameRNG.set_floor(SECRET_SEED_INDEX + index if in_secret else index)
 	var rng: RandomNumberGenerator = GameRNG.stream(RngStreams.FLOOR)
 	layout = FloorGenerator.generate(rng, _params(rng))
 	TemplatePicker.assign(layout, theme.templates, rng, theme.difficulty_bonus)
 	RulePicker.assign(layout, run.room_rules, theme.rule_chance, rng)
+	brazier_cell = _pick_brazier_cell()
 	var start_cell: Vector2i = layout.start
 	if saved != null:
 		_restore_floor(saved)
@@ -117,6 +131,7 @@ func load_floor(index: int, saved: RunSnapshot = null) -> void:
 ## una foto anterior que todavía no se volvieron a armar van como estaban).
 func capture(snapshot: RunSnapshot) -> void:
 	snapshot.floor_index = floor_index
+	snapshot.secret_floor = in_secret
 	snapshot.cell = current_cell
 	snapshot.position = current_room().to_local(player.global_position)
 	snapshot.offers.clear()
@@ -188,6 +203,23 @@ func advance_floor() -> void:
 	if fade != null:
 		await fade.fade_out()
 	load_floor(floor_index + 1)
+	RunState.set_blanks(RunState.START_BLANKS)
+	if fade != null:
+		await fade.fade_in()
+	get_tree().paused = false
+	_transitioning = false
+
+
+## Baja por la boca del Cenicero al piso secreto del capítulo (como pasar de piso: fundido y Pulsos
+## nuevos). Su trampilla sigue en el piso de después del actual.
+func enter_secret_floor() -> void:
+	if _transitioning or in_secret or run.secret_floor == null:
+		return
+	_transitioning = true
+	get_tree().paused = true
+	if fade != null:
+		await fade.fade_out()
+	load_floor(floor_index, null, true)
 	RunState.set_blanks(RunState.START_BLANKS)
 	if fade != null:
 		await fade.fade_in()
@@ -304,7 +336,29 @@ func _ensure_room(cell: Vector2i) -> Room:
 	_rooms[cell] = room
 	if saved != null and saved.cleared and layout.get_slot(cell).kind == RoomSlot.Kind.BOSS:
 		_spawn_exit(cell)
+	if cell == brazier_cell:
+		room.add_brazier()
+	if is_gate_room(cell):
+		room.add_chute().descended.connect(enter_secret_floor)
 	return room
+
+
+## La sala del jefe del piso con la boca que baja al secreto.
+func is_gate_room(cell: Vector2i) -> bool:
+	return run.secret_floor != null and not in_secret and floor_index == run.secret_gate_floor \
+			and layout.has_room(cell) and layout.get_slot(cell).kind == RoomSlot.Kind.BOSS
+
+
+## En el piso del brasero, una sala normal (no la de inicio) sorteada con su propio stream, así no
+## cambia nada de lo que ya sorteaba el piso.
+func _pick_brazier_cell() -> Vector2i:
+	if run.secret_floor == null or in_secret or floor_index != run.secret_brazier_floor:
+		return NO_CELL
+	var candidates: Array[Vector2i] = layout.cells_of_kind(RoomSlot.Kind.NORMAL)
+	if candidates.is_empty():
+		return NO_CELL
+	candidates.sort()
+	return candidates[GameRNG.stream(SECRET_STREAM).randi_range(0, candidates.size() - 1)]
 
 
 ## Un pedestal en el tesoro, tres en la tienda, uno en la secreta, el premio del jefe, el de la Prueba
@@ -440,6 +494,10 @@ func _register_dev_commands() -> void:
 	Debug.add_command(self, "Revelar mapa", _reveal_map)
 	Debug.add_command(self, "Limpiar sala", _clear_current_room)
 	Debug.add_command(self, "Siguiente piso (o ganar)", _on_exit_entered)
+	if run.secret_floor != null:
+		Debug.add_command(self, "Secreto/Ir al brasero frío", _go_to_brazier)
+		Debug.add_command(self, "Secreto/Dar el Ascua", RunState.give_ember)
+		Debug.add_command(self, "Secreto/Bajar al %s" % run.secret_floor.display_name, enter_secret_floor)
 
 
 ## Un armazón parado arriba del jugador (menú de debug).
@@ -464,6 +522,11 @@ func _go_to_kind(kind: RoomSlot.Kind) -> void:
 		for next: Vector2i in layout.neighbors(cell):
 			_open_edge(cell, next)
 	move_to(cell)
+
+
+func _go_to_brazier() -> void:
+	if brazier_cell != NO_CELL:
+		move_to(brazier_cell)
 
 
 func _reveal_map() -> void:

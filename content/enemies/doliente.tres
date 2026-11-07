@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="2_pattern_script"]
+[ext_resource type="Resource" path="res://content/patterns/doliente_cera.tres" id="p0"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"doliente"
+display_name = "Doliente"
+template_char = "D"
+max_health = 18.0
+move_style = 1
+move_speed = 26.0
+preferred_distance = 110.0
+attack_kind = 5
+attack_range = 200.0
+attack_cooldown = 2.3
+telegraph_time = 0.55
+recover_time = 0.6
+attack_damage = 1.0
+blast_radius = 20.0
+lob_time = 1.0
+body_radius = 5.5
+hurtbox_radius = 7.5
+visual_style = 41
+visual_radius = 7.0
+body_color = Color(0.2275, 0.2039, 0.2510, 1)
+patterns = Array[ExtResource("2_pattern_script")]([ExtResource("p0")])

@@ -10,6 +10,8 @@ extends Node2D
 ## BLAST: barreno (agujero con mecha); avisa con la mecha chispeando y estalla en el radio del daño.
 ## ICICLE: escarcha en el piso; avisa con la sombra que crece y el carámbano que cae, y se parte.
 ## BOLT: pararrayos; avisa con chispas que suben y lo parte un rayo que alumbra el radio del daño.
+## CHUTE: tolva del techo; en el piso, un círculo de ceniza; avisa con un hilo de ceniza que cae y se
+## vuelca de golpe una pila de ceniza al rojo del radio del daño.
 
 const PLATE_COLOR: Color = Color("3a3344")
 const PLATE_LIGHT_COLOR: Color = Color("4b4357")
@@ -65,6 +67,8 @@ func _draw() -> void:
 			_draw_icicle()
 		TrapData.Look.BOLT:
 			_draw_bolt()
+		TrapData.Look.CHUTE:
+			_draw_chute()
 
 
 func _blink() -> bool:
@@ -233,3 +237,31 @@ func _draw_bolt() -> void:
 			draw_polyline(points, Color(_data.color, fade), 3.0)
 			draw_polyline(points, Color(HOT_COLOR, fade), 1.0)
 			draw_circle(Vector2.ZERO, _data.radius * (0.5 + 0.5 * fade), Color(_data.color, 0.3 * fade))
+
+
+func _draw_chute() -> void:
+	var ash := Color("8a8490")
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.55))
+	draw_circle(Vector2.ZERO, _data.radius * 0.7, Color(ash, 0.18))
+	var ring_alpha: float = 0.3 + (0.4 if _stage == Trap.Stage.WARN and _blink() else 0.0)
+	draw_arc(Vector2.ZERO, _data.radius, 0.0, TAU, 20, Color(ash, ring_alpha), 1.0)
+	draw_set_transform(Vector2.ZERO)
+	match _stage:
+		Trap.Stage.WARN:
+			# Un hilo de ceniza que cae del techo, cada vez más grueso.
+			var width: float = 1.0 + 2.0 * _progress
+			for k: int in 6:
+				var fall: float = fmod(_time * 90.0 + k * 11.0, 66.0)
+				draw_rect(Rect2(Vector2(-width * 0.5 + (k % 2), -66.0 + fall).round(), Vector2(width, 2)), Color(ash, 0.8))
+			draw_circle(Vector2.ZERO, 2.0 + 3.0 * _progress, Color(_data.color, 0.5 * _progress))
+		Trap.Stage.ACTIVE:
+			var fade: float = 1.0 - _progress
+			draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.6))
+			draw_circle(Vector2.ZERO, _data.radius, Color(ash.darkened(0.3), fade))
+			draw_circle(Vector2.ZERO, _data.radius * 0.7, Color(_data.color, 0.7 * fade))
+			draw_circle(Vector2.ZERO, _data.radius * 0.35, Color(HOT_COLOR, fade))
+			draw_set_transform(Vector2.ZERO)
+			for k: int in 5:
+				var spark: Vector2 = Vector2.from_angle(TAU * k / 5.0 + _time) * _data.radius * (0.4 + 0.6 * _progress)
+				var at: Vector2 = spark * Vector2(1.0, 0.6) - Vector2(0, 6.0 * _progress)
+				draw_rect(Rect2(at.round(), Vector2.ONE), Color(HOT_COLOR, fade))

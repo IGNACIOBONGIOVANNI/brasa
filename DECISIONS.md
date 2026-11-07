@@ -1030,3 +1030,41 @@ cercas, etc.; pensá muchas opciones, mejor si está relacionado al nivel".
 - **Arreglo de paso:** el dibujo de la campana armaba su propia posición e ignoraba la altura del salto
   (`set_lift`) y el tamaño; ahora usa la del cuerpo (`EnemyVisual._body_origin`). Y la transparencia de
   la entrada va por `FlashComponent.fade`, porque el parpadeo pisaba el `modulate` en cada cuadro.
+
+## Hito 29 — el camino secreto (2026-11-06)
+
+- **Qué es:** un camino de progresión escondido, en varios pasos y en pisos distintos, que lleva a un
+  piso que no está en la run de siempre. Se tomó la idea general de los roguelites del género (mover algo
+  del escenario para abrir un piso secreto, llevar un objeto a una puerta), sin copiar ninguno: todo
+  sale de la historia de Brasa (el pueblo despedía con fuego a los que bajaban; sus cenizas caían
+  abajo, y alguien las barría).
+- **Los pasos (capítulo 1):**
+  1. **El brasero frío** (Sótano): está en una sala normal sorteada (no la de inicio), en una esquina.
+     Una bomba que explota cerca lo enciende y da el **Ascua** (se ve en el HUD, al lado de las llaves,
+     con un cartel). Una por run. Solo las bombas: es lo único que explota en el mundo y ya destapa las
+     salas secretas, así que es lo primero que alguien prueba.
+  2. **La boca tapiada** (Cloacas): una rejilla en la sala del jefe, siempre a la vista, con la misma
+     llama grabada que el ícono del Ascua (la pista que une los dos pasos). Con la sala limpia, pisarla
+     con el Ascua la gasta y el hollín arde hasta abrirla; sin Ascua, un cartel dice que sin fuego no
+     cede. Abierta, hay que salir y volver a pisarla para bajar, así nadie se pierde el premio del jefe.
+  3. **El Cenicero** (piso secreto): chico (6-7 salas), con tesoro, tienda, secreta y una especial extra,
+     su propia Prueba, salas propias con urnas, fosos de brasas y su trampa (la Tolva, que vuelca ceniza
+     al rojo), tres enemigos que no salen en otro lado (Pavesa, Doliente, Cenizo) más tres del capítulo
+     (Hollín, Farol, Fogonero), su escenario, su música y su jefe. Su trampilla sigue en Raíces: el
+     secreto es un piso de más, no un atajo.
+  4. **El Deshollinador** (jefe del Cenicero): tres fases, una entrada propia (cae hollín como por una
+     chimenea y sale de la pila) y un ataque que no hace ningún otro jefe, el **Barrido de hollín**
+     (SOOT_SWEEP): embiste dejando una estela de nubes que se ponen al rojo y revientan en brasas. Al
+     vencerlo, el logro **Bajo la ceniza** desbloquea un item nuevo, el **Tizne** (A: perforación y chance
+     de prender).
+- **Elecciones simples:** el número de piso del Cenicero es el de las Cloacas (para el resumen y el
+  récord) y el cartel dice "Piso secreto"; su seed sale aparte (`SECRET_SEED_INDEX + piso`) y la sala del
+  brasero se sortea con un stream propio, así ningún piso de antes cambia con la misma seed. El brasero
+  tapa el paso como una roca (y cierra su celda para los caminos de los enemigos) y siempre va en una
+  celda con todo libre alrededor, para no cortar ningún camino.
+- **Guardado:** la foto de la run suma dónde va el camino (`secret`) y si está en el piso secreto
+  (`secret_floor`); una run guardada de antes sigue sirviendo (los dos valen 0 si faltan).
+- **Balance:** el bot puede jugar el secreto (`--secret`). Con la seed 1234: el Cenicero, 2 salas de
+  combate (~27 s cada una antes de bajar la vida del Doliente y el Cenizo) y el jefe en 31 s, mostrando
+  sus 6 tipos de ataque; la run con el secreto, ~32 min estimados.
+- **El capítulo 2 todavía no tiene camino secreto** (`RunConfig.secret_floor` vacío): queda para otro hito.

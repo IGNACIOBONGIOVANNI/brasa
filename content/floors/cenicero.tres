@@ -1,0 +1,66 @@
+[gd_resource type="Resource" script_class="FloorTheme" format=3]
+
+[ext_resource type="Script" path="res://data/floor_theme.gd" id="1_theme"]
+[ext_resource type="Script" path="res://data/room_template.gd" id="2_template_script"]
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="3_enemy_script"]
+[ext_resource type="Script" path="res://data/pickup_data.gd" id="4_pickup_script"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/inicio.tres" id="c0"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/tesoro.tres" id="c1"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/tienda.tres" id="c2"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/secreta.tres" id="c3"]
+[ext_resource type="Resource" path="res://content/rooms/cenicero/jefe_deshollinador.tres" id="r0"]
+[ext_resource type="Resource" path="res://content/rooms/cenicero/cenicero_urnas.tres" id="r1"]
+[ext_resource type="Resource" path="res://content/rooms/cenicero/cenicero_tolvas_chicas.tres" id="r2"]
+[ext_resource type="Resource" path="res://content/rooms/cenicero/cenicero_velorio.tres" id="r3"]
+[ext_resource type="Resource" path="res://content/rooms/cenicero/cenicero_tolvas.tres" id="r4"]
+[ext_resource type="Resource" path="res://content/rooms/cenicero/cenicero_fosas.tres" id="r5"]
+[ext_resource type="Resource" path="res://content/rooms/cenicero/cenicero_procesion.tres" id="r6"]
+[ext_resource type="Resource" path="res://content/enemies/hollin.tres" id="e_hollin"]
+[ext_resource type="Resource" path="res://content/enemies/farol.tres" id="e_farol"]
+[ext_resource type="Resource" path="res://content/enemies/fogonero.tres" id="e_fogonero"]
+[ext_resource type="Resource" path="res://content/enemies/pavesa.tres" id="e_pavesa"]
+[ext_resource type="Resource" path="res://content/enemies/doliente.tres" id="e_doliente"]
+[ext_resource type="Resource" path="res://content/enemies/cenizo.tres" id="e_cenizo"]
+[ext_resource type="Resource" path="res://content/enemies/deshollinador.tres" id="e_deshollinador"]
+[ext_resource type="Resource" path="res://content/pickups/coin.tres" id="p_coin"]
+[ext_resource type="Resource" path="res://content/pickups/heart.tres" id="p_heart"]
+[ext_resource type="Resource" path="res://content/pickups/bomb.tres" id="p_bomb"]
+[ext_resource type="Resource" path="res://content/pickups/key.tres" id="p_key"]
+[ext_resource type="AudioStream" path="res://content/music/cenicero.wav" id="m_music"]
+[ext_resource type="AudioStream" path="res://content/music/boss_cenicero.wav" id="m_boss"]
+[ext_resource type="Resource" path="res://content/traps/tolva.tres" id="trap"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/altar.tres" id="s0"]
+[ext_resource type="Resource" path="res://content/rooms/floor_1/pozo.tres" id="s1"]
+[ext_resource type="Resource" path="res://content/rooms/cenicero/cenicero_prueba.tres" id="s2"]
+
+[resource]
+script = ExtResource("1_theme")
+id = &"cenicero"
+display_name = "El Cenicero"
+scenery = 9
+tagline = "Acá cae lo que queda de los que bajaron. Alguien todavía lo barre."
+ambient_light = Color(0.46, 0.42, 0.44, 1)
+mote_color = Color(0.78, 0.74, 0.76, 0.55)
+mote_velocity = Vector2(3, 9)
+mote_amount = 28
+music = ExtResource("m_music")
+boss_music = ExtResource("m_boss")
+room_count_min = 6
+room_count_max = 7
+min_boss_distance = 3
+enemy_health_mult = 1.6
+enemy_bullet_speed_mult = 1.2
+difficulty_bonus = 1
+floor_color = Color(0.15, 0.14, 0.15, 1)
+floor_checker_color = Color(0.17, 0.16, 0.17, 1)
+wall_color = Color(0.27, 0.25, 0.27, 1)
+outline_color = Color(0.07, 0.06, 0.07, 1)
+rock_color = Color(0.45, 0.4, 0.38, 1)
+pit_color = Color(0.04, 0.03, 0.03, 1)
+templates = Array[ExtResource("2_template_script")]([ExtResource("c0"), ExtResource("c1"), ExtResource("c2"), ExtResource("c3"), ExtResource("r0"), ExtResource("r1"), ExtResource("r2"), ExtResource("r3"), ExtResource("r4"), ExtResource("r5"), ExtResource("r6"), ExtResource("s0"), ExtResource("s1"), ExtResource("s2")])
+enemies = Array[ExtResource("3_enemy_script")]([ExtResource("e_hollin"), ExtResource("e_farol"), ExtResource("e_fogonero"), ExtResource("e_pavesa"), ExtResource("e_doliente"), ExtResource("e_cenizo"), ExtResource("e_deshollinador")])
+pickups = Array[ExtResource("4_pickup_script")]([ExtResource("p_coin"), ExtResource("p_heart"), ExtResource("p_bomb"), ExtResource("p_key")])
+extra_rooms = Array[int]([6, 7, 8])
+extra_room_count = 1
+rule_chance = 0.2
+trap = ExtResource("trap")

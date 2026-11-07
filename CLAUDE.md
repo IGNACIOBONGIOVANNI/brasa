@@ -5,7 +5,11 @@ estructura de los roguelites de salas + bullet hell, con contenido 100 % origina
 [docs/LORE.md](docs/LORE.md).
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 28 terminado: cada jefe entra a su sala con una cinemática propia (`EnemyData.intro`,
+**Estado:** Hito 29 terminado: el camino secreto del capítulo 1 (`RunConfig.secret_floor`): un brasero
+frío en el Sótano que una bomba prende y da el Ascua (`RunState.secret`), una boca tapiada en la sala
+del jefe de las Cloacas que solo abre el Ascua (`AshChute`), y abajo el Cenicero, un piso secreto con
+tres enemigos, trampa, escenario, música y jefe propios (el Deshollinador, con el Barrido de hollín:
+`SOOT_SWEEP`); su trampilla sigue en Raíces. Antes: hito 28: cada jefe entra a su sala con una cinemática propia (`EnemyData.intro`,
 `BossIntro`: cae del techo, sale de la tierra entre raíces, ojos en la oscuridad, entra girando, se
 arma de las sombras o de la nieve, un remolino y un rayo); el jugador mira con franjas negras
 (`CinematicBars`) y se saltea con Enter o rodar. Antes: hito 27: los jefes muestran todos sus ataques (`Enemy.next_boss_attack`: una
@@ -84,6 +88,7 @@ Todos los flags están confirmados con `--help` en 4.7.2. `sed 's/\x1b\[[0-9;]*m
 | Medir el balance (bot) | `"$G" --headless --fixed-fps 60 --path . res://debug/balance_probe.tscn -- --seed=1234` |
 | Comparar un arma (bot) | `... balance_probe.tscn -- --seed=1234 --floors=2 --weapon=haz` |
 | Medir el capítulo 2 (bot) | `... balance_probe.tscn -- --seed=1234 --chapter=2` |
+| Medir con el piso secreto (bot) | `... balance_probe.tscn -- --seed=1234 --secret` |
 
 Argumentos de usuario del juego (van después de `--`): `--seed=N` fija la seed de todas las runs,
 `--skip-menu` arranca directo en una run (en la última partida abierta; si tiene una run guardada, la
@@ -275,7 +280,7 @@ Desde PowerShell: `& "C:\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64
   `_game.world`. Los del piso usan
   `main/game.tscn` con `GameRNG.start_run(seed)` antes de instanciarla.
 - Plantillas de sala: texto de 9 x 15 con la leyenda de `RoomTemplateParser`; cada `.tres` nuevo va
-  en `content/rooms/<id del piso>/` (`floor_1`..`floor_4`, `monte_1`..`monte_4`) y en la lista
+  en `content/rooms/<id del piso>/` (`floor_1`..`floor_4`, `monte_1`..`monte_4`, `cenicero`) y en la lista
   `templates` de ese `FloorTheme` (lo exige un test). Las letras de los enemigos son de cada piso: el
   capítulo 2 reusa letras con otros enemigos. Las especiales comunes (inicio, tesoro, tienda,
   secreta, Altar, Pozo, Galpón) son las de `floor_1/` en los dos capítulos. Las
@@ -367,24 +372,25 @@ data/                       StatBlock, StatModifier, WeaponData, ItemData, ItemC
                             RunConfig, CharacterData, AchievementData, MetaConfig, RoomRule, TrapData,
                             MechData, BossAttack (movimiento de jefe); RunConfig es un capítulo
 content/                    weapons/ (pistola, trabuco, metralla, haz, órbita, ballesta, lanzagranadas, bazuca,
-                            franco tirador, caño de riel), items/ (37 +
+                            franco tirador, caño de riel), items/ (38 +
                             catalog), enemies/ (carnero, vigia, farol, centinela, espora, fundidor, grasa
                             (→ grasita → gotita), mecha, murcielago, nido (→ cria), topo, hollin, escudero,
-                            fogonero; del monte: ovillo, tijereta, abrojo, polilla, pedrusco, cuervo, lobo,
+                            fogonero; del Cenicero: pavesa, doliente, cenizo; del monte: ovillo, tijereta, abrojo, polilla, pedrusco, cuervo, lobo,
                             tempano, nubarron, soplo; jefes campanario, rey_carnero, raigon, yunque,
-                            tijeron, rey_destronado, alud y cierzo, con sus movimientos adentro;
+                            tijeron, rey_destronado, alud, cierzo y deshollinador, con sus movimientos adentro;
                             minijefes carnero_veterano, grasa_erizada, pehuen y bigornia; invocaciones
                             espada_voladora, hacha_voladora, cuchillo_volador y fueguito),
-                            patterns/ (61), sfx/sfx_library, rooms/floor_1/ (25), floor_2/ (11),
-                            floor_3/ (11), floor_4/ (12), monte_1/ (14), monte_2..4/ (8 cada uno),
+                            patterns/ (80), sfx/sfx_library, rooms/floor_1/ (25), floor_2/ (11),
+                            floor_3/ (11), floor_4/ (12), monte_1/ (14), monte_2..4/ (8 cada uno), cenicero/ (8),
                             mechs/ (caldera, zancos, fuelle),
                             floors/ (Sótano, Cloacas, Raíces, Forja; monte_1..4: Esquiladero, Cantera,
-                            Ventisquero, Cumbre), run/ (run_config = capítulo 1, chapter_2), rules/ (furia,
+                            Ventisquero, Cumbre; cenicero, el secreto), run/ (run_config = capítulo 1,
+                            chapter_2), rules/ (furia,
                             coraza, contrarreloj, apagon, sin_pulso, fragil), traps/ (pinchos, vapor,
-                            vaina, chorro, tijeras, barreno, carambano, pararrayos),
+                            vaina, chorro, tijeras, barreno, carambano, pararrayos, tolva),
                             pickups/ (coin, heart, bomb, key), characters/ (brasa, musgo, ceniza, testa),
-                            achievements/ (7), meta/meta_config, music/ (menu, floor_1..4, boss,
-                            monte_1..4, boss_monte: .wav generados, no editar a mano)
+                            achievements/ (8), meta/meta_config, music/ (menu, floor_1..4, boss,
+                            monte_1..4, boss_monte, cenicero, boss_cenicero: .wav generados, no editar a mano)
 items/                      ItemHook (base), HookContext, hooks/ (diente de leche, rencor, estallido,
                             caparazón, relámpago, botiquín, eco, esquirlas, segunda chispa)
 components/                 Weapon, LaserBeam, OrbitRing, RailGun, AimSight, Health, Hurtbox (con escudo y
@@ -398,13 +404,14 @@ entities/enemies/           enemy.tscn/.gd, enemy_visual.gd, states/ (idle, move
                             boss_intro.gd (la entrada de un jefe en su sala),
                             boss/ (BossMove y una subclase por tipo de movimiento, BossMoves elige cuál;
                             boss/hazards/: lo que dejan andando solo: ShockRing, CrownBoomerang, Burrower,
-                            ThreadBall, Vortex, OrbitBall)
+                            ThreadBall, Vortex, OrbitBall, AshPuff)
 entities/bullets/           bullet.tscn/.gd (rebote, perforación, teledirigido, explosivas), grenade.tscn/.gd,
                             player_blast.gd (explosiones de armas del jugador)
 entities/pickups/           pickup.tscn/.gd, pickup_visual.gd, item_pedestal.tscn/.gd, item_pedestal_visual.gd,
                             well.tscn/.gd + well_visual.gd (Pozo de brasas)
 entities/bomb/              bomb.tscn/.gd
 entities/exit/              trapdoor.tscn/.gd (trampilla al piso siguiente o salida final)
+entities/secret/            brazier.gd (brasero frío), ash_chute.gd (boca del Cenicero): camino secreto
 entities/traps/             trap.tscn/.gd + trap_visual.gd (trampas de los pisos)
 entities/mechs/             parked_mech.tscn/.gd + parked_mech_visual.gd (armazón parado), mech_drawing.gd
                             (dibujo compartido con PlayerVisual)
@@ -445,7 +452,7 @@ tests/integration/          player_shooting, bullets, combat, main_flow, floor, 
                             bullet_behaviors, weapons, boss, meta_flow, feedback, inventory, enemy_kinds,
                             weapons_statuses, music, save_slots_flow, special_rooms, traps, mechs,
                             boss_attacks, pathing, run_resume, chapters, mountain, scenery, hito23, hito24,
-                            hito25, hito26, hito27, hito28
+                            hito25, hito26, hito27, hito28, hito29
 tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria, la música apagada y GameRNG con una seed fija
 docs/PLAN.md                plan, arquitectura e hitos
 docs/LORE.md                la historia y dónde está cada texto en el juego
@@ -740,6 +747,20 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   `CinematicBars`). Al terminar o saltearla (Enter o rodar después de `SKIP_AFTER`) deja todo como
   estaba y `Enemy.finish_intro` avisa `cinematic_changed(false)` y `boss_spawned` (barra y cartel).
   Si el jefe sale del árbol antes, `_exit_tree` suelta al jugador y devuelve la luz.
+- **Camino secreto:** `RunConfig.secret_floor` (el piso), `secret_brazier_floor` y `secret_gate_floor`.
+  `RunState.secret` (NONE → EMBER → OPENED, señal `secret_changed`; `give_ember`, `has_ember`,
+  `spend_ember`) va en la foto (`RunSnapshot.secret_step`). `FloorController` sortea la sala del brasero
+  al generar el piso del brasero (`brazier_cell`, stream `SECRET_STREAM`, sin tocar los otros) y al
+  armar salas pone el `Brazier` (`Room.add_brazier`: StaticBody en la capa wall, una bomba cerca lo
+  prende con `EventBus.exploded`) y, en la sala del jefe del piso de la boca (`is_gate_room`), la
+  `AshChute` (`Room.add_chute`, en una celda de `Room.prop_cell`). La boca emite `descended` →
+  `FloorController.enter_secret_floor()` → `load_floor(piso, null, true)`: `in_secret`, `theme` es el
+  secreto, `floor_index` sigue siendo el de la boca y la seed es `SECRET_SEED_INDEX + piso`; su
+  trampilla hace `advance_floor` como cualquiera. `FloorController.capture` guarda `secret_floor` y al
+  seguir la run se vuelve a armar el secreto. Los avisos del mundo salen con
+  `EventBus.message_requested(título, línea)` (el HUD los muestra en el `ItemBanner`) y el HUD dibuja
+  el Ascua en `CountersDisplay.ember`. Los tests de contenido revisan también los pisos secretos
+  (`_all_floors`).
 - **Caminos:** cada `Room` arma un `RoomNav` (A* de 15 x 9 con rocas y fosos tapados; una roca rota se
   destapa) y se lo pasa a sus enemigos (`Enemy.nav`, también a los hijos). `Enemy.route_direction`
   va derecho si `has_clear_path` (un cast del cuerpo contra paredes, rocas y fosos hasta tocar al

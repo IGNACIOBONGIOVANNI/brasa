@@ -185,3 +185,13 @@ jefes y patrones ([Minishoot' Adventures](https://casualgameguides.com/walkthrou
 [Arms of God](https://guide-arms-of-god-bzw.pages.dev/guides/arms-of-god-boss-guide-how-to-beat-every-major-boss),
 [Star of Providence](https://starofprovidence.wiki.gg/wiki/Database),
 [Sparen's Danmaku Design Studio](https://sparen.github.io/ph3tutorials/ddsga4.html)).
+
+## El Deshollinador (hito 29, piso secreto)
+
+El jefe del Cenicero. Su ataque propio, el **Barrido de hollín** (`SOOT_SWEEP`), sale de una idea que
+se repite en el género: un ataque que deja algo atrás que es peligroso *después* (estelas, minas,
+charcos). Acá la embestida es la parte fácil de esquivar; lo que mata es quedarse en la estela, porque
+cada nube de hollín se pone al rojo y revienta en brasas. Lo acompañan movimientos que ya existían con
+su aspecto: el escobazo (abanico de cerdas), hollín que cae (cascotes con forma de brasa), humareda
+(oscuridad y zarpazos), pavesas (invocación), cerdas que rebotan, el paso de hollín (aparece detrás) y
+cenizas que se quedan quietas en el aire.

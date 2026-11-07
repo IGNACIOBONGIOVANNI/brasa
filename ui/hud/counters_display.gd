@@ -1,7 +1,8 @@
 @tool
 class_name CountersDisplay
 extends Control
-## Monedas, bombas y llaves del HUD: ícono y número de 2 cifras, en una fila.
+## Monedas, bombas y llaves del HUD: ícono y número de 2 cifras, en una fila. Si lleva el Ascua (camino
+## secreto), un ícono más al final, sin número.
 
 const ENTRY_WIDTH: int = 18
 ## Espacio entre el ícono y el número.
@@ -24,6 +25,11 @@ const NUMBER_OFFSET: int = 7
 	set(value):
 		keys = value
 		queue_redraw()
+@export var ember: bool = false:
+	set(value):
+		ember = value
+		queue_redraw()
+@export var ember_color: Color = Color("ff8a3d")
 
 
 func set_values(coin_count: int, bomb_count: int, key_count: int) -> void:
@@ -36,6 +42,8 @@ func _draw() -> void:
 	_draw_entry(0, PixelIcons.COIN, coin_color, coins)
 	_draw_entry(1, PixelIcons.BOMB, bomb_color, bombs)
 	_draw_entry(2, PixelIcons.KEY, key_color, keys)
+	if ember:
+		PixelBitmap.paint_outlined(self, PixelIcons.EMBER, Vector2(3 * ENTRY_WIDTH, 0), ember_color, outline_color)
 
 
 func _draw_entry(index: int, icon: PackedStringArray, color: Color, value: int) -> void:

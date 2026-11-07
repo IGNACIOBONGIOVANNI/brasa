@@ -9,7 +9,8 @@ extends RefCounted
 ## Esquiladero: tablas con postes de cerca, fardos, lana enganchada, herraduras y faroles. Cantera:
 ## bloques de piedra, andamios, picos y faroles. Ventisquero: una hilera de pinos nevados, carámbanos
 ## y montículos de nieve. Cumbre: riscos con nieve, cerca de soga con banderines, apachetas y árboles
-## secos.
+## secos. Cenicero (piso secreto): ladrillos tiznados con nichos de urnas y bocas de carbón por donde
+## caen brasas, ceniza amontonada y marcas de escoba en el piso, urnas como rocas y fosos de brasas.
 
 const WALL: float = 16.0
 const HALF: Vector2 = Vector2(120, 72)
@@ -40,6 +41,9 @@ const SNOW_COLOR: Color = Color("eef4fa")
 const ICE_COLOR: Color = Color("a8dcff")
 const FLAG_COLORS: Array[Color] = [Color("e0464e"), Color("ffd166"), Color("5fb8ff"), Color("7ad18b")]
 const STONE_COLOR: Color = Color("8c877e")
+const ASH_COLOR: Color = Color("8a8490")
+const URN_COLOR: Color = Color("8a6a52")
+const EMBER_COLOR: Color = Color("ff8a3d")
 
 
 ## Un número de 0 a 1 que depende solo de la semilla y del índice (siempre el mismo).
@@ -118,6 +122,8 @@ static func draw_walls(canvas: CanvasItem, rects: Array[Rect2], scenery: FloorTh
 				_snowfield(canvas, rect, side, theme, part_seed)
 			FloorTheme.Scenery.SUMMIT:
 				_summit(canvas, rect, side, theme, part_seed)
+			FloorTheme.Scenery.ASHPIT:
+				_ashpit(canvas, rect, side, theme, part_seed)
 			_:
 				canvas.draw_rect(rect.grow(-1.0), theme.wall_color)
 		_inner_shade(canvas, rect, side, theme.outline_color)
@@ -527,6 +533,42 @@ static func _summit(canvas: CanvasItem, rect: Rect2, side: Vector2i, theme: Floo
 
 
 ## La soga entre dos postes, colgando un poco.
+## Cenicero: ladrillos tiznados, nichos con urnas y bocas de carbón con rejilla (las brasas que caen
+## las dibuja draw_glow), y ceniza amontonada al pie de la pared.
+static func _ashpit(canvas: CanvasItem, rect: Rect2, side: Vector2i, theme: FloorTheme, salt: int) -> void:
+	_bricks(canvas, rect, Vector2(10, 5), theme.wall_color, salt, 0.12)
+	canvas.draw_rect(rect, Color(0.05, 0.04, 0.05, 0.25))
+	var points: Array[Vector2] = spots(rect, 30.0, salt)
+	for i: int in points.size():
+		var at: Vector2 = points[i]
+		if noise(salt, 900 + i) < 0.55:
+			# Nicho con una urna.
+			canvas.draw_rect(Rect2(at + Vector2(-4, -5), Vector2(8, 9)), theme.outline_color)
+			canvas.draw_circle(at + Vector2(0, -5), 4.0, theme.outline_color)
+			canvas.draw_rect(Rect2(at + Vector2(-2, -2), Vector2(4, 5)), URN_COLOR)
+			canvas.draw_rect(Rect2(at + Vector2(-1, -4), Vector2(2, 2)), URN_COLOR.darkened(0.2))
+			canvas.draw_rect(Rect2(at + Vector2(-2, 0), Vector2(4, 1)), URN_COLOR.lightened(0.25))
+		else:
+			# Boca de carbón con rejilla.
+			canvas.draw_rect(Rect2(at + Vector2(-5, -4), Vector2(10, 8)), theme.outline_color)
+			canvas.draw_rect(Rect2(at + Vector2(-4, -3), Vector2(8, 6)), Color("0c090c"))
+			for bar: int in 3:
+				canvas.draw_rect(Rect2(at + Vector2(-3 + bar * 3, -3), Vector2(1, 6)), IRON_COLOR)
+	# Ceniza amontonada contra la pared, del lado de la sala.
+	var edge: Vector2 = _inner_edge_line(rect, side)
+	var horizontal: bool = side.y != 0
+	var length: float = rect.size.x if horizontal else rect.size.y
+	var start: float = rect.position.x if horizontal else rect.position.y
+	for k: int in floori(length / 14.0):
+		if noise(salt, 950 + k) < 0.5:
+			continue
+		var along: float = start + 7.0 + k * 14.0
+		var at: Vector2 = (Vector2(along, edge.y) if horizontal else Vector2(edge.x, along)).round()
+		canvas.draw_set_transform(at, 0.0, Vector2(1.0, 0.5) if horizontal else Vector2(0.5, 1.0))
+		canvas.draw_circle(Vector2.ZERO, 4.0 + noise(salt, 960 + k) * 3.0, Color(ASH_COLOR, 0.7))
+		canvas.draw_set_transform(Vector2.ZERO)
+
+
 static func rope(from: Vector2, to: Vector2) -> PackedVector2Array:
 	var points := PackedVector2Array()
 	for k: int in 7:
@@ -594,6 +636,17 @@ static func draw_glow(canvas: CanvasItem, rects: Array[Rect2], scenery: FloorThe
 						canvas.draw_rect(Rect2(at.round(), Vector2.ONE), Color(1, 1, 1, twinkle))
 			FloorTheme.Scenery.SUMMIT:
 				_flags(canvas, rect, side, part_seed, time)
+			FloorTheme.Scenery.ASHPIT:
+				var points: Array[Vector2] = spots(rect, 30.0, part_seed)
+				for k: int in points.size():
+					if noise(part_seed, 900 + k) >= 0.55:
+						# Brasas que caen por la boca de carbón y un resplandor adentro.
+						var heat: float = 0.5 + 0.3 * sin(time * 2.0 + k * 1.3)
+						canvas.draw_rect(Rect2(points[k] + Vector2(-4, 1), Vector2(8, 2)), Color(EMBER_COLOR, 0.35 * heat))
+						for spark: int in 2:
+							var fall: float = fmod(time * 9.0 + spark * 3.0 + k * 2.0, 6.0)
+							canvas.draw_rect(Rect2((points[k] + Vector2(-2 + spark * 3, -3 + fall)).round(), Vector2.ONE),
+									Color(EMBER_COLOR, 1.0 - fall / 6.0))
 
 
 ## Una llamita que titila (vela, farol).
@@ -704,6 +757,17 @@ static func draw_floor(canvas: CanvasItem, scenery: FloorTheme.Scenery, theme: F
 						var hoof: Vector2 = at + Vector2(step * 5, (step % 2) * 3)
 						canvas.draw_rect(Rect2(hoof, Vector2(1, 2)), dark)
 						canvas.draw_rect(Rect2(hoof + Vector2(2, 0), Vector2(1, 2)), dark)
+			FloorTheme.Scenery.ASHPIT:
+				if pick < 0.45:
+					canvas.draw_set_transform(at, 0.0, Vector2(1.0, 0.5))
+					canvas.draw_circle(Vector2.ZERO, 5.0 + pick * 8.0, Color(ASH_COLOR, 0.3))
+					canvas.draw_set_transform(Vector2.ZERO)
+				elif pick < 0.8:
+					# Marcas de escoba: tres rayas curvas parejas.
+					for line: int in 3:
+						canvas.draw_arc(at + Vector2(0, line * 2), 6.0, PI * 1.15, PI * 1.85, 6, Color(ASH_COLOR, 0.35), 1.0)
+				else:
+					canvas.draw_rect(Rect2(at, Vector2.ONE), Color(EMBER_COLOR, 0.6))
 			FloorTheme.Scenery.SUMMIT:
 				if pick < 0.5:
 					canvas.draw_set_transform(at, 0.0, Vector2(1.0, 0.5))
@@ -775,6 +839,22 @@ static func draw_obstacle(canvas: CanvasItem, scenery: FloorTheme.Scenery, color
 			canvas.draw_line(Vector2(-5, 5), Vector2(4, -4), ICE_COLOR.lightened(0.3), 1.0)
 			canvas.draw_rect(Rect2(-7, -7, 14, 4), SNOW_COLOR)
 			canvas.draw_rect(Rect2(-7 + variant % 4, -3, 3, 2), SNOW_COLOR)
+		FloorTheme.Scenery.ASHPIT:
+			# Una urna de barro con tapa y faja (y, a veces, una grieta).
+			var urn := PackedVector2Array([Vector2(-4, -6), Vector2(4, -6), Vector2(7, -1), Vector2(6, 6), Vector2(3, 8),
+					Vector2(-3, 8), Vector2(-6, 6), Vector2(-7, -1)])
+			var rim := PackedVector2Array()
+			for point: Vector2 in urn:
+				rim.append(point + point.normalized())
+			canvas.draw_colored_polygon(rim, outline)
+			canvas.draw_colored_polygon(urn, color)
+			canvas.draw_rect(Rect2(-6, -1, 12, 2), color.darkened(0.3))
+			canvas.draw_line(Vector2(-5, -4), Vector2(-6, 3), color.lightened(0.25), 1.0)
+			canvas.draw_rect(Rect2(-4, -8, 8, 2), outline)
+			canvas.draw_rect(Rect2(-3, -8, 6, 1), color.lightened(0.15))
+			canvas.draw_rect(Rect2(-1, -9, 2, 1), color.lightened(0.15))
+			if variant % 3 == 0:
+				canvas.draw_polyline(PackedVector2Array([Vector2(2, -5), Vector2(1, -1), Vector2(3, 3)]), outline, 1.0)
 		FloorTheme.Scenery.SUMMIT:
 			var points := PackedVector2Array([Vector2(-8, 6), Vector2(-7, -3), Vector2(-3, -8), Vector2(4, -7),
 					Vector2(8, -2), Vector2(7, 7), Vector2(-2, 8)])
@@ -831,6 +911,8 @@ static func _pit_palette(scenery: FloorTheme.Scenery) -> Array[Color]:
 			return [Color("6fa8c8"), SNOW_COLOR]
 		FloorTheme.Scenery.SUMMIT:
 			return [Color("565b6a"), SNOW_COLOR]
+		FloorTheme.Scenery.ASHPIT:
+			return [Color("4a4248"), ASH_COLOR]
 	return [Color("4a4553"), Color("7a7488")]
 
 
@@ -898,6 +980,12 @@ static func _pit_back_detail(canvas: CanvasItem, scenery: FloorTheme.Scenery, wa
 			for k: int in 3:
 				var x: float = -6.0 + k * 5.0 + variant % 2
 				canvas.draw_colored_polygon(PackedVector2Array([Vector2(x, -7), Vector2(x + 2, -7), Vector2(x + 1, -3 - (k + variant) % 2)]), ICE_COLOR)
+		FloorTheme.Scenery.ASHPIT:
+			# Ceniza que chorrea por la pared y brasas allá en el fondo.
+			canvas.draw_rect(Rect2(-5 + variant % 3, -8, 1, 4), ASH_COLOR.darkened(0.2))
+			canvas.draw_rect(Rect2(3 - variant % 2, -8, 1, 3), ASH_COLOR.darkened(0.2))
+			canvas.draw_rect(Rect2(-3 + variant % 4, 3, 1, 1), EMBER_COLOR)
+			canvas.draw_rect(Rect2(2 + variant % 3, 5, 1, 1), EMBER_COLOR.darkened(0.3))
 		FloorTheme.Scenery.SUMMIT:
 			# Roca con grietas y, muy abajo, nubes.
 			canvas.draw_line(Vector2(-5 + variant % 3, -7), Vector2(-3 + variant % 3, -3), line, 1.0)
@@ -914,7 +1002,7 @@ static func _pit_lip_detail(canvas: CanvasItem, scenery: FloorTheme.Scenery, rim
 			if edges & PIT_UP:
 				for k: int in 3:
 					canvas.draw_rect(Rect2(-7 + k * 5 + variant % 3, -7, 2, 1), rim)
-		FloorTheme.Scenery.QUARRY, FloorTheme.Scenery.BASEMENT, FloorTheme.Scenery.ROOTS:
+		FloorTheme.Scenery.QUARRY, FloorTheme.Scenery.BASEMENT, FloorTheme.Scenery.ROOTS, FloorTheme.Scenery.ASHPIT:
 			# Piedritas sueltas al borde, del lado del piso.
 			if edges & PIT_DOWN:
 				canvas.draw_rect(Rect2(-4 + variant % 5, 8, 1, 1), rim.darkened(0.3))

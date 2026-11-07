@@ -66,6 +66,8 @@ static func create(owner_enemy: Enemy, data: BossAttack) -> BossMove:
 			move = BulletWallMove.new()
 		BossAttack.Kind.BLINK_STRIKE:
 			move = BlinkStrikeMove.new()
+		BossAttack.Kind.SOOT_SWEEP:
+			move = SootSweepMove.new()
 		_:
 			move = VolleyMove.new()
 	move.enemy = owner_enemy

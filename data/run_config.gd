@@ -21,3 +21,12 @@ extends Resource
 @export var room_rules: Array[RoomRule] = []
 ## Armazones que pueden aparecer en los Galpones.
 @export var mechs: Array[MechData] = []
+@export_group("Camino secreto")
+## El piso secreto del capítulo (null = no tiene). Se llega encendiendo el brasero frío de un piso
+## (con una bomba: da el Ascua) y abriendo con el Ascua la boca tapiada de la sala del jefe de otro;
+## su trampilla lleva al piso que sigue a ese.
+@export var secret_floor: FloorTheme
+## El piso (índice en `floors`) donde está el brasero frío.
+@export var secret_brazier_floor: int = 0
+## El piso en cuya sala del jefe está la boca que baja al secreto.
+@export var secret_gate_floor: int = 1

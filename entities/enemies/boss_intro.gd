@@ -13,7 +13,7 @@ const LIGHT_FLASH_SCENE: PackedScene = preload("res://fx/light_flash.tscn")
 const DURATIONS: Dictionary[EnemyData.Intro, float] = {
 	EnemyData.Intro.FALL: 2.6, EnemyData.Intro.FORGE_FALL: 2.6, EnemyData.Intro.EMERGE: 3.0,
 	EnemyData.Intro.STOMP: 2.8, EnemyData.Intro.SPIN_IN: 2.4, EnemyData.Intro.SHADOW: 2.8,
-	EnemyData.Intro.AVALANCHE: 2.8, EnemyData.Intro.GATHER: 2.8,
+	EnemyData.Intro.AVALANCHE: 2.8, EnemyData.Intro.GATHER: 2.8, EnemyData.Intro.CHIMNEY: 2.8,
 }
 ## Se puede saltear pasado este tiempo (así un toque de más al entrar no la corta).
 const SKIP_AFTER: float = 0.4
@@ -31,6 +31,10 @@ const SNOW_COLOR: Color = Color("eef4fa")
 const WIND_COLOR: Color = Color("dfe9f5")
 const BOLT_COLOR: Color = Color("fff27a")
 const CORE_COLOR: Color = Color("fff6d5")
+const SOOT_COLOR: Color = Color(0.13, 0.11, 0.14, 0.9)
+const ASH_COLOR: Color = Color("8a8490")
+## CHIMNEY: cuánto cae el hollín antes de que salga.
+const SOOT_TIME: float = 1.3
 
 var _enemy: Enemy
 var _style: EnemyData.Intro = EnemyData.Intro.NONE
@@ -76,6 +80,9 @@ func _ready() -> void:
 		EnemyData.Intro.GATHER:
 			_enemy.flash.fade = 0.0
 			visual.intro_scale = Vector2(1.6, 1.6)
+		EnemyData.Intro.CHIMNEY:
+			_enemy.flash.fade = 0.0
+			visual.intro_scale = Vector2(1.0, 0.05)
 
 
 ## Cuánto dura (para el menú de debug y los tests).
@@ -103,6 +110,8 @@ func _physics_process(delta: float) -> void:
 			_tick_avalanche()
 		EnemyData.Intro.GATHER:
 			_tick_gather()
+		EnemyData.Intro.CHIMNEY:
+			_tick_chimney()
 	if _time >= _duration:
 		_finish()
 
@@ -330,6 +339,32 @@ func _tick_gather() -> void:
 	_roar(2.2)
 
 
+## Cae hollín como por una chimenea y se amontona; de la pila sale él, sacude la ceniza y golpea dos
+## veces el piso con la caña.
+func _tick_chimney() -> void:
+	if _once(&"rumble", 0.0):
+		_shake(0.15)
+		AudioManager.play_sfx(&"debris")
+	if _once(&"rumble_2", 0.6):
+		AudioManager.play_sfx(&"debris", 0.1)
+	if _once(&"rise", SOOT_TIME):
+		_enemy.flash.fade = 1.0
+		_shake(0.6)
+		_burst(ASH_COLOR, 34)
+		_dust(Vector2(-8, 6), ASH_COLOR)
+		_dust(Vector2(8, 6), ASH_COLOR)
+		AudioManager.play_sfx(&"gust")
+	if _time >= SOOT_TIME:
+		var k: float = clampf((_time - SOOT_TIME) / 0.6, 0.0, 1.0)
+		_enemy.visual.intro_scale = Vector2(1.0, lerpf(0.05, 1.0, 1.0 - pow(1.0 - k, 3.0)))
+	for tap: Array in [[&"tap_1", 2.0], [&"tap_2", 2.3]]:
+		if _once(tap[0], tap[1]):
+			_shake(0.25)
+			_dust(Vector2(10, 8), ASH_COLOR)
+			AudioManager.play_sfx(&"ram_hit", 0.1)
+	_roar(2.1)
+
+
 # --- Dibujos ---------------------------------------------------------------------------------------
 
 
@@ -351,6 +386,8 @@ func _draw() -> void:
 			_draw_snowfall()
 		EnemyData.Intro.GATHER:
 			_draw_gather()
+		EnemyData.Intro.CHIMNEY:
+			_draw_chimney()
 
 
 func _draw_fall() -> void:
@@ -499,3 +536,24 @@ func _draw_gather() -> void:
 		points.append(Vector2(0, -4))
 		draw_polyline(points, Color(BOLT_COLOR, 1.0 - bolt), 3.0)
 		draw_polyline(points, Color(CORE_COLOR, 1.0 - bolt), 1.0)
+
+
+func _draw_chimney() -> void:
+	var pour: float = 1.0 - clampf((_time - SOOT_TIME + 0.2) / 0.4, 0.0, 1.0)
+	if pour > 0.0:
+		# La columna de hollín que cae desde arriba.
+		for i: int in 34:
+			var x: float = (fmod(i * 7.3, 14.0) - 7.0) * (0.6 + 0.4 * pour)
+			var y: float = fmod(_time * (120.0 + (i % 5) * 18.0) + i * 23.0, 150.0) - 146.0
+			var flake: Color = ASH_COLOR if i % 2 == 0 else SOOT_COLOR
+			draw_rect(Rect2(Vector2(x, y).round(), Vector2(2, 2) if i % 3 == 0 else Vector2.ONE), Color(flake, 0.9 * pour))
+	# La pila que crece al pie y se deshace cuando sale.
+	var pile: float = clampf(_time / SOOT_TIME, 0.0, 1.0)
+	if _time > SOOT_TIME:
+		pile = 1.0 - clampf((_time - SOOT_TIME) / 0.9, 0.0, 1.0)
+	if pile > 0.0:
+		draw_set_transform(Vector2(0, 5), 0.0, Vector2(1.0, 0.5))
+		draw_circle(Vector2.ZERO, _radius() * 1.2 * pile + 1.0, Color("120c16"))
+		draw_circle(Vector2.ZERO, _radius() * 1.2 * pile, ASH_COLOR.darkened(0.35))
+		draw_circle(Vector2(-2, -3), _radius() * 0.7 * pile, ASH_COLOR)
+		draw_set_transform(Vector2.ZERO)

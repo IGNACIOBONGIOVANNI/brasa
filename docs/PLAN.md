@@ -246,6 +246,11 @@ avanzan por el piso, zarpazos en la oscuridad, mira láser que obliga a rodar, m
 barre) y la dificultad sube de un jefe al otro. Los enemigos que caminan rodean rocas y fosos, y los
 que embisten ya no se quedan embistiendo contra un foso o una pared.
 
+**Hito 29 — El camino secreto** (pedido del usuario): un brasero frío en el Sótano que se enciende con
+una bomba y da el Ascua, una boca tapiada en la sala del jefe de las Cloacas que solo se abre con ella,
+y abajo el Cenicero: un piso secreto con enemigos, trampa, música, escenario y jefe propios (el
+Deshollinador). Su trampilla sigue en Raíces.
+
 **Hito 28 — Entradas de los jefes** (pedido del usuario): cada jefe entra a su sala con una cinemática
 propia (cae, sale de la tierra, se arma de las sombras...); el jugador mira con franjas negras y se
 puede saltear.

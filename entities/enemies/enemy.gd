@@ -335,7 +335,7 @@ func _remember_attack(boss_attack: BossAttack) -> void:
 
 
 static func _is_charge(boss_attack: BossAttack) -> bool:
-	return boss_attack.kind == BossAttack.Kind.CHARGES or boss_attack.kind == BossAttack.Kind.ECHO_CHARGES
+	return boss_attack.kind in [BossAttack.Kind.CHARGES, BossAttack.Kind.ECHO_CHARGES, BossAttack.Kind.SOOT_SWEEP]
 
 
 ## true una vez después de cambiar de fase: el próximo ataque sale sin esperar el cooldown entero.

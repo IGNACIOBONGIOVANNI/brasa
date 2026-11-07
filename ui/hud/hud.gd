@@ -64,6 +64,9 @@ func bind_player(player: Player) -> void:
 	_pulses.set_count(RunState.blanks)
 	RunState.inventory_changed.connect(_counters.set_values)
 	_counters.set_values(RunState.coins, RunState.bombs, RunState.keys)
+	RunState.secret_changed.connect(_on_secret_changed)
+	_on_secret_changed(RunState.secret)
+	EventBus.message_requested.connect(_on_message_requested)
 	RunState.items_changed.connect(_refresh_items)
 	RunState.active_changed.connect(_refresh_active)
 	RunState.weapons_changed.connect(_refresh_weapon)
@@ -155,5 +158,15 @@ func _refresh_minimap() -> void:
 
 
 func _on_floor_changed(index: int) -> void:
-	var theme: FloorTheme = _floor.run.floors[index]
-	_banner.show_text("Piso %d · %s" % [index + 1, theme.display_name], theme.tagline, ItemBanner.LONG_SHOW_TIME)
+	var theme: FloorTheme = _floor.theme
+	var title: String = "Piso secreto · %s" % theme.display_name if _floor.in_secret \
+			else "Piso %d · %s" % [index + 1, theme.display_name]
+	_banner.show_text(title, theme.tagline, ItemBanner.LONG_SHOW_TIME)
+
+
+func _on_secret_changed(step: RunState.Secret) -> void:
+	_counters.ember = step == RunState.Secret.EMBER
+
+
+func _on_message_requested(title: String, subtitle: String) -> void:
+	_banner.show_text(title, subtitle, ItemBanner.LONG_SHOW_TIME)

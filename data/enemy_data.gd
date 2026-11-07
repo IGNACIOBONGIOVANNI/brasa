@@ -19,11 +19,12 @@ enum AttackKind { CHARGE, SHOOT, BEAM, EXPLODE, SUMMON, LOB, SLASH, GUST }
 ## revientan raíces y sale de abajo. STOMP: dos ojos en la oscuridad, dos pisotones y vuelve la luz.
 ## SPIN_IN: entra girando desde un costado y corta dos veces. SHADOW: se arma de las sombras.
 ## AVALANCHE: cae nieve y se levanta la montaña. GATHER: el viento se arremolina, lo forma y cae un rayo.
-enum Intro { NONE, FALL, FORGE_FALL, EMERGE, STOMP, SPIN_IN, SHADOW, AVALANCHE, GATHER }
+## CHIMNEY: cae hollín como por una chimenea, se amontona y de la pila sale él, barriendo.
+enum Intro { NONE, FALL, FORGE_FALL, EMERGE, STOMP, SPIN_IN, SHADOW, AVALANCHE, GATHER, CHIMNEY }
 enum VisualStyle { HORNED, EYE, LANTERN, SPORE, BLOCK, SLIME, BAT, FUSE, NEST, MOLE, WISP, SHIELD, MORTAR,
 		YARN, SHEARS, BURR, MOTH, BOULDER, CROW, WOLF, ICE, CLOUD, GALE, DETHRONED, AVALANCHE, GHOST, VETERAN,
 		SPIKED_SLIME, TREE, ANVIL, SWORD, AXE, KNIFE, FORGE_HEART, BELL, RAM_KING, ROOT_HEART, ANVIL_KNIGHT,
-		GIANT_SHEARS, STORM }
+		GIANT_SHEARS, STORM, CINDER, MOURNER, ASH_HEAP, SWEEP }
 
 @export var id: StringName = &""
 @export var display_name: String = ""

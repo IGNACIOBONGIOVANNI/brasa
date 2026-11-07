@@ -158,8 +158,8 @@ func _on_run_ended(_victory: bool) -> void:
 
 
 ## Penumbra, partículas de ambiente y música del piso.
-func _apply_floor_mood(index: int) -> void:
-	var theme: FloorTheme = floor_controller.run.floors[index]
+func _apply_floor_mood(_index: int) -> void:
+	var theme: FloorTheme = floor_controller.theme
 	_rule_darkness = 0.0
 	_boss_darkness = 0.0
 	_refresh_light(0.0)

@@ -19,6 +19,8 @@ static func songs() -> Dictionary[StringName, ChipTune.Song]:
 		&"monte_3": snowfield(),
 		&"monte_4": summit(),
 		&"boss_monte": mountain_boss(),
+		&"cenicero": ash_pit(),
+		&"boss_cenicero": ash_pit_boss(),
 	}
 
 
@@ -473,5 +475,73 @@ static func mountain_boss() -> ChipTune.Song:
 """, 0.75)
 	song.noise("""
 		[[v6 h8 v3 h8]4 |]16
+""", 1.0)
+	return song
+
+
+## El Cenicero (piso secreto): re menor a 72, una marcha fúnebre. Bajo con puntillo, tambor de
+## procesión y un yunque que suena como una campana cada cuatro compases. A: Rem Rem Sib La Rem Solm
+## La La · B: Fa Do Rem La Sib Solm La Rem.
+static func ash_pit() -> ChipTune.Song:
+	var song := ChipTune.Song.new(72.0)
+	song.pulse("""
+		o4 v10 q7 ~2
+		d4. e8 f4 e4 | d2. r4 | d4. e8 f4 g4 | e2. r4 |
+		a4. g8 f4 e4 | d4 b-4 g2 | c+4 e4 a4 g4 | e2. r4 |
+		a4. b-8 a4 f4 | g4. a8 g4 e4 | f4 e4 d4 f4 | e2. r4 |
+		f4. g8 f4 d4 | g4. a8 b-4 g4 | a4 g4 f4 e4 | d2. r4 |
+""", 1.0, 2).echo(36, 0.25, 0.25)
+	song.pulse("""
+		o3 v5 q8
+		{dfa}1 | {dfa}1 | {db-f}1 | {c+ea}1 | {dfa}1 | {dgb-}1 | {c+ea}1 | {c+ea}1 |
+		{cfa}1 | {ceg}1 | {dfa}1 | {c+ea}1 | {db-f}1 | {dgb-}1 | {c+ea}1 | {dfa}1 |
+""", 0.9, 0)
+	song.triangle("""
+		o2 v15 q5
+		[d4. d8 d4 r4 |]2 b-4. b-8 b-4 r4 | a4. a8 a4 r4 | d4. d8 d4 r4 | g4. g8 g4 r4 | [a4. a8 a4 r4 |]2
+		f4. f8 f4 r4 | c4. c8 c4 r4 | d4. d8 d4 r4 | a4. a8 a4 r4 | b-4. b-8 b-4 r4 | g4. g8 g4 r4 |
+		a4. a8 a4 r4 | d4. d8 d4 r4 |
+""", 0.6)
+	song.noise("""
+		v10
+		[[t4 r4 t8 t8 r4 |]3 t4 r4 a4 r4 |]4
+""", 0.7)
+	return song
+
+
+## El Deshollinador: do menor a 156. Un riff que barre de abajo arriba sobre la tónica, un puente de
+## notas largas y el final que cae en Sol para volver a empezar. A: Dom Dom Lab Sib Dom Dom Fam Sol ·
+## B: Lab Sib Dom Dom Fam Sol Lab Sol.
+static func ash_pit_boss() -> ChipTune.Song:
+	var song := ChipTune.Song.new(156.0)
+	song.pulse("""
+		o5 v11 q6
+		c8 c8 g8 c8 a-8 g8 f8 e-8 | c8 c8 g8 c8 >c8< b-8 a-8 g8 | a-8 a-8 >c8< a-8 >e-8 c8< a-8 g8 |
+		b-8 b-8 >d8< b-8 >f8 d8< b-8 a-8 | c8 c8 g8 c8 a-8 g8 f8 e-8 | c8 c8 g8 c8 >c8< b-8 a-8 g8 |
+		f8 f8 a-8 f8 >c8< a-8 f8 a-8 | g8 b8 >d8< b8 g4 f4 |
+		q7 ~2 e-2 c4 e-4 | d2 f4 b-4 | g2. e-4 | c2 r4 g4 |
+		a-2 f4 a-4 | b2 g4 >d4< | >c4.< b-8 a-4 e-4 | d2 g2 |
+""", 1.0, 1).echo(24, 0.2, 0.2)
+	song.pulse("""
+		o4 v6 q4
+		[r8 {ce-g}8]4 | [r8 {ce-g}8]4 | [r8 {ce-a-}8]4 | [r8 {dfb-}8]4 |
+		[r8 {ce-g}8]4 | [r8 {ce-g}8]4 | [r8 {cfa-}8]4 | [r8 {dgb}8]4 |
+		[r8 {ce-a-}8]4 | [r8 {dfb-}8]4 | [r8 {ce-g}8]4 | [r8 {ce-g}8]4 |
+		[r8 {cfa-}8]4 | [r8 {dgb}8]4 | [r8 {ce-a-}8]4 | [r8 {dgb}8]4 |
+""", 1.0, 1)
+	song.triangle("""
+		o2 v15 q6
+		[c8 >c8<]4 | [c8 >c8<]4 | [a-8 >a-8<]4 | [b-8 >b-8<]4 | [c8 >c8<]4 | [c8 >c8<]4 | [f8 >f8<]4 | [g8 >g8<]4 |
+		[a-8 >a-8<]4 | [b-8 >b-8<]4 | [c8 >c8<]4 | [c8 >c8<]4 | [f8 >f8<]4 | [g8 >g8<]4 | [a-8 >a-8<]4 | [g8 >g8<]4 |
+""", 0.65)
+	song.noise("""
+		v13
+		[k8 k8 s8 k8 k8 k8 s8 k16 k16 |]7
+		k8 k8 s8 k8 s16 s16 s16 s16 m16 m16 t16 t16 |
+		[k4 r8 k8 s4 r8 k8 |]7
+		k8 k8 s8 k8 s16 s16 s16 s16 m16 m16 t16 t16 |
+""", 0.75)
+	song.noise("""
+		[[v5 h8 v3 h8]4 |]16
 """, 1.0)
 	return song

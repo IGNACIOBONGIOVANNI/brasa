@@ -47,11 +47,13 @@ const CAPE_COLOR: Color = Color("5a1424")
 const WOOL_COLOR: Color = Color("e9e1cf")
 const IRON_COLOR: Color = Color("3a3640")
 const PINE_COLOR: Color = Color("2c5248")
+const CHAR_COLOR: Color = Color("2a2224")
+const WAX_COLOR: Color = Color("e8dcc0")
 ## Los que flotan: sombra chica y lejos, y se bambolean.
 const FLYING_STYLES: Array[EnemyData.VisualStyle] = [EnemyData.VisualStyle.BAT, EnemyData.VisualStyle.WISP,
 		EnemyData.VisualStyle.MOTH, EnemyData.VisualStyle.CROW, EnemyData.VisualStyle.CLOUD, EnemyData.VisualStyle.GALE,
 		EnemyData.VisualStyle.GHOST, EnemyData.VisualStyle.SWORD, EnemyData.VisualStyle.AXE,
-		EnemyData.VisualStyle.KNIFE]
+		EnemyData.VisualStyle.KNIFE, EnemyData.VisualStyle.CINDER]
 ## Centro del cuerpo respecto del origen (que está en los pies).
 const BODY_OFFSET: Vector2 = Vector2(0, -2)
 
@@ -272,6 +274,14 @@ func _draw() -> void:
 			_draw_giant_shears()
 		EnemyData.VisualStyle.STORM:
 			_draw_storm()
+		EnemyData.VisualStyle.CINDER:
+			_draw_cinder()
+		EnemyData.VisualStyle.MOURNER:
+			_draw_mourner()
+		EnemyData.VisualStyle.ASH_HEAP:
+			_draw_ash_heap()
+		EnemyData.VisualStyle.SWEEP:
+			_draw_sweep()
 	draw_set_transform(Vector2.ZERO)
 	if _alert:
 		var origin := Vector2(0, BODY_OFFSET.y - radius - 7.0 - roundf(_lift))
@@ -989,6 +999,135 @@ func _draw_forge_heart() -> void:
 
 
 ## Contorno de 1 px alrededor de un polígono (lo agranda desde el centro).
+## Pavesa: un pedazo de papel quemado que flota, con el borde al rojo, la brasa adentro y un ojo.
+func _draw_cinder() -> void:
+	var r: float = radius
+	var flutter: float = sin(_time * 7.0) * 0.25
+	var flake := PackedVector2Array([Vector2(-r, -r * 0.2 + flutter * r), Vector2(-r * 0.3, -r * 0.9),
+			Vector2(r * 0.5, -r * 0.7), Vector2(r, r * 0.1 - flutter * r), Vector2(r * 0.3, r * 0.8), Vector2(-r * 0.6, r * 0.6)])
+	_outlined_polygon(flake, CHAR_COLOR)
+	var edge := flake.duplicate()
+	edge.append(flake[0])
+	var glow: float = 0.6 + 0.4 * sin(_time * 9.0)
+	draw_polyline(edge, Color(body_color, 0.7 + 0.3 * glow), 1.0)
+	draw_circle(Vector2.ZERO, r * 0.5, Color(body_color, 0.45 * glow))
+	var look: Vector2 = (look_direction * 1.0).round()
+	draw_rect(Rect2(Vector2(-1, -1) + look, Vector2(2, 2)), ALERT_COLOR if _alert else Color("ffd166"))
+	for k: int in 2:
+		var rise: float = fmod(_time * 10.0 + k * 5.0, 10.0)
+		draw_rect(Rect2(Vector2(-2 + k * 3, -r - rise).round(), Vector2.ONE), Color(body_color, 1.0 - rise / 10.0))
+
+
+## Doliente: una figura de luto encapuchada, sin cara (dos puntitos pálidos en lo oscuro), con una vela
+## que no se apaga.
+func _draw_mourner() -> void:
+	var r: float = radius
+	var cloak := PackedVector2Array([Vector2(0, -r * 0.95), Vector2(r * 0.55, -r * 0.5), Vector2(r * 0.75, r * 0.95),
+			Vector2(-r * 0.75, r * 0.95), Vector2(-r * 0.55, -r * 0.5)])
+	_outlined_polygon(cloak, body_color)
+	draw_line(Vector2(-r * 0.2, -r * 0.1), Vector2(-r * 0.35, r * 0.9), body_color.darkened(0.35), 1.0)
+	draw_line(Vector2(r * 0.2, -r * 0.1), Vector2(r * 0.35, r * 0.9), body_color.darkened(0.35), 1.0)
+	draw_line(Vector2(-r * 0.5, -r * 0.45), Vector2(0, -r * 0.9), body_color.lightened(0.2), 1.0)
+	var look: Vector2 = (look_direction * 1.0).round()
+	draw_circle(Vector2(0, -r * 0.45) + look, r * 0.3, Color("0e0b10"))
+	var eye_color: Color = ALERT_COLOR if _alert else Color("c8c0d0")
+	for side: float in [-1.0, 1.0]:
+		draw_rect(Rect2(Vector2(side * r * 0.14 - 0.5, -r * 0.5) + look, Vector2(1, 1)), eye_color)
+	# La vela, en las manos, delante.
+	var candle: Vector2 = Vector2(r * 0.1, r * 0.15) + look * 2.0
+	draw_rect(Rect2(candle + Vector2(-2, -1), Vector2(4, 2)), body_color.lightened(0.15))
+	draw_rect(Rect2(candle + Vector2(-1, -5), Vector2(2, 4)), WAX_COLOR)
+	var flicker: float = 0.5 + 0.5 * sin(_time * 13.0) * sin(_time * 7.3)
+	draw_circle(candle + Vector2(0, -7), 4.0, Color(Color("ffcf6b"), 0.18 + 0.1 * flicker))
+	draw_rect(Rect2(candle + Vector2(-1, -8 - roundf(flicker)), Vector2(2, 3)), Color("ffcf6b"))
+	draw_rect(Rect2(candle + Vector2(0, -7), Vector2(1, 1)), Color("fff6d5"))
+
+
+## Cenizo: un montón de ceniza que respira, con brasas en las grietas y dos ojos de carbón encendido.
+## Al avisar se le levanta la ceniza.
+func _draw_ash_heap() -> void:
+	var r: float = radius
+	var breathe: float = sin(_time * 2.0) * 0.06
+	var heap := PackedVector2Array()
+	for k: int in 13:
+		var angle: float = PI + PI * k / 12.0
+		var lump: float = 1.0 + 0.1 * sin(k * 2.3)
+		heap.append(Vector2(cos(angle) * r * lump, sin(angle) * r * (0.8 + breathe) * lump + r * 0.35))
+	heap.append(Vector2(r * 0.9, r * 0.6))
+	heap.append(Vector2(-r * 0.9, r * 0.6))
+	_outlined_polygon(heap, body_color)
+	draw_arc(Vector2(-r * 0.2, r * 0.1), r * 0.5, PI * 1.15, PI * 1.6, 6, body_color.lightened(0.25), 1.0)
+	var pulse: float = 0.5 + 0.5 * sin(_time * 3.0)
+	for crack: PackedVector2Array in [
+			PackedVector2Array([Vector2(-r * 0.6, r * 0.4), Vector2(-r * 0.4, r * 0.15), Vector2(-r * 0.45, -r * 0.05)]),
+			PackedVector2Array([Vector2(r * 0.55, r * 0.45), Vector2(r * 0.35, r * 0.2), Vector2(r * 0.5, 0.0)])]:
+		draw_polyline(crack, Color(HOT_COLOR, 0.5 + 0.5 * pulse), 1.0)
+	var look: Vector2 = (look_direction * 1.5).round()
+	var eye_color: Color = ALERT_COLOR if _alert else Color("ff4d6d")
+	for side: float in [-1.0, 1.0]:
+		draw_rect(Rect2(Vector2(side * r * 0.25 - 1, -r * 0.15) + look, Vector2(2, 2)), eye_color)
+	if _alert:
+		for k: int in 4:
+			var rise: float = fmod(_time * 20.0 + k * 3.0, 12.0)
+			draw_rect(Rect2(Vector2(-r * 0.6 + k * r * 0.4, -r * 0.4 - rise).round(), Vector2.ONE),
+					Color(body_color.lightened(0.3), 1.0 - rise / 12.0))
+
+
+## Deshollinador: alto y flaco, de galera y levita tiznada, con una máscara blanca manchada de hollín y
+## dos ojos de brasa. Lleva el cepillo redondo de las chimeneas en la punta de una caña, que apunta
+## hacia el jugador; al avisar el cepillo gira y echa chispas.
+func _draw_sweep() -> void:
+	var r: float = radius
+	var look: Vector2 = look_direction if look_direction != Vector2.ZERO else Vector2.DOWN
+	var behind: bool = look.y < -0.3
+	if behind:
+		_draw_sweep_brush(look)
+	var coat := PackedVector2Array([Vector2(-r * 0.42, -r * 0.4), Vector2(r * 0.42, -r * 0.4), Vector2(r * 0.7, r * 0.9),
+			Vector2(-r * 0.7, r * 0.9)])
+	_outlined_polygon(coat, body_color)
+	draw_line(Vector2(0, -r * 0.3), Vector2(0, r * 0.9), body_color.darkened(0.45), 1.0)
+	draw_line(Vector2(-r * 0.4, -r * 0.35), Vector2(-r * 0.62, r * 0.85), body_color.lightened(0.15), 1.0)
+	for y: float in [0.0, 0.3, 0.6]:
+		draw_rect(Rect2(Vector2(-r * 0.15, y * r), Vector2(1, 1)), Color("8a7f86"))
+	draw_rect(Rect2(-r * 0.4, -r * 0.48, r * 0.8, 2), CAPE_COLOR)
+	draw_line(Vector2(r * 0.2, -r * 0.42), Vector2(r * 0.38, -r * 0.05), CAPE_COLOR, 2.0)
+	var face := Vector2(0, -r * 0.72)
+	draw_circle(face, r * 0.3 + 1.0, OUTLINE_COLOR)
+	draw_circle(face, r * 0.3, Color("d8d0c8"))
+	draw_circle(face + Vector2(r * 0.1, r * 0.1), r * 0.14, Color(0.2, 0.18, 0.2, 0.55))
+	var eye_color: Color = ALERT_COLOR if _alert or _charging else Color("ff8a3d")
+	var gaze: Vector2 = (look * 1.0).round()
+	for side: float in [-1.0, 1.0]:
+		draw_rect(Rect2(face + Vector2(side * r * 0.13 - 1, -1) + gaze, Vector2(2, 2)), eye_color)
+	var brim: float = face.y - r * 0.26
+	draw_rect(Rect2(-r * 0.5, brim - 1.0, r, 2.0), OUTLINE_COLOR)
+	draw_rect(Rect2(-r * 0.3 - 1.0, brim - r * 0.6 - 1.0, r * 0.6 + 2.0, r * 0.6 + 1.0), OUTLINE_COLOR)
+	draw_rect(Rect2(-r * 0.3, brim - r * 0.6, r * 0.6, r * 0.6), Color("1a171c"))
+	draw_rect(Rect2(-r * 0.3, brim - r * 0.22, r * 0.6, 1.5), CAPE_COLOR)
+	if not behind:
+		_draw_sweep_brush(look)
+
+
+func _draw_sweep_brush(look: Vector2) -> void:
+	var r: float = radius
+	var start: Vector2 = Vector2(0, -r * 0.1) + look * r * 0.3
+	var tip: Vector2 = start + look * r * 1.25
+	draw_line(start, tip, OUTLINE_COLOR, 3.0)
+	draw_line(start, tip, Color("7a5636"), 1.0)
+	var turn: float = _time * 8.0 if _alert or _charging else 0.0
+	for k: int in 12:
+		var bristle := Vector2.from_angle(TAU * k / 12.0 + turn)
+		draw_line(tip, tip + bristle * r * 0.4, OUTLINE_COLOR, 2.0)
+	for k: int in 12:
+		var bristle := Vector2.from_angle(TAU * k / 12.0 + turn)
+		draw_line(tip, tip + bristle * r * 0.34, body_color.lightened(0.2), 1.0)
+	draw_circle(tip, 1.5, Color("8a7f86"))
+	if _alert or _charging:
+		for k: int in 3:
+			var spark: Vector2 = tip + Vector2.from_angle(_time * 11.0 + k * 2.1) * r * 0.5
+			draw_rect(Rect2(spark.round(), Vector2.ONE), HOT_COLOR)
+
+
 func _outlined_polygon(points: PackedVector2Array, color: Color) -> void:
 	var outline := PackedVector2Array()
 	for point: Vector2 in points:

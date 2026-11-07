@@ -8,7 +8,8 @@ extends Node
 ## (--fixed-fps hace que corra sin esperar al reloj real: una run entera tarda un par de minutos).
 ## --weapon=ID equipa esa arma (de content/weapons/) y le llena la munición cada vez que se vacía,
 ## para comparar cuánto pega cada una; --floors=N juega solo los primeros N pisos; --chapter=N juega ese
-## capítulo con su primer personaje.
+## capítulo con su primer personaje; --secret juega también el piso secreto (después del piso de la
+## boca, como si se hubiera bajado).
 
 const MAIN_SCENE: PackedScene = preload("res://main/main.tscn")
 ## Items que suma el bot al empezar cada piso (uno más por piso): simulan lo que se junta en una run.
@@ -23,11 +24,13 @@ const STRAFE: float = 0.6
 const AUDIO_DRAIN_MSEC: int = 600
 const WEAPON_ARG: String = "--weapon="
 const FLOORS_ARG: String = "--floors="
+const SECRET_ARG: String = "--secret"
 
 var _main: Main
 ## Arma a probar (--weapon=ID); null = la pistola de siempre.
 var _weapon: WeaponData = null
 var _floors: int = -1
+var _secret: bool = false
 ## Lo último que se anotó del jefe de la sala (ver _note_bosses).
 var _boss_report: String = ""
 
@@ -38,6 +41,8 @@ func _ready() -> void:
 			_weapon = load("res://content/weapons/%s.tres" % arg.trim_prefix(WEAPON_ARG)) as WeaponData
 		elif arg.begins_with(FLOORS_ARG) and arg.trim_prefix(FLOORS_ARG).is_valid_int():
 			_floors = arg.trim_prefix(FLOORS_ARG).to_int()
+		elif arg == SECRET_ARG:
+			_secret = true
 	_main = MAIN_SCENE.instantiate() as Main
 	_main.save_dir = ""
 	add_child(_main)
@@ -58,9 +63,17 @@ func _run() -> void:
 	var floor_count: int = floor_controller.run.floors.size()
 	if _floors > 0:
 		floor_count = mini(_floors, floor_count)
+	# Cada piso que juega: [índice, secreto].
+	var plan: Array[Array] = []
 	for index: int in floor_count:
-		if index > 0:
-			floor_controller.load_floor(index)
+		plan.append([index, false])
+		if _secret and floor_controller.run.secret_floor != null and index == floor_controller.run.secret_gate_floor:
+			plan.append([index, true])
+	for step: Array in plan:
+		var index: int = step[0]
+		var secret: bool = step[1]
+		if index > 0 or secret:
+			floor_controller.load_floor(index, null, secret)
 		RunState.add_item(load("res://content/items/%s.tres" % TYPICAL_ITEMS[mini(index, TYPICAL_ITEMS.size() - 1)]) as ItemData)
 		var layout: FloorLayout = floor_controller.layout
 		var cells: Array[Vector2i] = layout.cells_of_kind(RoomSlot.Kind.NORMAL)
@@ -76,8 +89,8 @@ func _run() -> void:
 		var boss_time: float = await _clear(floor_controller, layout.first_of_kind(RoomSlot.Kind.BOSS))
 		total_combat += rooms_time + boss_time
 		total_rooms += layout.slots.size()
-		print("piso %d (%s): %d salas de combate en %.0f s (%.1f s por sala), jefe en %.0f s (%s)%s" % [
-			index + 1, RunState.floor_name, cells.size(), rooms_time, rooms_time / maxf(1.0, cells.size()),
+		print("piso %s (%s): %d salas de combate en %.0f s (%.1f s por sala), jefe en %.0f s (%s)%s" % [
+			"secreto" if secret else str(index + 1), RunState.floor_name, cells.size(), rooms_time, rooms_time / maxf(1.0, cells.size()),
 			boss_time, _boss_report, (" · sin terminar: " + ", ".join(slow)) if not slow.is_empty() else ""])
 	var estimate: float = total_combat * HUMAN_FACTOR + total_rooms * ROOM_OVERHEAD
 	print("bot (%s): %s de combate en %d salas · estimado para una persona: %s" % [

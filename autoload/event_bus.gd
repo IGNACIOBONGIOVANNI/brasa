@@ -34,6 +34,8 @@ signal cinematic_changed(active: bool)
 signal boss_intro_started(boss: Node2D)
 ## Apareció un jefe (el HUD muestra su barra de vida). Con entrada, al terminarla.
 signal boss_spawned(boss: Node2D)
+## Un cartel con un aviso del mundo (el brasero que se enciende, la boca tapiada): lo muestra el HUD.
+signal message_requested(title: String, subtitle: String)
 signal boss_defeated(boss: Node2D)
 ## Empezó un piso (índice desde 0).
 signal floor_changed(index: int)

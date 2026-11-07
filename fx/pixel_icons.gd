@@ -60,6 +60,14 @@ const KEY: PackedStringArray = [
 	"..#..",
 	"..##.",
 ]
+## El Ascua del camino secreto: una brasa con su llamita.
+const EMBER: PackedStringArray = [
+	"..#..",
+	".#.#.",
+	".###.",
+	"#####",
+	".###.",
+]
 const ALERT: PackedStringArray = ["#", "#", "#", ".", "#"]
 const INFINITY: PackedStringArray = [
 	".#...#.",

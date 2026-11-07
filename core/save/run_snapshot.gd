@@ -54,6 +54,9 @@ var kills: int = 0
 var bosses_defeated: Array[StringName] = []
 ## Vida máxima entregada en el Altar.
 var sacrificed_health: float = 0.0
+## El camino secreto (RunState.Secret) y si la run está en el piso secreto.
+var secret_step: int = 0
+var secret_floor: bool = false
 var health: float = 0.0
 var blanks: int = 0
 var coins: int = 0
@@ -109,6 +112,8 @@ func to_dict() -> Dictionary:
 		"kills": kills,
 		"bosses": _strings(bosses_defeated),
 		"sacrificed": sacrificed_health,
+		"secret": secret_step,
+		"secret_floor": secret_floor,
 		"health": health,
 		"blanks": blanks,
 		"coins": coins,
@@ -148,6 +153,8 @@ static func from_dict(data: Dictionary) -> RunSnapshot:
 	snapshot.kills = int(data.get("kills", 0))
 	snapshot.bosses_defeated = _names(data.get("bosses", []))
 	snapshot.sacrificed_health = float(data.get("sacrificed", 0.0))
+	snapshot.secret_step = int(data.get("secret", 0))
+	snapshot.secret_floor = bool(data.get("secret_floor", false))
 	snapshot.health = float(data.get("health", 0.0))
 	snapshot.blanks = int(data.get("blanks", 0))
 	snapshot.coins = int(data.get("coins", 0))

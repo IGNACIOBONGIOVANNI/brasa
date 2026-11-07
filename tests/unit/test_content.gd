@@ -51,11 +51,13 @@ func _load_all(dir: String) -> Array[Resource]:
 	return result
 
 
-## Todos los pisos de todos los capítulos.
+## Todos los pisos de todos los capítulos (también los secretos).
 func _all_floors() -> Array[FloorTheme]:
 	var result: Array[FloorTheme] = []
 	for chapter: RunConfig in META.chapters:
 		result.append_array(chapter.floors)
+		if chapter.secret_floor != null:
+			result.append(chapter.secret_floor)
 	return result
 
 

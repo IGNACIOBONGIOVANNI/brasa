@@ -18,6 +18,8 @@
 [ext_resource type="Resource" path="res://content/mechs/zancos.tres" id="mech_zancos"]
 [ext_resource type="Resource" path="res://content/mechs/fuelle.tres" id="mech_fuelle"]
 
+[ext_resource type="Resource" path="res://content/floors/cenicero.tres" id="secret_floor"]
+
 [resource]
 script = ExtResource("1_run")
 id = &"fragua"
@@ -28,3 +30,6 @@ defeat_text = "Tu chispa vuelve al Taller. El herrero la sopla otra vez; cada ve
 floors = Array[ExtResource("2_theme_script")]([ExtResource("3_floor_1"), ExtResource("4_floor_2"), ExtResource("5_floor_3"), ExtResource("6_floor_4")])
 room_rules = Array[ExtResource("7_rule_script")]([ExtResource("rule_furia"), ExtResource("rule_coraza"), ExtResource("rule_contrarreloj"), ExtResource("rule_apagon"), ExtResource("rule_sin_pulso"), ExtResource("rule_fragil")])
 mechs = Array[ExtResource("8_mech_script")]([ExtResource("mech_caldera"), ExtResource("mech_zancos"), ExtResource("mech_fuelle")])
+secret_floor = ExtResource("secret_floor")
+secret_brazier_floor = 0
+secret_gate_floor = 1

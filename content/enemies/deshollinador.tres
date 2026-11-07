@@ -1,0 +1,218 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://data/boss_phase.gd" id="3_phase"]
+[ext_resource type="Script" path="res://data/boss_attack.gd" id="4_attack"]
+[ext_resource type="Resource" path="res://content/patterns/deshollinador_cerdas.tres" id="x0"]
+[ext_resource type="Resource" path="res://content/patterns/deshollinador_hollin.tres" id="x1"]
+[ext_resource type="Resource" path="res://content/patterns/deshollinador_cerdas_rebote.tres" id="x2"]
+[ext_resource type="Resource" path="res://content/patterns/deshollinador_hollin_6.tres" id="x3"]
+[ext_resource type="Resource" path="res://content/patterns/deshollinador_anillo.tres" id="x4"]
+[ext_resource type="Resource" path="res://content/patterns/deshollinador_cenizas_quietas.tres" id="x5"]
+[ext_resource type="Resource" path="res://content/enemies/pavesa.tres" id="s0"]
+[sub_resource type="Resource" id="Behavior_0"]
+script = ExtResource("1_enemy")
+id = &"deshollinador_fase_1"
+move_style = 0
+move_speed = 36.0
+acceleration = 500.0
+attack_range = 300.0
+attack_cooldown = 0.9
+recover_time = 0.8
+
+[sub_resource type="Resource" id="Attack_barrido"]
+script = ExtResource("4_attack")
+id = &"barrido"
+display_name = "Barrido de hollín"
+kind = 31
+windup = 0.6
+recover = 0.9
+count = 2
+warn_time = 0.6
+radius = 7.0
+spread = 20.0
+speed = 210.0
+linger = 0.9
+pattern = ExtResource("x1")
+
+[sub_resource type="Resource" id="Attack_escobazo"]
+script = ExtResource("4_attack")
+id = &"escobazo"
+display_name = "Escobazo"
+kind = 0
+windup = 0.6
+recover = 0.7
+count = 2
+interval = 0.35
+pattern = ExtResource("x0")
+
+[sub_resource type="Resource" id="Attack_hollin_que_cae"]
+script = ExtResource("4_attack")
+id = &"hollin_que_cae"
+display_name = "Hollín que cae"
+kind = 1
+windup = 0.8
+recover = 0.8
+count = 5
+interval = 0.3
+warn_time = 1.0
+radius = 13.0
+spread = 50.0
+look = 3
+
+[sub_resource type="Resource" id="Phase_0"]
+script = ExtResource("3_phase")
+health_fraction = 1.0
+behavior = SubResource("Behavior_0")
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_barrido"), SubResource("Attack_escobazo"), SubResource("Attack_hollin_que_cae")])
+
+[sub_resource type="Resource" id="Behavior_1"]
+script = ExtResource("1_enemy")
+id = &"deshollinador_fase_2"
+move_style = 0
+move_speed = 42.0
+acceleration = 500.0
+attack_range = 300.0
+attack_cooldown = 0.75
+recover_time = 0.7
+
+[sub_resource type="Resource" id="Attack_barrido_3"]
+script = ExtResource("4_attack")
+id = &"barrido_3"
+display_name = "Tres barridos"
+kind = 31
+windup = 0.55
+recover = 0.9
+count = 3
+warn_time = 0.55
+radius = 7.0
+spread = 18.0
+speed = 230.0
+linger = 0.8
+pattern = ExtResource("x1")
+
+[sub_resource type="Resource" id="Attack_humareda"]
+script = ExtResource("4_attack")
+id = &"humareda"
+display_name = "Humareda"
+kind = 3
+windup = 0.7
+recover = 1.0
+count = 4
+interval = 0.6
+warn_time = 0.65
+radius = 7.0
+darkness = 0.8
+
+[sub_resource type="Resource" id="Attack_pavesas"]
+script = ExtResource("4_attack")
+id = &"pavesas"
+display_name = "Pavesas"
+kind = 7
+windup = 0.55
+recover = 0.6
+count = 2
+cap = 3
+summon = ExtResource("s0")
+
+[sub_resource type="Resource" id="Attack_cerdas_rebotonas"]
+script = ExtResource("4_attack")
+id = &"cerdas_rebotonas"
+display_name = "Cerdas rebotonas"
+kind = 0
+windup = 0.55
+recover = 0.7
+count = 2
+interval = 0.4
+pattern = ExtResource("x2")
+
+[sub_resource type="Resource" id="Phase_1"]
+script = ExtResource("3_phase")
+health_fraction = 0.65
+behavior = SubResource("Behavior_1")
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_barrido_3"), SubResource("Attack_humareda"), SubResource("Attack_pavesas"), SubResource("Attack_cerdas_rebotonas")])
+
+[sub_resource type="Resource" id="Behavior_2"]
+script = ExtResource("1_enemy")
+id = &"deshollinador_fase_3"
+move_style = 0
+move_speed = 48.0
+acceleration = 500.0
+attack_range = 300.0
+attack_cooldown = 0.6
+recover_time = 0.6
+
+[sub_resource type="Resource" id="Attack_barrido_4"]
+script = ExtResource("4_attack")
+id = &"barrido_4"
+display_name = "Cuatro barridos"
+kind = 31
+windup = 0.5
+recover = 0.9
+count = 4
+warn_time = 0.5
+radius = 8.0
+spread = 18.0
+speed = 250.0
+linger = 0.7
+pattern = ExtResource("x3")
+
+[sub_resource type="Resource" id="Attack_chimenea"]
+script = ExtResource("4_attack")
+id = &"chimenea"
+display_name = "Se viene la chimenea"
+kind = 1
+windup = 0.6
+recover = 0.9
+count = 9
+interval = 0.15
+warn_time = 0.9
+radius = 14.0
+spread = 70.0
+look = 3
+
+[sub_resource type="Resource" id="Attack_paso_de_hollin"]
+script = ExtResource("4_attack")
+id = &"paso_de_hollin"
+display_name = "Paso de hollín"
+kind = 30
+windup = 0.55
+recover = 0.9
+count = 2
+warn_time = 0.7
+radius = 12.0
+damage = 1.0
+pattern = ExtResource("x4")
+
+[sub_resource type="Resource" id="Attack_cenizas_quietas"]
+script = ExtResource("4_attack")
+id = &"cenizas_quietas"
+display_name = "Cenizas quietas"
+kind = 0
+windup = 0.5
+recover = 0.8
+count = 1
+pattern = ExtResource("x5")
+
+[sub_resource type="Resource" id="Phase_2"]
+script = ExtResource("3_phase")
+health_fraction = 0.3
+behavior = SubResource("Behavior_2")
+attacks = Array[ExtResource("4_attack")]([SubResource("Attack_barrido_4"), SubResource("Attack_chimenea"), SubResource("Attack_paso_de_hollin"), SubResource("Attack_cenizas_quietas"), SubResource("Attack_pavesas")])
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"deshollinador"
+display_name = "Deshollinador"
+epithet = "Barría las cenizas de los que bajaban. Todavía barre"
+template_char = "W"
+max_health = 180.0
+spawn_delay = 1.5
+knockback_resistance = 0.9
+intro = 9
+phases = Array[ExtResource("3_phase")]([SubResource("Phase_0"), SubResource("Phase_1"), SubResource("Phase_2")])
+body_radius = 11.0
+hurtbox_radius = 14.0
+visual_style = 43
+visual_radius = 15.0
+body_color = Color(0.1647, 0.1490, 0.1882, 1)

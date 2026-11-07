@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://data/enemy_data.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://data/bullet_pattern_data.gd" id="2_pattern_script"]
+[ext_resource type="Resource" path="res://content/patterns/cenizo_anillo.tres" id="p0"]
+[ext_resource type="Resource" path="res://content/patterns/cenizo_muerte.tres" id="p1"]
+
+[resource]
+script = ExtResource("1_enemy")
+id = &"cenizo"
+display_name = "Cenizo"
+template_char = "Z"
+max_health = 15.0
+move_style = 5
+move_speed = 42.0
+acceleration = 400.0
+attack_kind = 1
+attack_range = 70.0
+attack_cooldown = 1.8
+telegraph_time = 0.6
+recover_time = 1.0
+body_radius = 5.5
+hurtbox_radius = 7.5
+visual_style = 42
+visual_radius = 8.0
+body_color = Color(0.5412, 0.5176, 0.5647, 1)
+patterns = Array[ExtResource("2_pattern_script")]([ExtResource("p0")])
+death_pattern = ExtResource("p1")

@@ -38,6 +38,11 @@ const CLEAR_DELAY: float = 0.35
 const BOSS_HEART_OFFSET: Vector2 = Vector2(0, 32)
 ## Celdas de distancia a los enemigos de la plantilla al aparecer sin cruzar una puerta.
 const SPAWN_CLEARANCE: int = 3
+## Hacia dónde se buscan los lugares del brasero frío (una esquina) y de la boca del Cenicero.
+const BRAZIER_TARGET: Vector2i = Vector2i(1, 1)
+const CHUTE_TARGET: Vector2i = Vector2i(12, 7)
+## Celdas frente a las cuatro puertas (ahí nunca va nada del escenario).
+const DOOR_FRONTS: Array[Vector2i] = [Vector2i(7, 0), Vector2i(7, 8), Vector2i(0, 4), Vector2i(14, 4)]
 
 var slot: RoomSlot
 var grid: RoomGrid
@@ -263,6 +268,63 @@ func spawn_exit(final: bool) -> Trapdoor:
 	exit.position = RoomGrid.cell_center(RoomGrid.CENTER)
 	($Pickups as Node2D).add_child(exit)
 	return exit
+
+
+## El brasero frío del camino secreto, en una esquina (FloorController lo pone en su sala): tapa el
+## paso, así que su celda queda cerrada para los caminos de los enemigos.
+func add_brazier() -> Brazier:
+	var cell: Vector2i = prop_cell(BRAZIER_TARGET)
+	var brazier := Brazier.new()
+	brazier.position = RoomGrid.cell_center(cell)
+	($Pickups as Node2D).add_child(brazier)
+	nav.set_open(cell, false)
+	return brazier
+
+
+## La boca tapiada que baja al piso secreto (en la sala del jefe del piso de la boca).
+func add_chute() -> AshChute:
+	var chute := AshChute.new()
+	chute.room = self
+	chute.position = RoomGrid.cell_center(prop_cell(CHUTE_TARGET))
+	($Pickups as Node2D).add_child(chute)
+	return chute
+
+
+## Una celda cerca de `target` para algo del escenario: se camina, no es lugar de pedestal, trampa ni
+## pickup, no está frente a una puerta ni pegada a un enemigo, y todas sus vecinas dentro de la sala se
+## caminan (así, aunque tape el paso, no corta ningún camino).
+func prop_cell(target: Vector2i) -> Vector2i:
+	var taken: Dictionary[Vector2i, bool] = {}
+	for marker: RoomGrid.PickupMarker in grid.pickups:
+		taken[marker.cell] = true
+	var best: Vector2i = grid.nearest_walkable(target, 2)
+	var best_distance: int = 1 << 30
+	for y: int in RoomGrid.HEIGHT:
+		for x: int in RoomGrid.WIDTH:
+			var cell := Vector2i(x, y)
+			var distance: int = (cell - target).length_squared()
+			if distance < best_distance and not taken.has(cell) and grid.nearest_walkable(cell, 2) == cell 					and _open_around(cell) and not _near_door(cell):
+				best = cell
+				best_distance = distance
+	return best
+
+
+func _open_around(cell: Vector2i) -> bool:
+	for dy: int in range(-1, 2):
+		for dx: int in range(-1, 2):
+			var next: Vector2i = cell + Vector2i(dx, dy)
+			var inside: bool = next.x >= 0 and next.y >= 0 and next.x < RoomGrid.WIDTH and next.y < RoomGrid.HEIGHT
+			if inside and not grid.is_walkable(next):
+				return false
+	return true
+
+
+func _near_door(cell: Vector2i) -> bool:
+	for front: Vector2i in DOOR_FRONTS:
+		var gap: Vector2i = (front - cell).abs()
+		if maxi(gap.x, gap.y) <= 1:
+			return true
+	return false
 
 
 ## Dónde aparece el jugador si llega sin cruzar una puerta (inicio o debug), en coordenadas locales.

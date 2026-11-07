@@ -47,6 +47,18 @@ llama "y su precio"; y en Brasa, que está hecha de lo mismo que la fragua comí
    armas para manos que ya no están. Al vencerlo, la fragua vuelve a prender: *Fragua encendida* (el id
    interno del logro sigue siendo `fragua_apagada` para no tocar los guardados).
 
+## El camino secreto: el Cenicero
+
+Antes, cuando alguien bajaba al sótano, el pueblo lo despedía prendiendo un **brasero**; desde que la
+fragua se apagó, el brasero está frío en un rincón del Sótano. Una bomba lo vuelve a prender y deja el
+**Ascua**, "una brasa que no se apaga". En la sala del Rey Carnero hay una **boca tapiada** con hollín
+duro, con la misma llama grabada: es la bajada al **Cenicero**, adonde caía lo que quedaba de los que
+bajaron. *Acá cae lo que queda de los que bajaron. Alguien todavía lo barre.* Hay urnas en las paredes y
+en el piso, ceniza con marcas de escoba, pavesas que flotan, **dolientes** de luto que todavía llevan sus
+velas y montones de ceniza (**cenizos**) que respiran. El que barre es el **Deshollinador**: *barría las
+cenizas de los que bajaban. Todavía barre.* Vencerlo da **Bajo la ceniza** y el **Tizne**, el hollín de
+los que bajaron primero. Abajo del Cenicero se sigue a las Raíces: nadie sale por donde entró.
+
 ## Los personajes
 
 - **Brasa:** la última chispa de la fragua, hecha con las cenizas de los que bajaron antes. Pareja en
@@ -105,6 +117,8 @@ carpeta del guardado.
 - **Una línea por piso:** `tagline` de cada `content/floors/*.tres`, debajo del cartel "Piso N · Nombre".
 - **Apodo de cada jefe y minijefe:** `epithet` en `content/enemies/<jefe>.tres`, debajo de su nombre al
   aparecer.
+- **Camino secreto:** carteles del brasero (`Brazier.TITLE`/`SUBTITLE`) y de la boca
+  (`AshChute.SEALED_*`/`OPEN_*`); el tema y la línea del Cenicero en `content/floors/cenicero.tres`.
 - **Movimientos de cada jefe:** `display_name` de cada `BossAttack` en `content/enemies/<jefe>.tres`
   (Tañido grave, Corona arrojada, Raíces cazadoras, Cruz de la fragua...). Se ven en el menú de debug.
 - **Personajes:** `description` en `content/characters/*.tres`.
