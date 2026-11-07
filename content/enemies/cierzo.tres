@@ -271,4 +271,5 @@ hurtbox_radius = 15.0
 visual_style = 39
 visual_radius = 16.0
 body_color = Color(0.498, 0.6118, 0.7529, 1)
+intro = 8
 phases = Array[ExtResource("3_phase")]([SubResource("Phase_0"), SubResource("Phase_1"), SubResource("Phase_2"), SubResource("Phase_3")])

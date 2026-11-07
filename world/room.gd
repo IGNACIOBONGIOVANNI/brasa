@@ -348,6 +348,7 @@ func _spawn_wave(index: int, combat_id: int) -> void:
 			enemy.pace = slot.rule.enemy_pace
 		enemy.nav = nav
 		enemy.nav_origin = global_position
+		enemy.play_intro = slot.kind == RoomSlot.Kind.BOSS
 		enemy.position = _entities.to_local(to_global(RoomGrid.cell_center(marker.cell)))
 		_entities.add_child(enemy)
 		_register_enemy(enemy)

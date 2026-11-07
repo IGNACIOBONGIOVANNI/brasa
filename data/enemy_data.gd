@@ -14,6 +14,12 @@ extends Resource
 
 enum MoveStyle { CHASE, KEEP_DISTANCE, HOP, FLY, STAY, BURROW, PHASE, BOUNCE, PROWL }
 enum AttackKind { CHARGE, SHOOT, BEAM, EXPLODE, SUMMON, LOB, SLASH, GUST }
+## Cómo entra un jefe en su sala (la cinemática de BossIntro; NONE = aparece como cualquier enemigo).
+## FALL: cae del techo. FORGE_FALL: cae entre chispas, con un aro de fuego. EMERGE: la tierra se agrieta,
+## revientan raíces y sale de abajo. STOMP: dos ojos en la oscuridad, dos pisotones y vuelve la luz.
+## SPIN_IN: entra girando desde un costado y corta dos veces. SHADOW: se arma de las sombras.
+## AVALANCHE: cae nieve y se levanta la montaña. GATHER: el viento se arremolina, lo forma y cae un rayo.
+enum Intro { NONE, FALL, FORGE_FALL, EMERGE, STOMP, SPIN_IN, SHADOW, AVALANCHE, GATHER }
 enum VisualStyle { HORNED, EYE, LANTERN, SPORE, BLOCK, SLIME, BAT, FUSE, NEST, MOLE, WISP, SHIELD, MORTAR,
 		YARN, SHEARS, BURR, MOTH, BOULDER, CROW, WOLF, ICE, CLOUD, GALE, DETHRONED, AVALANCHE, GHOST, VETERAN,
 		SPIKED_SLIME, TREE, ANVIL, SWORD, AXE, KNIFE, FORGE_HEART, BELL, RAM_KING, ROOT_HEART, ANVIL_KNIGHT,
@@ -110,6 +116,8 @@ enum VisualStyle { HORNED, EYE, LANTERN, SPORE, BLOCK, SLIME, BAT, FUSE, NEST, M
 ## Minijefe: pelea como un jefe (barra, cartel, fases y movimientos) pero en una sala propia del piso
 ## (RoomSlot.Kind.MINIBOSS), con la música del piso; no abre la salida ni cuenta como jefe vencido.
 @export var miniboss: bool = false
+## Su entrada en la sala del jefe (ver Intro).
+@export var intro: Intro = Intro.NONE
 
 @export_group("Visual placeholder")
 @export var visual_style: VisualStyle = VisualStyle.HORNED

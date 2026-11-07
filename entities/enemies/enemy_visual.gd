@@ -80,6 +80,14 @@ var _burrowed: bool = false
 var _guarding: bool = false
 ## Altura en el aire (un jefe que salta): el cuerpo sube y la sombra se achica en el piso.
 var _lift: float = 0.0
+## La entrada de un jefe (BossIntro) lo agranda o lo achica desde los pies (crece de la tierra, de la
+## nieve) y lo corre un poco. Fuera de la entrada quedan en (1, 1) y (0, 0).
+var intro_scale: Vector2 = Vector2.ONE
+var intro_offset: Vector2 = Vector2.ZERO
+## Dónde y de qué tamaño se dibuja el cuerpo en este cuadro (los dibujos que cambian la transformación
+## la arman desde acá, así respetan el salto, la altura y la entrada).
+var _body_origin: Vector2 = Vector2.ZERO
+var _body_scale: Vector2 = Vector2.ONE
 
 
 func configure(data: EnemyData) -> void:
@@ -178,7 +186,11 @@ func _draw() -> void:
 		lift = Vector2(0, roundf(-3.0 + sin(_time * 5.0)))
 	if _lift > 0.0:
 		lift = Vector2(0, -roundf(_lift))
-	draw_set_transform(BODY_OFFSET + lean + lift, 0.0, body_scale)
+	# La entrada crece desde los pies: el centro baja lo que se achica.
+	var rise := Vector2(0, radius * (1.0 - intro_scale.y))
+	_body_origin = BODY_OFFSET + lean + lift + intro_offset + rise
+	_body_scale = body_scale * intro_scale
+	draw_set_transform(_body_origin, 0.0, _body_scale)
 	match style:
 		EnemyData.VisualStyle.HORNED:
 			_draw_horned()
@@ -990,7 +1002,7 @@ func _outlined_polygon(points: PackedVector2Array, color: Color) -> void:
 func _draw_bell() -> void:
 	var r: float = radius
 	var shake: float = roundf(sin(_time * 60.0)) if _alert else 0.0
-	draw_set_transform(BODY_OFFSET + Vector2(shake, 0), 0.0, Vector2.ONE)
+	draw_set_transform(_body_origin + Vector2(shake, 0), 0.0, _body_scale)
 	var swing: float = sin(_time * (9.0 if _alert else 2.5)) * (0.45 if _alert else 0.2)
 	var clapper := Vector2(sin(swing) * r * 0.5, r * 0.95)
 	draw_line(Vector2(0, r * 0.3), clapper, IRON_COLOR, 2.0)
@@ -1019,7 +1031,7 @@ func _draw_bell() -> void:
 			shifted.append(point + look)
 		draw_colored_polygon(shifted, OUTLINE_COLOR)
 		draw_circle(Vector2(side * r * 0.32, -r * 0.18) + look, 1.0, eye_color)
-	draw_set_transform(BODY_OFFSET, 0.0, Vector2.ONE)
+	draw_set_transform(_body_origin, 0.0, _body_scale)
 
 
 ## El Rey Carnero: capa roja, cuello de lana, cuernos gruesos con punta dorada, corona de clavos y

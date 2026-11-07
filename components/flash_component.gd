@@ -4,6 +4,7 @@ extends Node
 ## - flash(): destello de un color, blanco al recibir daño.
 ## - blink(): parpadeo de transparencia durante los i-frames.
 ## - start_pulse() / stop_pulse(): destello intermitente mientras dura un telegraph.
+## - fade: transparencia que se suma a todo lo anterior (la entrada de un jefe lo hace aparecer).
 
 const SHADER: Shader = preload("res://fx/flash.gdshader")
 const BLINK_PERIOD: float = 0.1
@@ -20,6 +21,8 @@ var _blink_left: float = 0.0
 var _pulsing: bool = false
 var _pulse_color: Color = Color.WHITE
 var _pulse_time: float = 0.0
+## 1 = se ve entero, 0 = invisible.
+var fade: float = 1.0
 
 
 func _ready() -> void:
@@ -62,5 +65,5 @@ func _process(delta: float) -> void:
 	_material.set_shader_parameter(&"flash_color", color)
 	var blink_on: bool = _blink_left > 0.0 and fmod(_blink_left, BLINK_PERIOD) < BLINK_PERIOD * 0.5
 	var tint: Color = target.modulate
-	tint.a = BLINK_ALPHA if blink_on else 1.0
+	tint.a = (BLINK_ALPHA if blink_on else 1.0) * fade
 	target.modulate = tint

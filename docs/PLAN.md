@@ -246,6 +246,10 @@ avanzan por el piso, zarpazos en la oscuridad, mira láser que obliga a rodar, m
 barre) y la dificultad sube de un jefe al otro. Los enemigos que caminan rodean rocas y fosos, y los
 que embisten ya no se quedan embistiendo contra un foso o una pared.
 
+**Hito 28 — Entradas de los jefes** (pedido del usuario): cada jefe entra a su sala con una cinemática
+propia (cae, sale de la tierra, se arma de las sombras...); el jugador mira con franjas negras y se
+puede saltear.
+
 **Hito 27 — Que se vean todos los ataques** (pedido del usuario): los jefes eligen primero lo que no
 mostraron, recorren cada fase entera antes de repetir y atacan más seguido; balas que rebotan,
 persiguen o esperan en el aire; y más ataques por jefe sacados de un segundo relevamiento de juegos

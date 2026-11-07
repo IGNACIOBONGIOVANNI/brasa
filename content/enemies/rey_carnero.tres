@@ -187,6 +187,7 @@ template_char = "K"
 max_health = 160.0
 spawn_delay = 1.5
 knockback_resistance = 0.9
+intro = 4
 phases = Array[ExtResource("3_phase")]([SubResource("Phase_0"), SubResource("Phase_1"), SubResource("Phase_2")])
 body_radius = 11.0
 hurtbox_radius = 14.0

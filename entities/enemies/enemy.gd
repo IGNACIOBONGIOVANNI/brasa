@@ -97,6 +97,9 @@ var used_kinds: Dictionary[BossAttack.Kind, bool] = {}
 ## Jefes: los movimientos de la fase que faltan en esta vuelta (índices). Se vuelve a llenar al vaciarse
 ## y se vacía al cambiar de fase.
 var _attack_bag: Array[int] = []
+## Lo pone la sala del jefe antes de agregarlo: hace su entrada (BossIntro) si su data la tiene.
+var play_intro: bool = false
+var _in_intro: bool = false
 ## Recién cambió de fase: el próximo ataque sale enseguida (Move lo consulta con take_phase_rush).
 var _phase_rush: bool = false
 ## Movimiento pedido desde el menú de debug: sale el próximo (una vez).
@@ -143,9 +146,38 @@ func _ready() -> void:
 		collision_mask &= ~PhysicsLayers.PIT
 	if _birth_push != Vector2.ZERO:
 		knockback.apply(_birth_push, CHILD_PUSH)
+	# Antes de arrancar los estados, así Idle sabe que espera la entrada.
+	_in_intro = is_boss() and play_intro and data.intro != EnemyData.Intro.NONE
 	machine.start()
-	if is_boss():
+	if _in_intro:
+		_start_intro()
+	elif is_boss():
 		EventBus.boss_spawned.emit(self)
+
+
+## Mientras hace su entrada: ni pega ni recibe, no se mueve solo y el jugador espera.
+func in_intro() -> bool:
+	return _in_intro
+
+
+func _start_intro() -> void:
+	_in_intro = true
+	set_airborne(true)
+	var intro := BossIntro.new()
+	intro.setup(self)
+	add_child(intro)
+	EventBus.boss_intro_started.emit(self)
+	EventBus.cinematic_changed.emit(true)
+
+
+## Termina la entrada (al final o salteada): vuelve a ser tocable, aparece su barra y su cartel.
+func finish_intro() -> void:
+	if not _in_intro:
+		return
+	_in_intro = false
+	set_airborne(false)
+	EventBus.cinematic_changed.emit(false)
+	EventBus.boss_spawned.emit(self)
 
 
 func _physics_process(delta: float) -> void:

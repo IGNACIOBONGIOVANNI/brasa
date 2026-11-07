@@ -53,6 +53,7 @@ func _ready() -> void:
 		EventBus.floor_changed.connect(_apply_floor_mood)
 		_apply_floor_mood(floor_controller.floor_index)
 		EventBus.boss_spawned.connect(_on_boss_spawned)
+		EventBus.boss_intro_started.connect(_on_boss_spawned)
 		EventBus.boss_defeated.connect(_on_boss_defeated)
 		EventBus.player_died.connect(_on_player_died)
 		EventBus.room_rule_changed.connect(_on_room_rule_changed)

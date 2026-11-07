@@ -11,6 +11,11 @@ const WALK_SPEED: float = 5.0
 
 
 func physics_update(delta: float) -> void:
+	if player.in_cinematic():
+		# Mira la entrada del jefe: quieto, sin disparar.
+		player.move_toward_velocity(Vector2.ZERO, delta)
+		player.visual.set_walking(false)
+		return
 	player.move_toward_velocity(player.read_move_input() * player.move_speed(), delta)
 	player.visual.set_walking(player.move_velocity.length() > WALK_SPEED)
 	player.leave_steps(delta)

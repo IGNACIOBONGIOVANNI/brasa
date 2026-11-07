@@ -28,7 +28,11 @@ signal room_rule_changed(rule: RoomRule)
 signal darkness_requested(amount: float, fade: float)
 ## Explotó una bomba (FloorController la usa para destapar puertas secretas).
 signal exploded(at: Vector2, radius: float)
-## Apareció un jefe (el HUD muestra su barra de vida).
+## Empezó (true) o terminó (false) una cinemática: el jugador no se mueve y el HUD pone franjas.
+signal cinematic_changed(active: bool)
+## Un jefe empezó su entrada (Game pone su música).
+signal boss_intro_started(boss: Node2D)
+## Apareció un jefe (el HUD muestra su barra de vida). Con entrada, al terminarla.
 signal boss_spawned(boss: Node2D)
 signal boss_defeated(boss: Node2D)
 ## Empezó un piso (índice desde 0).

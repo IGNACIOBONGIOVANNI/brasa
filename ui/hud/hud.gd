@@ -35,6 +35,8 @@ const PEDESTAL_INFO_RECT: Rect2 = Rect2(72, 96, 176, 68)
 var weapon_wheel: WeaponWheel
 ## El cartel con lo que tiene el pedestal más cercano.
 var pedestal_info: PedestalInfo
+## Las franjas negras de las cinemáticas (la entrada de un jefe).
+var cinematic_bars: CinematicBars
 
 
 func _ready() -> void:
@@ -42,6 +44,9 @@ func _ready() -> void:
 	pedestal_info.position = PEDESTAL_INFO_RECT.position
 	pedestal_info.size = PEDESTAL_INFO_RECT.size
 	add_child(pedestal_info)
+	cinematic_bars = CinematicBars.new()
+	cinematic_bars.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(cinematic_bars)
 	weapon_wheel = WeaponWheel.new()
 	weapon_wheel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(weapon_wheel)

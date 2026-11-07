@@ -1005,3 +1005,28 @@ cercas, etc.; pensá muchas opciones, mejor si está relacionado al nivel".
   (Rey Destronado), Ventisca que persigue y Rocas en órbita (Alud) y Centellas y Muro de granizo
   (Cierzo). Al Alud y al Cierzo les tocaron dos para que cada jefe siga teniendo al menos la variedad
   del anterior (lo exige un test).
+
+## Hito 28 — entradas de los jefes (2026-11-06)
+
+- **Qué es una entrada:** una cinemática corta (2,4 a 3 s) hecha con el dibujo del jefe, efectos que ya
+  existían (polvo, estallido, destellos), sacudones, sonidos y un dibujo encima (`BossIntro`, hija del
+  jefe). No hay cámaras ni escenas aparte: la sala ya está a la vista y el jefe aparece en su lugar.
+  Se eligió así porque es lo más simple que se lee bien a 320x180.
+- **Cuándo:** solo en la sala del jefe (`Room` pone `Enemy.play_intro`), cada vez que se entra a pelear
+  (también al seguir una run guardada en esa pelea, que se repite entera). Los minijefes y los enemigos
+  aparecen como siempre.
+- **Mientras dura:** el jefe está en el aire (ni pega ni recibe) y el jugador mira: quieto, sin disparar
+  ni rodar, con franjas negras arriba y abajo que tapan el HUD (`CinematicBars`). La música del jefe
+  arranca con la entrada; la barra y el cartel con su nombre, al terminarla. Después el jefe espera
+  0,5 s antes de moverse.
+- **Saltear:** Enter o rodar, pasados 0,4 s (así el toque con el que se entró no la corta). Lo que se
+  apretó para saltear no se usa después (el buffer del jugador se vacía).
+- **Nunca traba:** si el jefe sale de la escena en medio de la entrada (debug, fin de la run), la
+  cinemática se cierra sola y devuelve la luz.
+- **Una por jefe:** Campanario cae del techo; Rey Carnero son dos ojos en la oscuridad y dos pisotones;
+  Raigón agrieta el piso, revientan raíces y sale de la tierra; Yunque cae entre brasas con un aro de
+  fuego; Tijerón entra girando desde un costado y corta dos veces; Rey Destronado se arma de las
+  sombras; Alud crece desde la nieve que cae; Cierzo se forma en un remolino de viento y cae un rayo.
+- **Arreglo de paso:** el dibujo de la campana armaba su propia posición e ignoraba la altura del salto
+  (`set_lift`) y el tamaño; ahora usa la del cuerpo (`EnemyVisual._body_origin`). Y la transparencia de
+  la entrada va por `FlashComponent.fade`, porque el parpadeo pisaba el `modulate` en cada cuadro.

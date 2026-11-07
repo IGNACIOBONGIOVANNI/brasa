@@ -76,6 +76,7 @@ var aim_direction: Vector2 = Vector2.RIGHT
 ## Velocidad que viene del input, sin el empujón de los golpes.
 var move_velocity: Vector2 = Vector2.ZERO
 var input_buffer: InputBuffer = InputBuffer.new()
+var _in_cinematic: bool = false
 var _aim_with_mouse: bool = true
 var _roll_cooldown_left: float = 0.0
 ## Cuánto hace que se mantiene el botón de cambiar de arma (-1 = suelto o ya resuelto).
@@ -114,6 +115,7 @@ func _ready() -> void:
 	RunState.weapons_changed.connect(_sync_weapon)
 	RunState.stats_changed.connect(_on_stats_changed)
 	EventBus.room_rule_changed.connect(_on_room_rule_changed)
+	EventBus.cinematic_changed.connect(_on_cinematic_changed)
 	mech_armor.died.connect(_on_mech_destroyed)
 	mech_armor.health_changed.connect(_on_mech_armor_changed)
 	_sync_weapon()
@@ -137,6 +139,20 @@ func _physics_process(delta: float) -> void:
 
 func is_dead() -> bool:
 	return health.is_dead()
+
+
+## Durante una cinemática (la entrada de un jefe) no se mueve ni dispara.
+func in_cinematic() -> bool:
+	return _in_cinematic
+
+
+func _on_cinematic_changed(active: bool) -> void:
+	_in_cinematic = active
+	# Lo que se tocó mientras miraba (saltear con rodar) no cuenta después.
+	input_buffer.clear()
+	if active:
+		cancel_bomb()
+		weapon.release()
 
 
 func is_piloting() -> bool:

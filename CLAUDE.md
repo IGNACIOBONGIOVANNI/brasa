@@ -5,7 +5,10 @@ estructura de los roguelites de salas + bullet hell, con contenido 100 % origina
 [docs/LORE.md](docs/LORE.md).
 Plan completo, hitos y arquitectura: [docs/PLAN.md](docs/PLAN.md). Decisiones: [DECISIONS.md](DECISIONS.md).
 
-**Estado:** Hito 27 terminado: los jefes muestran todos sus ataques (`Enemy.next_boss_attack`: una
+**Estado:** Hito 28 terminado: cada jefe entra a su sala con una cinemática propia (`EnemyData.intro`,
+`BossIntro`: cae del techo, sale de la tierra entre raíces, ojos en la oscuridad, entra girando, se
+arma de las sombras o de la nieve, un remolino y un rayo); el jugador mira con franjas negras
+(`CinematicBars`) y se saltea con Enter o rodar. Antes: hito 27: los jefes muestran todos sus ataques (`Enemy.next_boss_attack`: una
 vuelta por fase sin repetir, primero los tipos que no mostró, ataque enseguida al cambiar de fase;
 espera entre ataques 25 % más corta), balas de patrón que rebotan, persiguen o esperan en el aire
 (`BulletPatternData.bounces`, `homing`, `stall_after`) y diez ataques más (ORBITERS, CLOSING_RING,
@@ -392,6 +395,7 @@ entities/enemies/           enemy.tscn/.gd, enemy_visual.gd, states/ (idle, move
                             boss_attack), enemy_blast.gd (explosiones), lob_shell.tscn/.gd (bola en arco o
                             bomba con mecha), boss_strike.tscn/.gd (golpe de jefe avisado), rolling_ball
                             .tscn/.gd (bola de nieve), charged_orb.tscn/.gd (la bola de fuego que se junta),
+                            boss_intro.gd (la entrada de un jefe en su sala),
                             boss/ (BossMove y una subclase por tipo de movimiento, BossMoves elige cuál;
                             boss/hazards/: lo que dejan andando solo: ShockRing, CrownBoomerang, Burrower,
                             ThreadBall, Vortex, OrbitBall)
@@ -422,6 +426,7 @@ ui/menus/                   main_menu, intro_screen, chapter_select, character_s
 ui/hud/                     hud.tscn/.gd, hearts_display, pulse_display, counters_display, active_display,
                             items_display, weapon_display, weapon_wheel (rueda de armas), item_banner,
                             pedestal_info (cartel con lo que tiene el pedestal más cercano),
+                            cinematic_bars (franjas negras de las cinemáticas),
                             boss_bar, danger_overlay,
                             rule_display (la regla de la sala), mech_display (blindaje del armazón)
 ui/minimap/                 minimap.gd
@@ -440,7 +445,7 @@ tests/integration/          player_shooting, bullets, combat, main_flow, floor, 
                             bullet_behaviors, weapons, boss, meta_flow, feedback, inventory, enemy_kinds,
                             weapons_statuses, music, save_slots_flow, special_rooms, traps, mechs,
                             boss_attacks, pathing, run_resume, chapters, mountain, scenery, hito23, hito24,
-                            hito25, hito26, hito27
+                            hito25, hito26, hito27, hito28
 tests/pre_run_hook.gd       antes de los tests: SaveManager solo en memoria, la música apagada y GameRNG con una seed fija
 docs/PLAN.md                plan, arquitectura e hitos
 docs/LORE.md                la historia y dónde está cada texto en el juego
@@ -724,6 +729,17 @@ Detalle y razones en [docs/PLAN.md](docs/PLAN.md). Lo que ya existe:
   `airborne` (`Enemy.set_airborne`: sin cuerpo, sin hurtbox, sin contacto; `EnemyVisual.set_lift`
   lo dibuja arriba de su sombra). Nunca cae en una roca o un foso (`Enemy.landing_spot`). `Game` junta
   la oscuridad del jefe con la de la regla (gana la mayor) y la vuelve a 0 al morir el jefe.
+- **Entradas de jefe:** `EnemyData.intro` (NONE, FALL, FORGE_FALL, EMERGE, STOMP, SPIN_IN, SHADOW,
+  AVALANCHE, GATHER; una distinta por jefe, lo exige un test). La sala del jefe pone
+  `Enemy.play_intro` antes de agregarlo; en `_ready` el jefe queda `in_intro()` (en el aire, Idle
+  espera) y agrega una `BossIntro` (hija, dibuja encima sin sombra): su línea de tiempo mueve el
+  dibujo (`EnemyVisual.set_lift`, `intro_scale` que crece desde los pies, `intro_offset`, la rotación),
+  la transparencia (`FlashComponent.fade`), la luz (`darkness_requested`), sacudones, efectos y
+  sonidos. Avisa `EventBus.boss_intro_started` (Game pone la música del jefe) y
+  `cinematic_changed(true)` (el jugador no se mueve ni dispara: `Player.in_cinematic`, y el HUD pone
+  `CinematicBars`). Al terminar o saltearla (Enter o rodar después de `SKIP_AFTER`) deja todo como
+  estaba y `Enemy.finish_intro` avisa `cinematic_changed(false)` y `boss_spawned` (barra y cartel).
+  Si el jefe sale del árbol antes, `_exit_tree` suelta al jugador y devuelve la luz.
 - **Caminos:** cada `Room` arma un `RoomNav` (A* de 15 x 9 con rocas y fosos tapados; una roca rota se
   destapa) y se lo pasa a sus enemigos (`Enemy.nav`, también a los hijos). `Enemy.route_direction`
   va derecho si `has_clear_path` (un cast del cuerpo contra paredes, rocas y fosos hasta tocar al
