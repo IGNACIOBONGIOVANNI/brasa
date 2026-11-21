@@ -27,3 +27,7 @@ Thumbs.db
 desktop.ini
 .vscode/
 *.tmp
+
+# Respaldo local del historial y configuración local de MCP
+backups/
+.mcp.json
