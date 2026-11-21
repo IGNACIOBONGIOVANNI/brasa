@@ -23,7 +23,7 @@
 
 ```
 mi-roguelite/
-├── project.godot  .gutconfig.json  CLAUDE.md  DECISIONS.md
+├── project.godot  .gutconfig.json  DECISIONS.md
 ├── addons/gut/                  GUT (terceros)
 ├── autoload/                    singletons (ver sección 3)
 ├── core/                        LÓGICA PURA, sin nodos → tests unitarios

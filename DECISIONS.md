@@ -6,7 +6,6 @@ Formato: fecha, decisión, por qué. Lo marcado **(propuesta)** espera el OK del
 ## Paso 0 — entorno (2026-10-30)
 
 - **Ruta de Godot.** `C:\Godot_v4.7.2-stable_win64.exe` es una carpeta que contiene los dos ejecutables.
-  Las rutas exactas están en CLAUDE.md.
 - **Renderer Compatibility (OpenGL 3).** Es un juego 2D pixel art: no necesita Forward+, corre en más
   hardware y el .exe es más liviano. Se puede cambiar después sin tocar lógica.
 - **Ventana 1280x720 (4x de 320x180).** Escala entera exacta en el monitor más común; se puede maximizar.
@@ -807,7 +806,7 @@ enemigos originales y alguna mecánica nueva".
 - **Cargas circulares:** al cargar los capítulos al arrancar, la escena de las balas a veces se
   cargaba primero y quedaba vacía para los scripts que la precargaban (explosiones, golpes de jefe,
   items). Ahora esos scripts la piden con `Bullet.default_scene()` y el enemigo carga su escena al
-  usarla. Va en los gotchas de CLAUDE.md.
+  usarla.
 - **Lo que no**: logros nuevos del capítulo 2 (no había qué desbloquear), hielo resbaloso en el piso
   (el viento ya cumple el papel de lo nuevo del ambiente) y que los personajes del primer capítulo
   jueguen el segundo.

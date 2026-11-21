@@ -8,7 +8,7 @@ extends Resource
 
 enum FireMode { SINGLE, SPREAD, BURST, LASER, ORBITAL, GRENADE, RAIL }
 
-## Si el ícono quedó vacío (el editor de Godot lo borra al guardar un sub-recurso, ver CLAUDE.md), una
+## Si el ícono quedó vacío (el editor de Godot lo borra al guardar un sub-recurso), una
 ## pistola genérica: así el HUD y la Mochila nunca se quedan sin qué dibujar.
 const FALLBACK_ICON: PackedStringArray = ["..#######", "#########", "..#......", "..#......", "........."]
 

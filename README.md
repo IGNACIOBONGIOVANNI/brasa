@@ -56,7 +56,7 @@ También hay un bot de balance que juega runs completas y mide qué tan duros so
 - **Datos separados del código:** items, armas, enemigos, patrones de balas, salas y pisos son recursos `.tres` en `content/`. Agregar contenido es crear un archivo.
 - **Lógica pura aparte de los nodos:** la generación de pisos, el RNG, los stats y el guardado viven en `core/` y se testean sin abrir una escena.
 - **Determinismo:** todo lo que afecta al juego sale de un RNG con streams separados, así que una misma seed da la misma run.
-- Detalle completo en [docs/PLAN.md](docs/PLAN.md), [DECISIONS.md](DECISIONS.md) y [CLAUDE.md](CLAUDE.md).
+- Detalle completo en [docs/PLAN.md](docs/PLAN.md) y [DECISIONS.md](DECISIONS.md).
 
 ## Créditos
 

@@ -28,6 +28,7 @@ desktop.ini
 .vscode/
 *.tmp
 
-# Respaldo local del historial y configuración local de MCP
+# Respaldo local del historial y archivos de trabajo locales
 backups/
 .mcp.json
+CLAUDE.md
