@@ -2,6 +2,8 @@
 
 Roguelite de acción top-down 2D para Windows, hecho en **Godot 4.7** con GDScript tipado. Se juega por salas, con jefes, armas, objetos y mucho _bullet hell_. Todo el contenido es **original**: los gráficos se dibujan por código y la música chiptune se genera por código.
 
+![Capturas de Brasa: pelea contra el Deshollinador, la tienda, el jefe Campanario y la boca del Cenicero](docs/img/capturas.png)
+
 > **La historia en una frase:** debajo del pueblo de Campana Honda se apagó la Fragua Madre, y Brasa, la última chispa que salió de ella, baja a buscar el fuego. Más en [docs/LORE.md](docs/LORE.md).
 
 **Estado:** en desarrollo activo (29 hitos completados, v0.0.1).
